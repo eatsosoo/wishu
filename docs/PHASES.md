@@ -1,6 +1,6 @@
 # Our Wish — implementation phases
 
-`MASTER_SPEC.md` is the product specification. `assets/reference-design.png` is the visual source of truth, including the user's instruction to preserve all eight designs. Do not substitute new artwork or redesign the screens.
+`MASTER_SPEC.md` is the product specification. `assets/reference-design.png` is the visual source of truth for all eight layouts, colors and artwork direction. After the user reported blurry screenshot crops, standalone high-resolution assets were reconstructed from this reference. Preserve screen layouts and match source subjects; see `ARTWORK.md` for asset provenance and detail limitations.
 
 ## Phase 1–3
 
@@ -41,4 +41,4 @@ After a stable web MVP: native builds, push notifications, haptics and store rel
 
 ## Artwork fidelity
 
-`ReferenceArt` uses a clipped image viewport to display the original illustration and photo regions without regenerating or altering their pixels. UI text, forms, cards and navigation are real components. The supplied raster screenshot limits the resolution of these regions. Replace only the region source with original full-resolution asset exports when available.
+`Artwork` renders standalone high-resolution images from `assets/artwork/`. Screenshot viewports, coordinate offsets and enlargement of the original eight-screen image have been removed. At the user's request to fix blurry images, individual assets were reconstructed from the reference; small details can differ. UI text, forms, cards and navigation remain real components. Original full-resolution exports can replace the corresponding standalone files later.

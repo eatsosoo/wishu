@@ -1,3 +1,4 @@
+import { useAppTheme } from '../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Plus, Gift, ChevronDown } from 'lucide-react-native';
@@ -7,10 +8,11 @@ import { Body, BottomSheet, EmptyState, FilterChips, Heading, IconButton } from 
 import { WishCard } from '../components/Cards';
 import { ClayObject } from '../components/Artwork';
 import { useWishStore } from '../hooks/use-wish-store';
-import { colors } from '../constants/theme';
 import type { CategoryFilter, PersonId } from '../types/domain';
 
 export default function WishesScreen() {
+  const { colors, t } = useAppTheme();
+
   const { owner: requestedOwner } = useLocalSearchParams<{ owner?: string }>();
   const store = useWishStore();
   const owner: PersonId = requestedOwner === 'minh' ? 'minh' : 'linh';
@@ -20,7 +22,7 @@ export default function WishesScreen() {
   const wishes = store.wishes.filter(wish => wish.createdBy === owner && (filter === 'Tất cả' || wish.category === filter));
   return <AppScreen navigation contentStyle={{ paddingHorizontal: 17 }}>
     <View className="flex-row items-start justify-between" style={{ marginBottom: 17, paddingHorizontal: 6 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Chọn hũ điều ước" onPress={() => setChooseJar(true)} style={{ paddingTop: 13, flex: 1 }}><Heading style={{ color: '#261D24', fontSize: 28 }}>Hũ điều ước{ '\n' }của {name} ♡</Heading><ChevronDown size={13} color={colors.muted} style={{ marginTop: 3 }} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Chọn hũ điều ước" onPress={() => setChooseJar(true)} style={{ paddingTop: 13, flex: 1 }}><Heading style={{ color: t('#261D24'), fontSize: 28 }}>Hũ điều ước{ '\n' }của {name} ♡</Heading><ChevronDown size={13} color={colors.muted} style={{ marginTop: 3 }} /></Pressable>
       <ClayObject name="jar" width={94} height={101} />
       <IconButton icon={Plus} filled label="Thêm điều ước mới" onPress={() => router.push('/wish/new')} />
     </View>
