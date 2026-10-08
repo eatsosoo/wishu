@@ -31,12 +31,17 @@ All added packages are resolved with `expo install` for SDK compatibility. `npm 
 - `/wish/bear/complete`: completion date, local photos and note.
 - `/memories`: memory grid and category filters.
 - `/us`: couple profile, anniversary, profile switching and reset.
+- `/notifications`: recipient inbox, unread status and native push permissions.
+- `/gift/[id]`: animated gift lid, flying ribbons/confetti and the linked memory.
+- `/pair`: authenticated accounts create or join a shared couple space.
 
-First launch shows a three-step onboarding, then `/login` offers the demo profiles Minh and Linh. The onboarding flag and selected demo session persist locally through AsyncStorage. No passwords or real authentication are used until Supabase is connected. Sign out in **Của chúng ta → Cài đặt → Đăng xuất**; protected routes return to login and session mock data resets. Sign-in does not repeat onboarding. Switch profiles in Settings to review the owner perspective. A wish creator never sees their partner's preparation status in the UI. This is mock isolation, not backend security; enforce it with RLS in Phase 7.
+First launch shows a three-step onboarding. Without cloud environment variables, `/login` offers demo profiles Minh and Linh. The selected session, wishes, memories and notifications persist locally through AsyncStorage, including across logout and refresh. Switch profiles in Settings to review the recipient perspective. **Khôi phục dữ liệu mẫu** explicitly resets the demo data.
+
+With Supabase configured, login uses email/password and `/pair` connects two authenticated accounts. Shared state is updated by an authenticated Edge Function; database policies and filtered RPCs protect recipient notifications and private preparations. Completion atomically creates a memory, notification and push outbox. See [Supabase/EAS setup and two-device verification](docs/PUSH_SETUP.md). Real push delivery requires deploying that backend and installing a configured native build.
 
 Anniversary, optional wish date, and completion date use a shared calendar picker with month/year selection rather than text entry.
 
-Mock changes last for the current app session. Refresh resets the fixtures. The sample date is frozen at 14/06/2025 so the reference's 486-day counter can be reviewed. Selected images are local preview URIs, never uploads.
+The sample day counter is frozen at 14/06/2025 for visual review. Completion defaults to today's date. Selected images remain local in demo mode; cloud mode uploads them to private Supabase Storage and reads them through signed URLs.
 
 ## Structure
 
@@ -44,4 +49,4 @@ Mock changes last for the current app session. Refresh resets the fixtures. The 
 
 Illustrations and sample photos are standalone images under `assets/artwork/`, rendered directly with `contain` (3D objects) or `cover` (photos). No screen crops or coordinate offsets are used at runtime. The original screenshot and earlier enhancement remain reference material only. High-resolution assets were reconstructed using ImageGen to match the source; small details can differ from the screenshot. Original exported assets can replace individual files without changing the UI. See [artwork notes](docs/ARTWORK.md).
 
-Review and approve the UI before Phase 4 (Supabase). See [phase tracking](docs/PHASES.md).
+See [phase tracking](docs/PHASES.md) for the original roadmap and [push setup](docs/PUSH_SETUP.md) for the implemented cloud notification flow.

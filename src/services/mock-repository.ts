@@ -1,12 +1,23 @@
 import { createMockSnapshot } from './mock-data';
 import type { WishRepository } from './repository';
 import type { MockSnapshot } from '../types/domain';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Deliberately session-only during UI review. Refresh restores the screenshot fixtures.
-// A Supabase repository can later implement the same interface.
+// The demo remains usable without cloud credentials, including after a reload.
 export class MockWishRepository implements WishRepository {
   private snapshot = createMockSnapshot();
-  async load(): Promise<MockSnapshot> { return JSON.parse(JSON.stringify(this.snapshot)) as MockSnapshot; }
-  async save(snapshot: MockSnapshot) { this.snapshot = JSON.parse(JSON.stringify(snapshot)) as MockSnapshot; }
-  async reset() { this.snapshot = createMockSnapshot(); return this.load(); }
+  private writes = Promise.resolve();
+  async load(): Promise<MockSnapshot> {
+    const saved = await AsyncStorage.getItem('ourwish:snapshot:v1');
+    if (saved) { const value = JSON.parse(saved) as MockSnapshot; this.snapshot = { ...value, notifications: value.notifications ?? [] }; }
+    return this.snapshot;
+  }
+  async save(snapshot: MockSnapshot) {
+    const serialized = JSON.stringify(snapshot);
+    const write = this.writes.catch(() => {}).then(() => AsyncStorage.setItem('ourwish:snapshot:v1', serialized));
+    this.writes = write;
+    await write;
+    this.snapshot = snapshot;
+  }
+  async reset() { const seed = createMockSnapshot(); await this.save(seed); return seed; }
 }

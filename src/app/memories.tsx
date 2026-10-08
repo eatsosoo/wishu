@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ChevronLeft, ChevronRight, ChevronDown, Heart } from 'lucide-react-native';
-import { router } from 'expo-router';
-import { AppScreen } from '../components/AppScreen';
+import { router, useLocalSearchParams } from 'expo-router';
+import { AppScreen, ScreenTitle } from '../components/AppScreen';
 import { PhotoView } from '../components/Artwork';
 import { Body, BottomSheet, EmptyState, FilterChips, Heading, IconButton, SecondaryButton } from '../components/ui';
 import { fonts } from '../constants/theme';
@@ -13,6 +13,7 @@ import type { CategoryFilter, Memory } from '../types/domain';
 export default function Memories() {
   const { colors } = useAppTheme();
   const store = useWishStore();
+  const { giftCreated } = useLocalSearchParams<{ giftCreated?: string }>();
   const latestDate = store.memories.reduce((latest, memory) => memory.completedAt > latest ? memory.completedAt : latest, '');
   const [month, setMonth] = useState(() => new Date(`${latestDate || new Date().toISOString().slice(0, 10)}T12:00:00`));
   const [filter, setFilter] = useState<CategoryFilter>('Tất cả');
@@ -43,7 +44,8 @@ export default function Memories() {
     router.push({ pathname: '/memory-day/[date]', params: { date, category: filter } });
   }
   return <AppScreen navigation contentStyle={{ paddingHorizontal: 20 }}>
-    <Heading>Kỷ niệm</Heading><Body style={{ color: colors.muted, marginTop: 5, marginBottom: 19 }}>Mỗi ngày, một chút thương để nhớ ♡</Body>
+    {giftCreated === 'yes' ? <View accessibilityRole="alert" style={{ padding: 16, backgroundColor: colors.rose, borderRadius: 18, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Đã lưu kỷ niệm và tạo thông báo cho người ấy 🎁</Body><Body style={{ color: colors.muted, fontSize: 12 }}>Push sẽ gửi tới thiết bị người ấy đã bật thông báo.</Body></View> : null}
+    <ScreenTitle title="Kỷ niệm" /><Body style={{ color: colors.muted, marginTop: -8, marginBottom: 19 }}>Mỗi ngày, một chút thương để nhớ ♡</Body>
     <FilterChips value={filter} onChange={value => { setFilter(value); setEmptyDay(null); }} options={['Tất cả', 'Quà tặng', 'Du lịch', 'Trải nghiệm', 'Khoảnh khắc']} />
     <View style={{ marginTop: 20, borderRadius: 28, padding: 13, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>

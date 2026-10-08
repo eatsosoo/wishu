@@ -6,6 +6,7 @@ const assets: Record<ArtName, { source: ImageSourcePropType; aspectRatio: number
   home: { source: require('../../assets/artwork/home.png'), aspectRatio: 299 / 322, clay: true },
   couple: { source: require('../../assets/artwork/couple.png'), aspectRatio: 244 / 153, clay: true },
   jar: { source: require('../../assets/artwork/jar.png'), aspectRatio: 81 / 78, clay: true },
+  jarOpen: { source: require('../../assets/artwork/jar-open.png'), aspectRatio: 1, clay: true },
   gift: { source: require('../../assets/artwork/gift.png'), aspectRatio: 196 / 115, clay: true },
   openGift: { source: require('../../assets/artwork/openGift.png'), aspectRatio: 215 / 123, clay: true },
   camera: { source: require('../../assets/artwork/camera.png'), aspectRatio: 255 / 103, clay: true },

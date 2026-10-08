@@ -1,5 +1,5 @@
 import { useAppTheme } from '../../../hooks/use-app-theme';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ChevronLeft, Plus, X } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,10 +19,15 @@ export default function CompleteWish() {
   const store = useWishStore();
   const wish = store.wishes.find(item => item.id === id);
   const preparation = store.preparations.find(item => item.wishId === id && item.status === 'preparing');
-  const [date, setDate] = useState('20/10/2024');
-  const [note, setNote] = useState('Anh tặng mình vào sinh nhật 26 tuổi.\nYêu lắm ♡');
-  const [photos, setPhotos] = useState<Photo[]>([{ art: 'memoryOne' }, { art: 'memoryTwo' }, { art: 'memoryThree' }]);
+  const [date, setDate] = useState(() => {
+    const today = new Date();
+    return `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+  });
+  const [note, setNote] = useState('');
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
 
   if (!wish || !preparation) return <AppScreen><EmptyState title="Mình chọn một điều đang chuẩn bị nhé" description="Chỉ bạn mới có thể hoàn thành bất ngờ mình đang chuẩn bị." action="Đang chuẩn bị" onAction={() => router.replace('/preparing')} /></AppScreen>;
   async function addPhotos() {
@@ -31,12 +36,15 @@ export default function CompleteWish() {
       if (!result.canceled) setPhotos(previous => [...previous, ...result.assets.map(asset => ({ uri: asset.uri }))].slice(0, 8));
     } catch { setError('Chưa chọn được ảnh. Bạn thử lại nhé.'); }
   }
-  function save() {
+  async function save() {
+    if (saving.current) return;
     const completedAt = parseDate(date);
-    if (!completedAt) return;
-
-    store.completeWish({ wishId: id, completedAt, note: note.trim(), photos });
-    router.replace('/memories');
+    if (!completedAt) { setError('Nhập ngày hoàn thành hợp lệ nhé.'); return; }
+    saving.current = true; setBusy(true); setError('');
+    const success = await store.completeWish({ wishId: id, completedAt, note: note.trim(), photos });
+    saving.current = false; setBusy(false);
+    if (success) router.replace({ pathname: '/memories', params: { giftCreated: 'yes' } });
+    else setError('Chưa lưu và tạo thông báo được. Bạn thử lại nhé.');
   }
   return <AppScreen>
     <View><ClayObject name="openGift" width={275} height={157} style={{ alignSelf: 'center' }} /><View style={{ position: 'absolute', top: 0, left: 0 }}><IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/preparing')} /></View></View>
@@ -49,7 +57,8 @@ export default function CompleteWish() {
       </View></View>
       <AppTextarea label="Chia sẻ cảm xúc (tùy chọn)" value={note} onChangeText={setNote} maxLength={2000} />
       {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
-      <PrimaryButton onPress={save}>Lưu vào kỷ niệm ♡</PrimaryButton>
+      {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
+      <PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
     </View>
   </AppScreen>;
 }

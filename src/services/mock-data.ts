@@ -1,6 +1,7 @@
 import type { MockSnapshot } from '../types/domain';
 
 const seedSnapshot = (): MockSnapshot => ({
+  notifications: [],
   couple: {
     name: 'Minh & Linh', anniversaryDate: '2024-02-14',
     members: [{ id: 'minh', name: 'Minh' }, { id: 'linh', name: 'Linh' }],

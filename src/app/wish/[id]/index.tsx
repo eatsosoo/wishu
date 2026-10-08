@@ -21,10 +21,19 @@ export default function WishDetail() {
   const [confirm, setConfirm] = useState(false);
   const [menu, setMenu] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   if (!wish) return <AppScreen><EmptyState title="Điều ước chưa có ở đây" description="Mình trở lại hũ và chọn một điều ước khác nhé." action="Về hũ điều ước" onAction={() => router.replace('/wishes')} /></AppScreen>;
   const ownWish = wish.createdBy === store.actor;
   async function openReference() {
     try { await Linking.openURL(wish!.referenceUrl); } catch { setError('Chưa mở được liên kết. Bạn thử lại nhé.'); }
+  }
+  async function prepare() {
+    if (!wish || busy) return;
+    setBusy(true);
+    const success = await store.prepareWish(wish.id);
+    setBusy(false);
+    if (success) { setConfirm(false); router.push('/preparing'); }
+    else setError('Chưa bắt đầu chuẩn bị được. Bạn thử lại nhé.');
   }
   return <AppScreen contentStyle={{ paddingHorizontal: 0, paddingTop: 0 }}>
     <View>{'art' in wish.cover && wish.cover.art === 'bear' ? <BearHero height={350} /> : <PhotoView photo={wish.cover} height={350} label={wish.title} />}
@@ -42,7 +51,7 @@ export default function WishDetail() {
       {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary, marginTop: 10 }}>{error}</Body>}
       <View style={{ marginTop: 17 }}>{ownWish ? <Body style={{ textAlign: 'center', color: colors.muted }}>Một điều nhỏ mình đang mong chờ ♡</Body> : <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton>}</View>
     </View>
-    <BottomSheet visible={confirm} onClose={() => setConfirm(false)} title="Một bất ngờ dành cho người ấy"><Body style={{ color: colors.muted, marginBottom: 22 }}>Điều ước này sẽ nằm trong danh sách riêng của bạn. Người ấy chỉ biết khi bất ngờ trở thành hiện thực ♡</Body><PrimaryButton onPress={() => { store.prepareWish(wish.id); setConfirm(false); router.push('/preparing'); }}>Bắt đầu chuẩn bị 🎁</PrimaryButton></BottomSheet>
+    <BottomSheet visible={confirm} onClose={() => setConfirm(false)} title="Một bất ngờ dành cho người ấy"><Body style={{ color: colors.muted, marginBottom: 22 }}>Điều ước này sẽ nằm trong danh sách riêng của bạn. Người ấy chỉ biết khi bất ngờ trở thành hiện thực ♡</Body>{store.storageError ? <Body accessibilityRole="alert" style={{ color: colors.primary, marginBottom: 12 }}>{store.storageError}</Body> : null}<PrimaryButton disabled={busy} onPress={() => void prepare()}>{busy ? 'Đang lưu…' : 'Bắt đầu chuẩn bị 🎁'}</PrimaryButton></BottomSheet>
     <BottomSheet visible={menu} onClose={() => setMenu(false)} title="Điều ước nhỏ"><View style={{ gap: 12 }}><SecondaryButton onPress={() => { setMenu(false); router.push('/preparing'); }}>Những điều mình đang chuẩn bị</SecondaryButton><SecondaryButton onPress={() => { setMenu(false); router.replace('/wishes'); }}>Về hũ điều ước</SecondaryButton></View></BottomSheet>
   </AppScreen>;
 }

@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { FlatList, PanResponder, Platform, Pressable, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, PanResponder, Platform, Pressable, View, type PanResponderInstance } from 'react-native';
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react-native';
 import { PhotoView } from './Artwork';
 import { Body, CategoryChip, EmptyState, Heading, IconButton } from './ui';
@@ -19,7 +19,10 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
   const slides = useMemo(() => memories.flatMap(memory => memory.photos.map((photo, i) => ({ key: `${memory.id}:${i}`, photo, memory }))), [memories]);
   const currentIndex = Math.min(index, Math.max(0, slides.length - 1));
   const active = slides[currentIndex];
-  const mouseDrag = useMemo(() => PanResponder.create({
+  const [mouseDrag, setMouseDrag] = useState<PanResponderInstance | null>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    setMouseDrag(PanResponder.create({
     onMoveShouldSetPanResponder: (_, gesture) => Platform.OS === 'web' && Math.abs(gesture.dx) > 8 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
     onPanResponderGrant: () => { dragStart.current = scrollOffset.current; },
     onPanResponderMove: (_, gesture) => {
@@ -39,7 +42,8 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
       list.current?.scrollToOffset({ offset: destination * width, animated: true });
       setIndex(destination);
     },
-  }), [slides.length, width]);
+    }));
+  }, [slides.length, width]);
   function jump(next: number) {
     const bounded = Math.max(0, Math.min(next, slides.length - 1));
     list.current?.scrollToOffset({ offset: bounded * width, animated: true });
@@ -48,7 +52,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
   if (!active) return <EmptyState title="Chưa có ảnh trong ngày này" description="Mình lưu thêm một khoảnh khắc nhé ♡" />;
   const dotsStart = Math.max(0, Math.min(currentIndex - 3, slides.length - 7));
   return <View style={{ gap: 19 }}>
-    <View {...(Platform.OS === 'web' ? mouseDrag.panHandlers : {})} onLayout={event => setWidth(event.nativeEvent.layout.width)} style={{ width: '100%', aspectRatio: 1, borderRadius: 28, overflow: 'hidden', backgroundColor: colors.rose }}>
+    <View {...(Platform.OS === 'web' ? mouseDrag?.panHandlers : {})} onLayout={event => setWidth(event.nativeEvent.layout.width)} style={{ width: '100%', aspectRatio: 1, borderRadius: 28, overflow: 'hidden', backgroundColor: colors.rose }}>
       {width > 0 && <FlatList key={width} ref={list} data={slides} horizontal pagingEnabled showsHorizontalScrollIndicator={false} bounces={false}
         initialNumToRender={1} maxToRenderPerBatch={3} windowSize={3} initialScrollIndex={currentIndex}
         keyExtractor={slide => slide.key} getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}

@@ -1,0 +1,12 @@
+project_id = "wishu"
+
+[edge_runtime]
+policy = "per_worker"
+
+[functions.wish-action]
+# Each function validates the bearer token with Auth.getUser itself. This also
+# supports Supabase projects using the newer asymmetric JWT signing keys.
+verify_jwt = false
+
+[functions.deliver-gifts]
+verify_jwt = false

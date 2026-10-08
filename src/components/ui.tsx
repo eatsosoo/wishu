@@ -56,15 +56,18 @@ export function FilterChips({ value, onChange, options = ['Tất cả', 'Quà t�
     </Pressable>)}
   </ScrollView>;
 }
-export function AppInput({ label, error, trailing, style, multiline, ...props }: TextInputProps & { label?: string; error?: string; trailing?: ReactNode }) {
+export function AppInput({ label, error, trailing, style, multiline, clearable = true, value, onChangeText, editable, ...props }: TextInputProps & { label?: string; error?: string; trailing?: ReactNode; clearable?: boolean }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
   return <View style={{ gap: 7 }}>
     {!!label && <Body style={s.label}>{label}</Body>}
     <View style={[s.inputWrap, !!error && { borderColor: t('#C85D73') }]}>
-      <TextInput accessibilityLabel={label} placeholderTextColor={t("#B1969F")} {...props} multiline={multiline} style={[s.input, multiline && { minHeight: 78, textAlignVertical: 'top', paddingTop: 12 }, style]} />
-      {trailing && <View style={{ paddingRight: 14 }}>{trailing}</View>}
+      <TextInput accessibilityLabel={label} placeholderTextColor={t("#B1969F")} {...props} value={value} onChangeText={onChangeText} editable={editable} multiline={multiline} style={[s.input, multiline && { minHeight: 78, textAlignVertical: 'top', paddingTop: 12 }, style]} />
+      {(clearable && !!value && !!onChangeText && editable !== false || trailing) && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: 7 }}>
+        {clearable && !!value && !!onChangeText && editable !== false && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label ?? 'nội dung'}`} onPress={() => onChangeText('')} hitSlop={5} style={s.clearButton}><X size={15} color={t('#987E87')} strokeWidth={2} /></Pressable>}
+        {trailing}
+      </View>}
     </View>
     {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary, fontSize: 12 }}>{error}</Body>}
   </View>;
@@ -103,7 +106,8 @@ export function EmptyState({ title, description, action, onAction }: { title: st
 }
 export function LoadingState() {
   const { colors } = useAppTheme();
- return <View className="flex-1 items-center justify-center bg-background"><ActivityIndicator color={colors.primary} /></View>; }
+  return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}><ActivityIndicator color={colors.primary} /></View>;
+}
 const baseStyles = StyleSheet.create({
   primary: { borderRadius: 999, minHeight: 59, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(130,40,65,0.14)' },
   secondary: { borderRadius: 999, minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#F5E5E5' },
@@ -113,6 +117,7 @@ const baseStyles = StyleSheet.create({
   label: { color: '#967784', fontSize: 14, lineHeight: 21 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9F7', borderWidth: 1, borderColor: '#F1E3E1', borderRadius: 17, minHeight: 45 },
   input: { flex: 1, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 14, color: '#704654' },
+  clearButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7EDEE' },
   overlay: { flex: 1, backgroundColor: 'rgba(73,37,47,0.25)', justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 430, padding: 24, paddingBottom: 38, borderTopLeftRadius: 32, borderTopRightRadius: 32, backgroundColor: colors.background },
   handle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 999, backgroundColor: '#DBC7CB', marginBottom: 18 },

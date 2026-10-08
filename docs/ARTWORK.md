@@ -11,6 +11,8 @@ These are reconstructed assets and can differ in small details from original exp
 | home.png | 1208 × 1302 | Couple with two wish jars |
 | couple.png | 1586 × 992 | Couple profile, onboarding, login |
 | jar.png | 1254 × 1254 | Wish-list header |
+| jar-open.png | 1254 × 1254 | Open wish jar body for the add-wish reveal |
+| jar-lid.png | 1254 × 1254 | Separate animated lid and bow for the add-wish reveal |
 | gift.png | 1536 × 1024 | Preparing screen |
 | openGift.png | 1586 × 992 | Completion screen and onboarding |
 | camera.png | 1774 × 887 | Add-wish banner |
@@ -41,3 +43,14 @@ All prompts supplied the original screenshot as the reference and explicitly req
 ### Home reframing prompt
 
 Edit this existing illustration by reframing ONLY. Preserve both characters, jars, colors, shapes, poses, expressions and all details exactly. Remove the excess empty space above heads and below jar bases and remove all background glow/haze. Output a tightly framed nearly square portrait canvas, target aspect ratio 299:322, ideally 1536x1664, with the two entire glass jars and two characters visible, 3% transparent margin left/right/top/bottom. Top of heads/heart near top 3% and jar bases near bottom 96%. Fully transparent background outside the actual objects, no colored backdrop or haze. No text, no labels, no UI. Improve no other aspect: this is only tighter framing of the supplied standalone image.
+
+## Layered gift reveal
+
+Tool: built-in ImageGen, using the user's supplied cream/coral 3D gift as the edit target. The original `gift.png` stays available. `GiftReveal.tsx` overlays two standalone 1536 × 1024 transparent PNGs at matching canvas coordinates and animates the lid with native-driver transforms. These are 2D layers of 3D artwork, not a real-time 3D model. Confetti uses animated transforms and opacity; reduced motion shows the open gift without animation. Both images load before playback starts.
+
+- **gift-body.png:** Extract the lower open gift box body. Preserve cream rounded clay material, coral ribbons, pink front heart, small hearts, camera, lighting, scale and original canvas positions. Remove the entire bow and lid and reconstruct a hollow interior with a thick cream rim. Transparent background, no text or extra objects. Follow-up: remove broad external haze and retain a tight contact shadow while preserving the object and framing.
+- **gift-lid.png:** Extract only the cream lid, coral ribbons and large bow. Remove the body, front heart, small hearts and ground shadows. Preserve the original 1536 × 1024 canvas, perspective, scale and coordinates. Reconstruct cream surface behind the removed front heart. Transparent background; one layer only, no text. A subsequent reframing variant was discarded because it changed the lid scale.
+
+## Wish-jar reveal
+
+The add-wish success screen layers `jar-open.png` and `jar-lid.png`: the lid lifts, the star drops into the jar, then the lid closes. Both images match the existing `jar.png` 3D style and use transparent backgrounds.

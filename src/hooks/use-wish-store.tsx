@@ -1,57 +1,125 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createMockSnapshot } from '../services/mock-data';
-import { MockWishRepository } from '../services/mock-repository';
-import * as actions from '../services/wish-actions';
-import type { CompletionInput, MockSnapshot, PersonId, WishInput } from '../types/domain';
+import type { Session } from '@supabase/supabase-js';
+import { createEmptySnapshot } from '../services/empty-snapshot';
+import { privatePreparations } from '../services/wish-actions';
+import { cloudCommand, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
+import type { CompletionInput, MockSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
 
-const repository = new MockWishRepository();
 function useStoreValue() {
-  const [snapshot, setSnapshot] = useState(createMockSnapshot);
+  const [snapshot, setSnapshot] = useState(createEmptySnapshot);
+  const snapshotRevision = useRef(0);
   const [actor, setActor] = useState<PersonId>('minh');
   const [ready, setReady] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
-  const [storageError, setStorageError] = useState('');
+  const [session, setSession] = useState<Session | null>(null);
+  const [cloudCouple, setCloudCouple] = useState<CloudCouple | null>(null);
+  const [storageError, setStorageError] = useState(supabase ? '' : 'Chưa cấu hình kết nối Supabase.');
+  const commands = useRef(Promise.resolve(true));
+  const generation = useRef(0);
+  const apply = useCallback((next: MockSnapshot) => { snapshotRevision.current++; setSnapshot(next); }, []);
+  const applyCloud = useCallback((next: CloudCouple) => {
+    setCloudCouple(next); setActor(next.actor); apply(next.snapshot);
+  }, [apply]);
+  const refresh = useCallback(async () => {
+    const revision = generation.current;
+    const startedAt = snapshotRevision.current;
+    try {
+      const next = await loadCloudCouple();
+      if (generation.current !== revision || snapshotRevision.current !== startedAt) return;
+      if (next) applyCloud(next);
+      else { setCloudCouple(null); apply(createEmptySnapshot()); }
+    } catch { setStorageError('Chưa đồng bộ được với người ấy. Bạn kiểm tra kết nối nhé.'); }
+  }, [applyCloud, apply]);
+
   useEffect(() => {
     let active = true;
-    AsyncStorage.multiGet(['ourwish:onboarded', 'ourwish:demo-session']).then(values => {
+    async function restore() {
+      try {
+        const onboardedValue = await AsyncStorage.getItem('ourwish:onboarded');
+        if (!active) return;
+        setOnboarded(onboardedValue === 'yes');
+        if (supabase) {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (!active) return;
+          setSession(data.session); setSignedIn(!!data.session);
+          if (data.session) await refresh();
+        }
+      } catch { if (active) setStorageError('Chưa đọc được dữ liệu đã lưu. Bạn thử lại nhé.'); }
+      finally { if (active) setReady(true); }
+    }
+    void restore();
+    const listener = supabase?.auth.onAuthStateChange((_event, next) => {
       if (!active) return;
-      setOnboarded(values[0][1] === 'yes');
-      const person = values[1][1];
-      if (person === 'minh' || person === 'linh') { setActor(person); setSignedIn(true); }
-    }).catch(() => { if (active) setStorageError('Không thể lưu phiên trên thiết bị này.'); }).finally(() => { if (active) setReady(true); });
-    return () => { active = false; };
-  }, []);
+      setSession(next); setSignedIn(!!next);
+      if (!next) { generation.current++; setCloudCouple(null); apply(createEmptySnapshot()); }
+    });
+    return () => { active = false; listener?.data.subscription.unsubscribe(); };
+  }, [apply, refresh]);
+
+  useEffect(() => {
+    if (!supabase || !session) return;
+    const client = supabase;
+    void Promise.resolve().then(refresh);
+    const channel = client.channel(`gifts:${session.user.id}`).on('postgres_changes', {
+      event: '*', schema: 'public', table: 'gift_notifications', filter: `recipient_id=eq.${session.user.id}`,
+    }, () => void refresh()).subscribe();
+    const foreground = AppState.addEventListener('change', state => {
+      if (state === 'active') { client.auth.startAutoRefresh(); void refresh(); }
+      else client.auth.stopAutoRefresh();
+    });
+    const timer = setInterval(() => { if (AppState.currentState === 'active') void refresh(); }, 15000);
+    return () => { clearInterval(timer); foreground.remove(); void client.removeChannel(channel); };
+  }, [session, refresh]);
+
   async function finishOnboarding() {
     try { await AsyncStorage.setItem('ourwish:onboarded', 'yes'); } catch { setStorageError('Không thể ghi nhớ màn chào trên thiết bị này.'); }
     setOnboarded(true);
   }
-  async function login(person: PersonId) {
-    try { await AsyncStorage.setItem('ourwish:demo-session', person); } catch { setStorageError('Phiên này sẽ không được lưu khi đóng ứng dụng.'); }
-    setActor(person); setSignedIn(true);
-  }
   async function logout() {
-    try { await AsyncStorage.removeItem('ourwish:demo-session'); } catch { setStorageError('Không thể xóa phiên đã lưu. Bạn thử lại nhé.'); return; }
-    setSignedIn(false); setActor('minh'); setSnapshot(createMockSnapshot());
+    try {
+      if (supabase) {
+        const { unregisterPush } = await import('../services/push');
+        await unregisterPush();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
+      generation.current++; setSignedIn(false); setActor('minh'); setCloudCouple(null);
+      apply(createEmptySnapshot());
+    } catch { setStorageError('Chưa đăng xuất được. Bạn thử lại nhé.'); }
   }
-  function update(transform: (previous: MockSnapshot) => MockSnapshot) {
-    setSnapshot(previous => {
-      const next = transform(previous);
-      void repository.save(next);
-      return next;
+  function dispatch(command: WishCommand): Promise<boolean> {
+    const revision = generation.current;
+    const result = commands.current.then(async () => {
+      if (generation.current !== revision) return false;
+      try {
+        const next = await cloudCommand(command);
+        if (generation.current !== revision) return false;
+        applyCloud(next);
+        setStorageError(''); return true;
+      } catch (error) {
+        setStorageError(error instanceof Error ? error.message : 'Chưa lưu được thay đổi. Bạn thử lại nhé.');
+        return false;
+      }
     });
+    commands.current = result;
+    return result;
   }
   return {
-    ...snapshot, actor, setActor: (person: PersonId) => { void login(person); }, ready, onboarded, signedIn, finishOnboarding, login, logout, storageError,
-    preparations: actions.privatePreparations(snapshot, actor),
-    addWish: (input: WishInput) => update(previous => actions.addWish(previous, input)),
-    prepareWish: (wishId: string) => update(previous => actions.prepareWish(previous, wishId, actor)),
-    completeWish: (input: CompletionInput) => update(previous => actions.completeWish(previous, input, actor)),
-    toggleWishFavorite: (id: string) => update(previous => ({ ...previous, wishes: previous.wishes.map(wish => wish.id === id ? { ...wish, favorite: !wish.favorite } : wish) })),
-    toggleMemoryFavorite: (id: string) => update(previous => ({ ...previous, memories: previous.memories.map(memory => memory.id === id ? { ...memory, favorite: !memory.favorite } : memory) })),
-    updateCouple: (name: string, anniversaryDate: string) => update(previous => ({ ...previous, couple: { ...previous.couple, name, anniversaryDate } })),
-    reset: () => { const seed = createMockSnapshot(); setSnapshot(seed); void repository.reset(); },
+    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, storageError,
+    cloudEnabled: !!supabase, paired: !!cloudCouple, cloudCouple, session, refresh,
+    preparations: privatePreparations(snapshot, actor),
+    notifications: snapshot.notifications.filter(item => item.recipient === actor),
+    addWish: (input: WishInput) => dispatch({ kind: 'add', input }),
+    prepareWish: (id: string) => dispatch({ kind: 'prepare', id }),
+    completeWish: (input: CompletionInput) => dispatch({ kind: 'complete', input }),
+    markGiftRead: (id: string) => dispatch({ kind: 'read', id }),
+    toggleWishFavorite: (id: string) => dispatch({ kind: 'wishFavorite', id }),
+    toggleMemoryFavorite: (id: string) => dispatch({ kind: 'memoryFavorite', id }),
+    updateCouple: (name: string, anniversaryDate: string) => dispatch({ kind: 'couple', name, anniversaryDate }),
   };
 }
 const StoreContext = createContext<ReturnType<typeof useStoreValue> | null>(null);

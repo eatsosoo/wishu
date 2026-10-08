@@ -2,8 +2,9 @@ export const categories = ['Quà tặng', 'Du lịch', 'Ăn uống', 'Trải ngh
 export type Category = typeof categories[number];
 export type CategoryFilter = Category | 'Tất cả';
 export type PersonId = 'minh' | 'linh';
-export type ArtName = 'home' | 'couple' | 'jar' | 'gift' | 'openGift' | 'camera' | 'bear' | 'bearPortrait' | 'bearReference' | 'travel' | 'travelMemory' | 'photobooth' | 'concert' | 'photoMemory' | 'memoryOne' | 'memoryTwo' | 'memoryThree';
-export type Photo = { art: ArtName } | { uri: string };
+export const artNames = ['home', 'couple', 'jar', 'jarOpen', 'gift', 'openGift', 'camera', 'bear', 'bearPortrait', 'bearReference', 'travel', 'travelMemory', 'photobooth', 'concert', 'photoMemory', 'memoryOne', 'memoryTwo', 'memoryThree'] as const;
+export type ArtName = typeof artNames[number];
+export type Photo = { art: ArtName } | { uri: string; storagePath?: string };
 export interface Wish {
   id: string;
   createdBy: PersonId;
@@ -41,11 +42,27 @@ export interface Couple {
   anniversaryDate: string;
   members: { id: PersonId; name: string }[];
 }
+export interface GiftNotification {
+  id: string;
+  wishId: string;
+  memoryId: string;
+  sender: PersonId;
+  recipient: PersonId;
+  title: string;
+  createdAt: string;
+  readAt?: string;
+}
 export interface MockSnapshot {
   wishes: Wish[];
   preparations: Preparation[];
   memories: Memory[];
   couple: Couple;
+  notifications: GiftNotification[];
 }
 export type WishInput = Omit<Wish, 'id' | 'favorite'>;
 export interface CompletionInput { wishId: string; completedAt: string; note: string; photos: Photo[] }
+export type WishCommand =
+  | { kind: 'add'; input: WishInput }
+  | { kind: 'prepare' | 'read' | 'wishFavorite' | 'memoryFavorite'; id: string }
+  | { kind: 'complete'; input: CompletionInput }
+  | { kind: 'couple'; name: string; anniversaryDate: string };

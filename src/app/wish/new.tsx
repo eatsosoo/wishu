@@ -1,7 +1,7 @@
 import { useAppTheme, useThemeStyles } from '../../hooks/use-app-theme';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Camera, ChevronDown, Plus } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Camera, ChevronDown, Plus, Star } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { AppHeader, AppScreen } from '../../components/AppScreen';
@@ -28,13 +28,27 @@ export default function AddWish() {
   const [cover, setCover] = useState<Photo | null>(null);
   const [picker, setPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [starProgress] = useState(() => new Animated.Value(0));
+  const [lidProgress] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (saved) Animated.sequence([
+      Animated.timing(lidProgress, { toValue: 1, duration: 420, useNativeDriver: true }),
+      Animated.delay(120),
+      Animated.timing(starProgress, { toValue: 1, duration: 650, useNativeDriver: true }),
+      Animated.delay(100),
+      Animated.timing(lidProgress, { toValue: 0, duration: 420, useNativeDriver: true }),
+    ]).start();
+  }, [saved, starProgress, lidProgress]);
   async function chooseImage() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
       if (!result.canceled && result.assets[0]) setCover({ uri: result.assets[0].uri });
     } catch { setErrors(previous => ({ ...previous, photo: 'Chưa chọn được ảnh. Bạn thử lại nhé.' })); }
   }
-  function save() {
+  async function save() {
+    if (busy) return;
     const estimatedCost = Number(cost.replace(/[.\s,đ₫]/g, ''));
     const targetDate = date ? parseDate(date) : undefined;
     const validation: Record<string, string> = {};
@@ -44,9 +58,27 @@ export default function AddWish() {
     if (date && !targetDate) validation.date = 'Nhập ngày theo dạng DD/MM/YYYY.';
     setErrors(validation);
     if (Object.keys(validation).length) return;
-    store.addWish({ createdBy: store.actor, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? { art: 'photobooth' }, targetDate: targetDate ?? undefined });
-    router.replace({ pathname: '/wishes', params: { owner: store.actor } });
+    setBusy(true);
+    const success = await store.addWish({ createdBy: store.actor, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? { art: 'photobooth' }, targetDate: targetDate ?? undefined });
+    setBusy(false);
+    if (success) setSaved(true);
   }
+  if (saved) return <AppScreen contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+    <View style={s.success}>
+      <Body style={{ color: colors.primary }}>ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI</Body>
+      <View style={s.jarReveal}>
+        <Artwork name="jarOpen" width={208} height={208} label="Hũ điều ước 3D đã mở nắp" />
+        <Animated.View style={[s.flyingStar, { transform: [{ translateY: starProgress.interpolate({ inputRange: [0, 1], outputRange: [-20, 104] }) }, { scale: starProgress.interpolate({ inputRange: [0, 1], outputRange: [1.1, 0.55] }) }] }]}>
+          <Star size={36} color="#F2B84B" fill="#F9D36F" strokeWidth={1.5} />
+        </Animated.View>
+        <Animated.Image source={require('../../../assets/artwork/jar-lid.png')} resizeMode="contain" accessibilityLabel="Nắp hũ 3D" style={[s.jarLid, { transform: [{ translateY: lidProgress.interpolate({ inputRange: [0, 1], outputRange: [0, -38] }) }, { translateX: lidProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 19] }) }, { rotate: lidProgress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-35deg'] }) }] }]} />
+      </View>
+      <View style={{ gap: 8, alignItems: 'center' }}>
+        <Body style={{ color: colors.muted, textAlign: 'center' }}>Một ngôi sao nhỏ đã tìm được chỗ trong hũ của hai đứa.</Body>
+        <PrimaryButton onPress={() => router.replace({ pathname: '/wishes', params: { owner: store.actor } })}>Xem hũ điều ước ♡</PrimaryButton>
+      </View>
+    </View>
+  </AppScreen>;
   return <AppScreen contentStyle={{ paddingTop: 6 }}>
     <AppHeader back title="Thêm điều ước mới" />
     <View style={s.image}>{cover ? <PhotoView photo={cover} height={140} /> : <Artwork name="camera" height={140} />}<View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
@@ -59,7 +91,8 @@ export default function AddWish() {
       <PrioritySelector value={priority} onChange={setPriority} />
       <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="https://..." autoCapitalize="none" keyboardType="url" error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}
-      <PrimaryButton onPress={save}>Thêm vào hũ ✨</PrimaryButton>
+      {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
+      <PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? 'Đang lưu…' : 'Thêm vào hũ ✨'}</PrimaryButton>
       {!showDate && <Pressable accessibilityRole="button" onPress={() => setShowDate(true)}><Body style={{ color: colors.muted, fontSize: 12, textAlign: 'center' }}>+ Thêm ngày mong muốn</Body></Pressable>}
     </View>
     <BottomSheet visible={picker} onClose={() => setPicker(false)} title="Một điều ước về…">{categories.map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: item === category }} onPress={() => { setCategory(item); setPicker(false); }} style={{ paddingVertical: 14 }}><Body style={{ color: item === category ? colors.primary : colors.ink }}>{item}</Body></Pressable>)}</BottomSheet>
@@ -70,4 +103,8 @@ const baseStyles = StyleSheet.create({
   addPhoto: { position: 'absolute', right: 11, bottom: 12 },
   label: { color: '#967784', fontSize: 14 },
   category: { flexDirection: 'row', alignItems: 'center', minHeight: 45, gap: 11, backgroundColor: '#FFF9F7', borderRadius: 17, paddingHorizontal: 14, borderWidth: 1, borderColor: '#F1E3E1' },
+  success: { minHeight: 470, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 12 },
+  jarReveal: { height: 235, width: '100%', alignItems: 'center', justifyContent: 'flex-start', overflow: 'visible' },
+  flyingStar: { position: 'absolute', top: 0, alignSelf: 'center', zIndex: 2 },
+  jarLid: { position: 'absolute', top: -9, left: '50%', marginLeft: -97, width: 194, height: 194, zIndex: 3 },
 });

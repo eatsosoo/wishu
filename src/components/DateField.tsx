@@ -1,7 +1,7 @@
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, View, ScrollView } from 'react-native';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { Body, BottomSheet, IconButton, SecondaryButton } from './ui';
 import { formatDate, parseDate } from '../features/wishes/format';
 
@@ -18,7 +18,10 @@ export function DateField({ label, value, onChange, optional = false }: { label:
   function select(day: number) { onChange(formatDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`)); setOpen(false); }
   return <View style={{ gap: 7 }}>
     <Body style={{ color: t('#967784') }}>{label}</Body>
-    <Pressable accessibilityRole="button" accessibilityLabel={`Chọn ${label.toLowerCase()}`} onPress={show} style={{ minHeight: 45, borderRadius: 17, backgroundColor: t('#FFF9F7'), borderWidth: 1, borderColor: t('#F1E3E1'), paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}><Body style={{ color: value ? t('#704654') : colors.muted }}>{value || 'Chọn ngày'}</Body><CalendarDays size={19} color={colors.primary} /></Pressable>
+    <View style={{ minHeight: 45, borderRadius: 17, backgroundColor: t('#FFF9F7'), borderWidth: 1, borderColor: t('#F1E3E1'), paddingLeft: 14, paddingRight: 7, flexDirection: 'row', alignItems: 'center' }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Chọn ${label.toLowerCase()}`} onPress={show} style={{ flex: 1, minHeight: 43, flexDirection: 'row', alignItems: 'center' }}><Body style={{ flex: 1, color: value ? t('#704654') : colors.muted }}>{value || 'Chọn ngày'}</Body><CalendarDays size={19} color={colors.primary} /></Pressable>
+      {optional && !!value && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label.toLowerCase()}`} onPress={() => onChange('')} hitSlop={5} style={{ width: 34, height: 34, marginLeft: 7, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: t('#F7EDEE') }}><X size={15} color={t('#987E87')} strokeWidth={2} /></Pressable>}
+    </View>
     <BottomSheet visible={open} onClose={() => setOpen(false)} title={label}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <IconButton icon={ChevronLeft} label="Tháng trước" onPress={() => setCursor(new Date(year, month - 1, 1))} />

@@ -4,6 +4,6 @@ const globals = require('globals');
 
 module.exports = defineConfig([
   expoConfig,
-  { ignores: ['dist/*', '.expo/*'] },
+  { ignores: ['dist/*', '.expo/*', '.preview/**', 'supabase/functions/**'] },
   { files: ['*.js', 'scripts/**/*.cjs', 'tests/**/*.cjs'], languageOptions: { sourceType: 'commonjs', globals: globals.node } },
 ]);

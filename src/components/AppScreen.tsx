@@ -5,8 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Home, Heart, Plus, Images, UsersRound, type LucideIcon } from 'lucide-react-native';
 import { router, usePathname } from 'expo-router';
-import { Body, IconButton } from './ui';
+import { Body, Heading, IconButton } from './ui';
 import { fonts } from '../constants/theme';
+import { NotificationBell } from './NotificationBell';
 
 const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon: LucideIcon }[] = [
   { path: '/', label: 'Trang chủ', icon: Home }, { path: '/wishes', label: 'Điều ước', icon: Heart },
@@ -33,7 +34,7 @@ export function BottomNavigation() {
 export function AppScreen({ children, navigation = false, contentStyle, home = false }: {
   children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean;
 }) {
-  const { t } = useAppTheme();
+  const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
   return <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -49,14 +50,22 @@ export function AppHeader({ title, back = false, right }: { title?: string; back
 
   return <View style={s.header}>
     {back ? <IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} /> : <View style={{ width: 41 }} />}
-    {!!title && <Body accessibilityRole="header" style={{ flex: 1, fontFamily: fonts.bold, fontSize: 17, textAlign: 'center' }}>{title}</Body>}
+    {!!title && <Heading style={{ flex: 1, fontSize: 20, lineHeight: 27 }}>{title}</Heading>}
     {right ?? <View style={{ width: 41 }} />}
+  </View>;
+}
+export function ScreenTitle({ title, right }: { title: string; right?: ReactNode }) {
+  return <View style={baseStyles.screenTitle}>
+    <Heading numberOfLines={2} style={{ flex: 1, minWidth: 0, fontSize: 27, lineHeight: 34 }}>{title}</Heading>
+    <View style={baseStyles.titleActions}>{right}<NotificationBell /></View>
   </View>;
 }
 const baseStyles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 18, paddingBottom: 24 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 82, paddingHorizontal: 10, paddingTop: 7, paddingBottom: 13, backgroundColor: 'rgba(255,249,246,0.96)', borderTopWidth: 1, borderColor: 'rgba(232,206,203,0.3)' },
+  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 72, marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 10, paddingTop: 5, paddingBottom: 7, backgroundColor: '#FFFFFF', borderRadius: 28, shadowColor: '#6E3D49', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 16, elevation: 10 },
+  screenTitle: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  titleActions: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   navItem: { flex: 1, gap: 5, alignItems: 'center', paddingVertical: 6 },
   navLabel: { fontSize: 10, lineHeight: 14, fontFamily: fonts.medium },
   add: { width: 53, height: 53, borderRadius: 999, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF9F5' },
