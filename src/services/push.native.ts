@@ -8,6 +8,24 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
 });
 const tokenKey = 'ourwish:push-token';
+export async function scheduleTestNotification(): Promise<void> {
+  if (!__DEV__) throw new Error('Thông báo thử chỉ dành cho bản phát triển.');
+  if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('gifts', {
+    name: 'Bất ngờ từ người ấy', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
+  });
+  let permission = await Notifications.getPermissionsAsync();
+  if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
+  if (!permission.granted) throw new Error('Bạn chưa cho phép thông báo. Có thể bật lại trong cài đặt điện thoại.');
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Bạn có một bất ngờ 🎁',
+      body: 'Người ấy đã hoàn thành “Một buổi hẹn chỉ dành cho hai đứa”. Chạm để mở quà ♡',
+      sound: 'default',
+      data: { giftId: 'test-preview', giftPreview: true },
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 5, channelId: 'gifts' },
+  });
+}
 export async function registerPush(requestPermission = true): Promise<string> {
   if (!supabase) throw new Error('Chưa kết nối Supabase.');
   if (Constants.appOwnership === 'expo') throw new Error('Mở app bằng development build để bật thông báo.');

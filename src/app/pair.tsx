@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { AppScreen } from '../components/AppScreen';
+import { AccountSettings } from '../components/AccountSettings';
 import { AppInput, Body, Heading, PrimaryButton, SecondaryButton } from '../components/ui';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useWishStore } from '../hooks/use-wish-store';
@@ -15,8 +16,10 @@ export default function PairScreen() {
   const [joining, setJoining] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const validCode = /^[A-Z0-9]{5}$/.test(code.trim());
   async function pair() {
-    if (!supabase || busy || !name.trim()) return;
+    if (!supabase || busy || !name.trim() || (joining && !validCode)) return;
     setBusy(true); setError('');
     try {
       const result = joining
@@ -31,10 +34,11 @@ export default function PairScreen() {
     <Heading style={{ textAlign: 'center' }}>Một nơi cho hai đứa ♡</Heading>
     <Body style={{ textAlign: 'center', color: colors.muted }}>Tạo không gian và gửi mã mời cho người ấy,{ '\n' }hoặc nhập mã bạn nhận được.</Body>
     <AppInput label="Tên của bạn" value={name} onChangeText={setName} maxLength={40} />
-    {joining ? <AppInput label="Mã mời từ người ấy" value={code} onChangeText={value => setCode(value.toUpperCase())} autoCapitalize="characters" autoCorrect={false} maxLength={5} /> : <AppInput label="Tên không gian" value={space} onChangeText={setSpace} maxLength={60} />}
+    {joining ? <AppInput label="Mã mời từ người ấy (5 ký tự chữ và số)" value={code} onChangeText={value => setCode(value.toUpperCase())} autoCapitalize="characters" autoCorrect={false} maxLength={5} /> : <AppInput label="Tên không gian" value={space} onChangeText={setSpace} maxLength={60} />}
     {error ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body> : null}
-    <PrimaryButton disabled={busy || !name.trim() || (joining ? !code.trim() : !space.trim())} onPress={() => void pair()}>{busy ? 'Đang kết nối…' : joining ? 'Ghép đôi ♡' : 'Tạo không gian ♡'}</PrimaryButton>
+    <PrimaryButton disabled={busy || !name.trim() || (joining ? !validCode : !space.trim())} onPress={() => void pair()}>{busy ? 'Đang kết nối…' : joining ? 'Ghép đôi ♡' : 'Tạo không gian ♡'}</PrimaryButton>
     <SecondaryButton onPress={() => { if (!busy) { setJoining(value => !value); setError(''); } }}>{joining ? 'Mình muốn tạo không gian mới' : 'Mình đã có mã mời'}</SecondaryButton>
-    <View><SecondaryButton onPress={() => void store.logout()}>Đăng xuất</SecondaryButton></View>
+    <View><SecondaryButton onPress={() => { if (!busy) setSettingsVisible(true); }}>Cài đặt tài khoản</SecondaryButton></View>
+    <AccountSettings visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
   </AppScreen>;
 }

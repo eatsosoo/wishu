@@ -6,7 +6,8 @@ import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { AppScreen, ScreenTitle } from '../components/AppScreen';
 import { CoupleAvatar } from '../components/WishJar';
-import { AppInput, Body, BottomSheet, PrimaryButton, SecondaryButton } from '../components/ui';
+import { AppInput, Body, BottomSheet, PrimaryButton } from '../components/ui';
+import { AccountSettings } from '../components/AccountSettings';
 import { fonts } from '../constants/theme';
 import { useWishStore } from '../hooks/use-wish-store';
 import { DateField } from '../components/DateField';
@@ -66,7 +67,7 @@ export default function CoupleProfile() {
       const theme = themes[id], selected = id === themeId;
       return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={theme.name} accessibilityState={{ checked: selected }} onPress={() => setTheme(id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 15, borderRadius: 20, borderWidth: selected ? 2 : 1, borderColor: selected ? colors.primary : colors.line, backgroundColor: colors.surface }}><View style={{ width: 45, height: 45, borderRadius: 23, backgroundColor: theme.colors.rose, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 25, height: 25, borderRadius: 13, backgroundColor: theme.colors.primary }} /></View><View style={{ flex: 1 }}><Body style={{ fontFamily: fonts.bold }}>{theme.name}</Body><Body style={{ color: colors.muted, fontSize: 12 }}>{theme.description}</Body></View><Body style={{ color: colors.primary, fontSize: 20 }}>{selected ? '✓' : '○'}</Body></Pressable>;
     })}</View>{!!themeError && <Body accessibilityRole="alert" style={{ color: colors.primary, marginBottom: 12 }}>{themeError}</Body>}<PrimaryButton onPress={() => setSheet(null)}>Xong ♡</PrimaryButton></BottomSheet>
-    <BottomSheet visible={sheet === 'settings'} onClose={() => setSheet(null)} title="Cài đặt"><Body style={{ color: colors.muted, marginBottom: 12 }}>Hồ sơ đang dùng</Body><View style={{ gap: 10 }}><Body style={{ color: colors.muted }}>{store.session?.user.email}</Body><SecondaryButton onPress={() => { setSheet(null); void store.logout(); }}>Đăng xuất</SecondaryButton></View></BottomSheet>
+    <AccountSettings visible={sheet === 'settings'} onClose={() => setSheet(null)} />
   </AppScreen>;
 }
 const baseStyles = StyleSheet.create({

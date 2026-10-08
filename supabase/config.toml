@@ -10,3 +10,6 @@ verify_jwt = false
 
 [functions.deliver-gifts]
 verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false

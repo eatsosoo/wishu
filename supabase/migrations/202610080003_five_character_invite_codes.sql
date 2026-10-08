@@ -2,7 +2,10 @@
 -- characters that are easy to confuse when sharing verbally.
 create or replace function public.generate_invite_code() returns text
 language sql volatile set search_path = public as $$
-  with entropy as (select gen_random_bytes(5) as bytes)
+  -- The first five UUID v4 bytes are random (version/variant bits occur later).
+  -- Use PostgreSQL's built-in UUID generator without depending on pgcrypto
+  -- being installed or visible in this function's search_path.
+  with entropy as (select pg_catalog.uuid_send(pg_catalog.gen_random_uuid()) as bytes)
   select string_agg(substr('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', (get_byte(bytes, n) % 32) + 1, 1), '' order by n)
   from entropy cross join generate_series(0, 4) as seq(n);
 $$;

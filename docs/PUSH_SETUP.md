@@ -86,6 +86,19 @@ Package `expo-dev-client` và plugin `expo-notifications` đã có trong app. Sa
 
 ## 4. Kiểm tra luồng trên hai điện thoại
 
+### Thử hiệu ứng nhận quà trên một điện thoại bằng Expo Go
+
+Trong bản phát triển, đăng nhập và ghép đôi rồi mở màn **Thông báo**:
+
+1. Chọn **Thử nhận quà từ người ấy 🎁** và cho phép thông báo.
+2. Đưa app xuống nền. Sau 5 giây, thông báo mô phỏng hoàn thành điều ước xuất hiện trên chính điện thoại này.
+3. Chạm thông báo: màn hộp quà mở ra, chạy hiệu ứng mở nắp và tung tua rua. Chọn **Mở lại** để xem lại animation.
+4. Có thể chọn **Xem thử hiệu ứng hộp quà** để mở trực tiếp, không cần chờ thông báo.
+
+Quà thử không tạo điều ước, kỷ niệm hoặc thông báo trong database và không gửi sang điện thoại đối phương. Các nút thử chỉ xuất hiện trong bản phát triển. Nếu điện thoại bật Reduce Motion, hộp quà hiển thị trạng thái đã mở và không chạy animation.
+
+### Thử gửi thật sang người nhận bằng development build
+
 1. Tạo hai tài khoản bằng email khác nhau, xác nhận email và đăng nhập.
 2. Người A tạo không gian. Trong **Của chúng ta**, sao chép mã mời. Người B nhập mã để ghép đôi. Mã chỉ dùng một lần, hết hạn sau 7 ngày.
 3. Cả hai mở biểu tượng chuông → **Bật thông báo trên điện thoại** và cấp quyền.

@@ -6,13 +6,26 @@ import { AppHeader, AppScreen } from '../components/AppScreen';
 import { Body, EmptyState, Heading, SecondaryButton } from '../components/ui';
 import { useWishStore } from '../hooks/use-wish-store';
 import { useAppTheme } from '../hooks/use-app-theme';
-import { registerPush } from '../services/push';
+import { registerPush, scheduleTestNotification } from '../services/push';
 
 export default function NotificationsScreen() {
   const store = useWishStore();
   const { colors } = useAppTheme();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [testMessage, setTestMessage] = useState('');
+  const [testing, setTesting] = useState(false);
+  async function testNotification() {
+    if (testing) return;
+    setTesting(true);
+    setTestMessage('');
+    try {
+      await scheduleTestNotification();
+      setTestMessage('Sau 5 giây sẽ có thông báo quà mô phỏng trên điện thoại này. Đưa app xuống nền rồi chạm thông báo để mở hộp quà.');
+    } catch (error) {
+      setTestMessage(error instanceof Error ? error.message : 'Chưa gửi được thông báo thử.');
+    } finally { setTesting(false); }
+  }
   async function enable() {
     if (busy) return;
     setBusy(true);
@@ -24,6 +37,11 @@ export default function NotificationsScreen() {
     <AppHeader back title="Thông báo" />
     <Heading>Một chút bất ngờ ♡</Heading>
     <Body style={{ color: colors.muted, marginTop: 8, marginBottom: 24 }}>Những điều người ấy đã dành riêng cho bạn.</Body>
+    {__DEV__ && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}>
+      <SecondaryButton onPress={() => void testNotification()}>{testing ? 'Đang hẹn…' : 'Thử nhận quà từ người ấy 🎁'}</SecondaryButton>
+      <SecondaryButton onPress={() => router.push({ pathname: '/gift/[id]', params: { id: 'test-preview', preview: '1' } })}>Xem thử hiệu ứng hộp quà</SecondaryButton>
+      {testMessage ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{testMessage}</Body> : null}
+    </View> : null}
     {store.cloudEnabled && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}><SecondaryButton onPress={() => void enable()}>{busy ? 'Đang bật…' : 'Bật thông báo trên điện thoại'}</SecondaryButton>{message ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{message}</Body> : null}</View> : null}
     {store.notifications.length === 0 ? <EmptyState title="Bất ngờ đang trên đường đến" description="Khi người ấy hoàn thành một điều ước của bạn, thông báo và hộp quà sẽ xuất hiện ở đây." /> : store.notifications.map(gift => {
       const sender = store.couple.members.find(member => member.id === gift.sender)?.name ?? 'Người ấy';

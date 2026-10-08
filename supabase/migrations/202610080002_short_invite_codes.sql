@@ -1,6 +1,6 @@
 -- New invitation codes are compact, uppercase hexadecimal strings.
 alter table public.wish_couples
-  alter column invite_code set default upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 8));
+  alter column invite_code set default upper(substr(replace(pg_catalog.gen_random_uuid()::text, '-', ''), 1, 8));
 
 -- Accept copied codes regardless of letter case, including older UUID codes.
 create or replace function public.join_couple(p_code text, p_name text) returns jsonb

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
-import { cloudCommand, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
+import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
 import type { CompletionInput, MockSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
 
 function useStoreValue() {
@@ -19,11 +19,13 @@ function useStoreValue() {
   const [storageError, setStorageError] = useState(supabase ? '' : 'Chưa cấu hình kết nối Supabase.');
   const commands = useRef(Promise.resolve(true));
   const generation = useRef(0);
+  const deletingAccount = useRef(false);
   const apply = useCallback((next: MockSnapshot) => { snapshotRevision.current++; setSnapshot(next); }, []);
   const applyCloud = useCallback((next: CloudCouple) => {
     setCloudCouple(next); setActor(next.actor); apply(next.snapshot);
   }, [apply]);
   const refresh = useCallback(async () => {
+    if (deletingAccount.current) return;
     const revision = generation.current;
     const startedAt = snapshotRevision.current;
     try {
@@ -91,7 +93,25 @@ function useStoreValue() {
       apply(createEmptySnapshot());
     } catch { setStorageError('Chưa đăng xuất được. Bạn thử lại nhé.'); }
   }
+  async function deleteAccount() {
+    if (deletingAccount.current) throw new Error('Tài khoản đang được xoá.');
+    deletingAccount.current = true;
+    generation.current++;
+    try {
+      await commands.current;
+      await deleteCloudAccount();
+      // The user no longer exists: local cleanup must not depend on a remote logout.
+      try { await supabase?.auth.signOut({ scope: 'local' }); }
+      catch { /* Account deletion already succeeded; clear the in-memory session below. */ }
+      finally {
+        generation.current++; setSession(null); setSignedIn(false); setActor('minh');
+        setCloudCouple(null); apply(createEmptySnapshot()); setStorageError('');
+      }
+      await AsyncStorage.removeItem('ourwish:push-token').catch(() => {});
+    } finally { deletingAccount.current = false; }
+  }
   function dispatch(command: WishCommand): Promise<boolean> {
+    if (deletingAccount.current) return Promise.resolve(false);
     const revision = generation.current;
     const result = commands.current.then(async () => {
       if (generation.current !== revision) return false;
@@ -109,7 +129,7 @@ function useStoreValue() {
     return result;
   }
   return {
-    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, storageError,
+    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount, storageError,
     cloudEnabled: !!supabase, paired: !!cloudCouple, cloudCouple, session, refresh,
     preparations: privatePreparations(snapshot, actor),
     notifications: snapshot.notifications.filter(item => item.recipient === actor),

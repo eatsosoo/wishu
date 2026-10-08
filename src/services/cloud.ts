@@ -11,6 +11,18 @@ export const supabase = url && key ? createClient(url, key, {
 }) : null;
 
 export interface CloudCouple { id: string; actor: PersonId; inviteCode: string | null; snapshot: MockSnapshot }
+export async function deleteCloudAccount(): Promise<void> {
+  if (!supabase) throw new Error('Chưa kết nối máy chủ.');
+  const { data, error } = await supabase.functions.invoke('delete-account', { body: { confirmation: 'DELETE' } });
+  if (error || data?.deleted !== true) {
+    const response = error && 'context' in error ? error.context : null;
+    if (response instanceof Response) {
+      const details = await response.json().catch(() => null);
+      if (typeof details?.error === 'string') throw new Error(details.error);
+    }
+    throw new Error('Chưa xác nhận được việc xoá tài khoản. Bạn kiểm tra kết nối rồi thử lại nhé.');
+  }
+}
 export async function loadCloudCouple(): Promise<CloudCouple | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.rpc('get_my_couple');
