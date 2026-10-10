@@ -7,8 +7,8 @@ export const fonts = {
   body: 'NunitoSans_400Regular',
   medium: 'NunitoSans_600SemiBold',
   bold: 'NunitoSans_700Bold',
-  heading: 'PlayfairDisplay_500Medium',
-  headingBold: 'PlayfairDisplay_600SemiBold',
+  heading: 'Pacifico-Regular',
+  headingBold: 'Pacifico-Regular',
 };
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
 export const radius = { card: 24, input: 17, sheet: 32 };

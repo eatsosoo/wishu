@@ -1,34 +1,50 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
-import type { ReactNode } from 'react';
+import { useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurTargetView, BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Home, Heart, Plus, Images, UsersRound, type LucideIcon } from 'lucide-react-native';
 import { router, usePathname } from 'expo-router';
-import { Body, Heading, IconButton } from './ui';
-import { fonts } from '../constants/theme';
+import { Heading, IconButton } from './ui';
 import { NotificationBell } from './NotificationBell';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useNavigationHighlight } from '../hooks/use-navigation-highlight';
 
 const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon: LucideIcon }[] = [
   { path: '/', label: 'Trang chủ', icon: Home }, { path: '/wishes', label: 'Điều ước', icon: Heart },
   { path: '/memories', label: 'Kỷ niệm', icon: Images }, { path: '/us', label: 'Của chúng ta', icon: UsersRound },
 ];
-export function BottomNavigation() {
-  const { colors, t } = useAppTheme();
+export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View | null> }) {
   const s = useThemeStyles(baseStyles);
+  const { colors } = useAppTheme();
+  const position = useNavigationHighlight();
+  const [rowWidth, setRowWidth] = useState(0);
+  const slotWidth = rowWidth / 5;
+  const highlightStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: position.value * slotWidth }],
+  }), [position, slotWidth]);
 
-  const pathname = usePathname();
+  const pathname = usePathname().replace(/\/+$/, '') || '/';
+  const insets = useSafeAreaInsets();
   function item(index: number) {
     const { path, label, icon: Icon } = items[index];
-    const selected = pathname === path;
-    return <Pressable key={path} onPress={() => router.replace(path)} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected }} style={s.navItem}>
-      <Icon size={22} strokeWidth={1.6} color={selected ? colors.burgundy : t('#B199A0')} fill={selected && path === '/' ? colors.burgundy : 'transparent'} />
-      <Body style={[s.navLabel, { color: selected ? colors.burgundy : colors.muted }]}>{label}</Body>
-    </Pressable>;
+    const selected = pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
+    return <View key={path} style={s.navSlot}><Pressable onPress={() => { if (!selected) router.replace(path); }} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected }} style={s.navItem}>
+      <Icon size={27} strokeWidth={1.9} color={selected ? '#FFFFFF' : colors.burgundy} fill={selected && path === '/' ? '#FFFFFF' : 'transparent'} />
+    </Pressable></View>;
   }
-  return <View style={s.nav}>{item(0)}{item(1)}
-    <Pressable accessibilityRole="button" accessibilityLabel="Thêm điều ước" onPress={() => router.push('/wish/new')} style={{ marginHorizontal: 4 }}><LinearGradient colors={[t('#BD647A'), t('#9F435B')]} style={s.add}><Plus color={t("#FFF8F3")} size={27} strokeWidth={1.8} /></LinearGradient></Pressable>
-    {item(2)}{item(3)}
+  return <View style={[s.nav, { bottom: Math.max(insets.bottom, 2) }]}>
+    <View style={s.navGlass}>
+      <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
+      <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={s.navRow} onLayout={event => setRowWidth(event.nativeEvent.layout.width)}>
+      {rowWidth > 0 && <Animated.View pointerEvents="none" style={[s.navHighlight, { width: slotWidth, backgroundColor: colors.primary }, highlightStyle]} />}
+      {item(0)}{item(1)}
+      <View style={s.navSlot}><Pressable accessibilityRole="button" accessibilityLabel="Thêm điều ước" onPress={() => router.push('/wish/new')} style={s.navItem}><Plus color={colors.burgundy} size={30} strokeWidth={2} /></Pressable></View>
+      {item(2)}{item(3)}
+      </View>
+    </View>
   </View>;
 }
 export function AppScreen({ children, navigation = false, contentStyle, home = false }: {
@@ -37,12 +53,15 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
+  const blurTarget = useRef<View | null>(null);
   return <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <BlurTargetView ref={blurTarget} style={{ flex: 1 }}>
     <LinearGradient colors={home ? [t('#FCE5DC'), t('#F9E6DE'), t('#FBF1EE')] : [t('#FCF5F2'), t('#F9ECEB'), t('#FBF1EE')]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, contentStyle]}>{children}</ScrollView>
-      {navigation && <BottomNavigation />}
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, contentStyle, navigation && { paddingBottom: 110 }]}>{children}</ScrollView>
     </SafeAreaView>
+    </BlurTargetView>
+    {navigation && <BottomNavigation blurTarget={blurTarget} />}
   </View>;
 }
 export function AppHeader({ title, back = false, right }: { title?: string; back?: boolean; right?: ReactNode }) {
@@ -63,10 +82,12 @@ export function ScreenTitle({ title, right }: { title: string; right?: ReactNode
 const baseStyles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 18, paddingBottom: 24 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 72, marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 10, paddingTop: 5, paddingBottom: 7, backgroundColor: '#FFFFFF', borderRadius: 28, shadowColor: '#6E3D49', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 16, elevation: 10 },
+  nav: { position: 'absolute', left: 16, right: 16, borderRadius: 32, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 10 },
+  navGlass: { height: 62, paddingHorizontal: 6, paddingVertical: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden' },
+  navRow: { flexDirection: 'row', height: 50, alignItems: 'center' },
   screenTitle: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
   titleActions: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  navItem: { flex: 1, gap: 5, alignItems: 'center', paddingVertical: 6 },
-  navLabel: { fontSize: 10, lineHeight: 14, fontFamily: fonts.medium },
-  add: { width: 53, height: 53, borderRadius: 999, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF9F5' },
+  navSlot: { width: '20%', height: 50, alignItems: 'center', justifyContent: 'center' },
+  navItem: { width: '100%', height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 26 },
+  navHighlight: { position: 'absolute', left: 0, top: 0, height: 50, borderRadius: 26 },
 });

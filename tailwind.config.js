@@ -11,7 +11,7 @@ module.exports = {
       colors,
       borderRadius: radius,
       fontFamily: {
-        editorial: ['PlayfairDisplay_500Medium'],
+        editorial: ['Pacifico-Regular'],
         sans: ['NunitoSans_400Regular'],
       },
     },

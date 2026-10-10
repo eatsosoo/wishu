@@ -5,14 +5,13 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import { PlayfairDisplay_500Medium } from '@expo-google-fonts/playfair-display/500Medium';
-import { PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display/600SemiBold';
 import { NunitoSans_400Regular } from '@expo-google-fonts/nunito-sans/400Regular';
 import { NunitoSans_600SemiBold } from '@expo-google-fonts/nunito-sans/600SemiBold';
 import { NunitoSans_700Bold } from '@expo-google-fonts/nunito-sans/700Bold';
 import { WishStoreProvider, useWishStore } from '../hooks/use-wish-store';
 import { LoadingState } from '../components/ui';
 import { NotificationBridge } from '../components/NotificationBridge';
+import { NavigationHighlightProvider } from '../hooks/use-navigation-highlight';
 
 export default function RootLayout() {
   return <AppThemeProvider><RootContent /></AppThemeProvider>;
@@ -21,11 +20,16 @@ function RootContent() {
   const s = useThemeStyles(baseStyles);
 
   const { width } = useWindowDimensions();
-  const [loaded, error] = useFonts({ PlayfairDisplay_500Medium, PlayfairDisplay_600SemiBold, NunitoSans_400Regular, NunitoSans_600SemiBold, NunitoSans_700Bold });
+  const [loaded, error] = useFonts({
+    'Pacifico-Regular': require('../../assets/fonts/Pacifico-Regular.ttf'),
+    NunitoSans_400Regular,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+  });
   const framed = Platform.OS === 'web' && width > 600;
   if (!loaded && !error) return <LoadingState />;
   return <SafeAreaProvider><WishStoreProvider><View style={s.outer}><StatusBar style="dark" /><View style={[s.app, framed && s.framed]}>
-    <SessionNavigator />
+    <NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
     <NotificationBridge />
   </View></View></WishStoreProvider></SafeAreaProvider>;
 }
