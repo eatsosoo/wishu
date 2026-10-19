@@ -52,7 +52,8 @@ export interface GiftNotification {
   createdAt: string;
   readAt?: string;
 }
-export interface MockSnapshot {
+// API view assembled from relational tables; also used by local test fixtures.
+export interface WishSnapshot {
   wishes: Wish[];
   preparations: Preparation[];
   memories: Memory[];

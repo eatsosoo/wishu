@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { createMockSnapshot } = require('../src/services/mock-data.ts');
 const { addWish, prepareWish, completeWish, privatePreparations, readGift } = require('../src/services/wish-actions.ts');
-const { parseDate } = require('../src/features/wishes/format.ts');
+const { formatBudgetInput, parseDate } = require('../src/features/wishes/format.ts');
 const { togetherDays } = require('../src/features/couple/selectors.ts');
 const { applyWishCommand } = require('../src/services/wish-actions.ts');
 
@@ -108,4 +108,14 @@ test('deleting a completed wish preserves its memory, gift and shared cover', ()
 
 test('more than eight memory photos are rejected before changing data', () => {
   assert.throws(() => completeWish(createMockSnapshot(), { wishId: 'bear', completedAt: '2026-10-19', note: '', photos: Array.from({ length: 9 }, () => ({ art: 'bear' })) }, 'minh'));
+});
+
+test('budget inputs group digits without changing the stored integer value', () => {
+  assert.equal(formatBudgetInput('1000000'), '1.000.000');
+  assert.equal(formatBudgetInput('1.234.567'), '1.234.567');
+  assert.equal(formatBudgetInput('1,200,000 đ'), '1.200.000');
+  assert.equal(formatBudgetInput('00050'), '50');
+  assert.equal(formatBudgetInput('0'), '0');
+  assert.equal(formatBudgetInput(''), '');
+  assert.equal(Number(formatBudgetInput('1234567').replaceAll('.', '')), 1234567);
 });

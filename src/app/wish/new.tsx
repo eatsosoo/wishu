@@ -12,7 +12,7 @@ import { defaultWishCover } from '../../features/wishes/default-cover';
 import { AppInput, AppTextarea, Body, BottomSheet, IconButton, PrimaryButton, PrioritySelector } from '../../components/ui';
 import { useWishStore } from '../../hooks/use-wish-store';
 import { DateField } from '../../components/DateField';
-import { parseDate } from '../../features/wishes/format';
+import { formatBudgetInput, parseDate } from '../../features/wishes/format';
 import { categories, type Category, type Photo } from '../../types/domain';
 import { optimizePickedPhoto } from '../../services/optimize-photo';
 
@@ -56,7 +56,7 @@ export default function AddWish() {
     const targetDate = date ? parseDate(date) : undefined;
     const validation: Record<string, string> = {};
     if (!title.trim()) validation.title = 'Mình đặt tên cho điều ước nhé.';
-    if (!Number.isFinite(estimatedCost) || estimatedCost < 0 || !cost.trim()) validation.cost = 'Nhập ngân sách hợp lệ.';
+    if (!Number.isSafeInteger(estimatedCost) || estimatedCost < 0 || !cost.trim()) validation.cost = 'Nhập ngân sách hợp lệ.';
     if (url.trim() && !/^https?:\/\//i.test(url.trim())) validation.url = 'Liên kết cần bắt đầu bằng https:// hoặc http://.';
     if (date && !targetDate) validation.date = 'Nhập ngày theo dạng DD/MM/YYYY.';
     setErrors(validation);
@@ -85,7 +85,7 @@ export default function AddWish() {
       <AppInput label="Tên điều ước" placeholder="Nhập tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
       <AppTextarea label="Mô tả" placeholder="Mô tả điều ước" value={description} onChangeText={setDescription} maxLength={1000} />
       <View style={{ gap: 7 }}><Body style={s.label}>Loại</Body><Pressable accessibilityRole="button" accessibilityLabel="Chọn loại điều ước" onPress={() => setPicker(true)} style={s.category}><Camera size={19} color={colors.primary} /><Body style={{ flex: 1, color: t('#75404F') }}>{category}</Body><ChevronDown size={18} color={colors.primary} /></Pressable></View>
-      <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={setCost} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
+      <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={value => setCost(formatBudgetInput(value))} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
       <PrioritySelector value={priority} onChange={setPriority} />
       <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}

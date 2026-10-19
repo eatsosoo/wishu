@@ -62,8 +62,11 @@ export default function Memories() {
         const photos = memories.reduce((total, memory) => total + memory.photos.length, 0);
         const selected = emptyDay === day;
         return <Pressable key={date} accessibilityRole="button" accessibilityLabel={`Ngày ${day} tháng ${monthIndex + 1} năm ${year}, ${photos} ảnh kỷ niệm`} accessibilityState={{ selected }} onPress={() => openDay(day)} style={{ width: '14.2857%', aspectRatio: 1, padding: 3 }}>
-          <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: selected ? colors.rose : colors.background, borderWidth: memories.length ? 1.5 : 0, borderColor: colors.primary, justifyContent: 'center', alignItems: 'center' }}>
-            {memories.length > 0 && <View style={{ position: 'absolute', inset: 0 }}><PhotoView photo={memories[0].photos[0]} /></View>}
+          <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: selected ? colors.rose : colors.background, justifyContent: 'center', alignItems: 'center' }}>
+            {memories.length > 0 && <>
+              <View style={{ position: 'absolute', inset: 0 }}><PhotoView photo={memories[0].photos[0]} style={{ height: '100%', aspectRatio: undefined, borderRadius: 0 }} /></View>
+              <View pointerEvents="none" style={{ position: 'absolute', inset: 0, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary }} />
+            </>}
             <Body style={{ fontSize: 12, fontFamily: fonts.bold, color: memories.length ? '#fff' : colors.muted, ...(memories.length ? { position: 'absolute', left: 3, bottom: 3, backgroundColor: 'rgba(35,25,30,0.55)', borderRadius: 7, minWidth: 20, textAlign: 'center' as const } : {}) }}>{day}</Body>
             {photos > 1 && <View style={{ position: 'absolute', top: 3, right: 3, width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />}
           </View>

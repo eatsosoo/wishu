@@ -1,6 +1,5 @@
-import { applyWishCommand } from '../../../src/services/wish-actions.ts';
 import { deliverWebGifts } from '../_shared/deliver-web.ts';
-import { artNames, categories, type MockSnapshot, type WishCommand } from '../../../src/types/domain.ts';
+import { artNames, categories, type WishCommand } from '../../../src/types/domain.ts';
 import { admin, authenticate, cors, json } from '../_shared/backend.ts';
 import { deliverGifts } from '../_shared/deliver.ts';
 import { PHOTO_LIMITS } from '../../../src/features/photos/limits.ts';
@@ -44,27 +43,23 @@ Deno.serve(async request => {
     const { data: member, error: memberError } = await admin.from('wish_members').select('actor,couple_id').eq('user_id', user.id).single();
     if (memberError || !member) return json({ error: 'Bạn cần ghép đôi trước.' }, 403);
     validate(command, member.couple_id);
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const { data: state, error } = await admin.from('wish_state').select('snapshot,version').eq('couple_id', member.couple_id).single();
-      if (error || !state) throw new Error('Chưa đọc được dữ liệu của hai đứa.');
-      const previous = state.snapshot as MockSnapshot;
-      const next = applyWishCommand(previous, command, member.actor);
-      const gift = next.notifications.find(item => !previous.notifications.some(old => old.id === item.id));
-      const { data: committed, error: commitError } = await admin.rpc('commit_wish_state', {
-        p_user: user.id, p_version: state.version, p_snapshot: next, p_gift: gift ?? null, p_read_id: command.kind === 'read' ? command.id : null,
-      });
-      if (commitError) throw new Error('Chưa lưu được. Hãy kiểm tra người ấy đã ghép đôi và thử lại.');
-      if (!committed) continue;
-      // The persisted queue retries transient failures even if the phone closes.
-      if (gift) EdgeRuntime.waitUntil(deliverGifts(gift.id).catch(() => {}));
-      if (gift) EdgeRuntime.waitUntil(deliverWebGifts(gift.id).catch(() => {}));
-      const token = request.headers.get('Authorization')!;
-      const { createClient } = await import('npm:@supabase/supabase-js@2');
-      const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: token } }, auth: { persistSession: false } });
-      const { data: couple, error: loadError } = await scoped.rpc('get_my_couple');
-      if (loadError) throw new Error('Đã lưu, nhưng chưa tải lại được. Bạn làm mới app nhé.');
-      return json(couple);
+    const { data: result, error: commitError } = await admin.rpc('apply_wish_command', { p_user: user.id, p_command: command });
+    if (commitError) {
+      console.error('Relational wish command failed', { code: commitError.code, kind: command.kind });
+      // P0001 contains deliberate, user-facing errors from our transactional RPC.
+      throw new Error(commitError.code === 'P0001' ? commitError.message : 'Chưa lưu được thay đổi. Bạn thử lại nhé.');
     }
-    return json({ error: 'Hai đứa vừa cập nhật cùng lúc. Bạn thử lại nhé.' }, 409);
+    const giftId = result?.giftId;
+    // Outboxes are committed with the memory. A replay never enqueues another gift.
+    if (typeof giftId === 'string') {
+      EdgeRuntime.waitUntil(deliverGifts(giftId).catch(() => {}));
+      EdgeRuntime.waitUntil(deliverWebGifts(giftId).catch(() => {}));
+    }
+    const token = request.headers.get('Authorization')!;
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: token } }, auth: { persistSession: false } });
+    const { data: couple, error: loadError } = await scoped.rpc('get_my_couple');
+    if (loadError) throw new Error('Đã lưu, nhưng chưa tải lại được. Bạn làm mới app nhé.');
+    return json(couple);
   } catch (error) { return json({ error: error instanceof Error ? error.message : 'Chưa lưu được thay đổi.' }, 400); }
 });

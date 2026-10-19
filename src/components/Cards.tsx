@@ -1,6 +1,6 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Heart, ChevronRight } from 'lucide-react-native';
+import { Heart, ChevronRight, CircleCheck } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Body, CategoryChip } from './ui';
 import { PhotoView } from './Artwork';
@@ -8,14 +8,14 @@ import { colors, fonts, shadow } from '../constants/theme';
 import { formatCost, formatDate } from '../features/wishes/format';
 import type { Memory, Preparation, Wish } from '../types/domain';
 
-export function WishCard({ wish, onFavorite, preparation }: { wish: Wish; onFavorite?: () => void; preparation?: Preparation }) {
+export function WishCard({ wish, onFavorite, preparation, completed = false }: { wish: Wish; onFavorite?: () => void; preparation?: Preparation; completed?: boolean }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
-  return <View style={[s.card, shadow]}>
-    <Pressable accessibilityRole="button" accessibilityLabel={`Xem ${wish.title}`} onPress={() => router.push(preparation ? `/wish/${wish.id}/complete` : `/wish/${wish.id}`)} style={s.main}>
+  return <View style={[s.card, shadow, completed && { borderColor: colors.primary }]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`Xem ${wish.title}${completed ? ', đã hoàn thành' : ''}`} onPress={() => router.push(preparation ? `/wish/${wish.id}/complete` : `/wish/${wish.id}`)} style={s.main}>
       <PhotoView photo={wish.cover} width={preparation ? 78 : 90} height={preparation ? 82 : 100} style={{ borderRadius: 16 }} label={wish.title} />
-      <View style={{ flex: 1, gap: 5 }}><Body numberOfLines={2} style={{ fontSize: 14, lineHeight: 20, fontFamily: fonts.bold, color: t('#282025') }}>{wish.title}</Body><CategoryChip category={wish.category} /><Body numberOfLines={2} style={s.description}>{preparation ? `Bắt đầu: ${formatDate(preparation.startedAt)}` : (wish.shortDescription ?? wish.description)}</Body>{!preparation && <Body style={s.price}>{formatCost(wish.estimatedCost)}</Body>}</View>
+      <View style={{ flex: 1, gap: 5 }}><Body numberOfLines={2} style={{ fontSize: 14, lineHeight: 20, fontFamily: fonts.bold, color: t('#282025') }}>{wish.title}</Body><CategoryChip category={wish.category} />{completed && <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: colors.rose }}><CircleCheck size={13} color={colors.primary} /><Body style={{ fontSize: 11, lineHeight: 17, fontFamily: fonts.bold, color: colors.primary }}>Đã hoàn thành</Body></View>}<Body numberOfLines={2} style={s.description}>{preparation ? `Bắt đầu: ${formatDate(preparation.startedAt)}` : (wish.shortDescription ?? wish.description)}</Body>{!preparation && <Body style={s.price}>{formatCost(wish.estimatedCost)}</Body>}</View>
     </Pressable>
     {preparation ? <ChevronRight size={18} color={colors.muted} /> : <Pressable hitSlop={8} accessibilityRole="button" accessibilityLabel={`${wish.favorite ? 'Bỏ yêu thích' : 'Yêu thích'} ${wish.title}`} accessibilityState={{ selected: wish.favorite }} onPress={onFavorite} style={s.favorite}><Heart size={21} color={wish.favorite ? t('#EE6C8C') : t('#A08791')} fill={wish.favorite ? t('#EE6C8C') : 'transparent'} strokeWidth={1.5} /></Pressable>}
   </View>;
@@ -30,7 +30,7 @@ export function MemoryCard({ memory, onFavorite }: { memory: Memory; onFavorite:
   </View>;
 }
 const baseStyles = StyleSheet.create({
-  card: { flexDirection: 'row', gap: 7, alignItems: 'center', borderRadius: 24, padding: 13, backgroundColor: 'rgba(255,250,247,0.84)', marginBottom: 13 },
+  card: { flexDirection: 'row', gap: 7, alignItems: 'center', borderRadius: 24, borderWidth: 1, borderColor: 'transparent', padding: 13, backgroundColor: 'rgba(255,250,247,0.84)', marginBottom: 13 },
   main: { flex: 1, flexDirection: 'row', gap: 13, alignItems: 'center' },
   description: { fontSize: 13, lineHeight: 18, color: colors.muted },
   price: { fontSize: 13, lineHeight: 18, color: '#856A74' },

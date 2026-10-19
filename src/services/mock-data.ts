@@ -1,6 +1,6 @@
-import type { MockSnapshot } from '../types/domain';
+import type { WishSnapshot } from '../types/domain';
 
-const seedSnapshot = (): MockSnapshot => ({
+const seedSnapshot = (): WishSnapshot => ({
   notifications: [],
   couple: {
     name: 'Minh & Linh', anniversaryDate: '2024-02-14',
@@ -30,7 +30,7 @@ const seedSnapshot = (): MockSnapshot => ({
 });
 
 // Keep the two jar counts in the supplied reference (12 and 18), with real list items.
-export function createMockSnapshot(): MockSnapshot {
+export function createMockSnapshot(): WishSnapshot {
   const seed = seedSnapshot();
   const ideas = [
     ['Một ngày ở biển', 'Du lịch', 'travel'],

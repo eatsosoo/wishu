@@ -45,6 +45,8 @@ The day counter uses today's local calendar date. Completion defaults to today's
 
 ## Structure
 
+Production data is stored in relational `wishes`, `preparations`, `memories` and `memory_photos` tables. The API assembles the existing JSON response shape for the app. See [database schema, migration and verification](docs/DATABASE.md).
+
 `src/app/` contains routes. `src/components/` contains shared UI. `src/constants/` owns design tokens. `src/hooks/` owns the mock store. `src/services/` defines the repository contract, fixture data and domain actions. `src/types/` defines the data model.
 
 Illustrations and sample photos are standalone images under `assets/artwork/`, rendered directly with `contain` (3D objects) or `cover` (photos). No screen crops or coordinate offsets are used at runtime. The original screenshot and earlier enhancement remain reference material only. High-resolution assets were reconstructed using ImageGen to match the source; small details can differ from the screenshot. Original exported assets can replace individual files without changing the UI. See [artwork notes](docs/ARTWORK.md).

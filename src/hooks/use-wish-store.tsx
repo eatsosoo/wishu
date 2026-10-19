@@ -5,7 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
 import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
-import type { CompletionInput, MockSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
+import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
 
 function useStoreValue() {
   const [snapshot, setSnapshot] = useState(createEmptySnapshot);
@@ -20,7 +20,7 @@ function useStoreValue() {
   const commands = useRef(Promise.resolve(true));
   const generation = useRef(0);
   const deletingAccount = useRef(false);
-  const apply = useCallback((next: MockSnapshot) => { snapshotRevision.current++; setSnapshot(next); }, []);
+  const apply = useCallback((next: WishSnapshot) => { snapshotRevision.current++; setSnapshot(next); }, []);
   const applyCloud = useCallback((next: CloudCouple) => {
     setCloudCouple(next); setActor(next.actor); apply(next.snapshot);
   }, [apply]);

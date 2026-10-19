@@ -1,7 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import type { MockSnapshot, PersonId, Photo, WishCommand } from '../types/domain';
+import type { WishSnapshot, PersonId, Photo, WishCommand } from '../types/domain';
 import { photoBytes } from './photo-bytes';
 import { PHOTO_LIMITS } from '../features/photos/limits';
 
@@ -11,7 +11,7 @@ export const supabase = url && key ? createClient(url, key, {
   auth: { storage: AsyncStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
 }) : null;
 
-export interface CloudCouple { id: string; actor: PersonId; inviteCode: string | null; snapshot: MockSnapshot }
+export interface CloudCouple { id: string; actor: PersonId; inviteCode: string | null; snapshot: WishSnapshot }
 export async function deleteCloudAccount(): Promise<void> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
   const { data, error } = await supabase.functions.invoke('delete-account', { body: { confirmation: 'DELETE' } });

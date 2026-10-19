@@ -19,6 +19,8 @@ npx supabase functions deploy wish-action
 
 This applies `202610190002_photo_upload_limits.sql` and the new `delete` command handler. These commands are deployment steps; local code changes alone do not update the live backend.
 
+The relational database migration also moves deletion into the transactional DB command handler. Apply pending migrations in order and deploy the current `wish-action`; see [database setup](DATABASE.md).
+
 Expo ImageManipulator is a native dependency. Rebuild the development/release app after adding it; web builds include the web implementation. Use `npx eas-cli@latest build --profile development --platform android` (or `ios`) for a development build.
 
 ## Verification

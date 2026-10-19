@@ -32,11 +32,11 @@ export function SecondaryButton({ children, onPress }: { children: ReactNode; on
 
   return <Pressable accessibilityRole="button" onPress={onPress} style={s.secondary}><Body style={{ color: colors.primary, fontFamily: fonts.medium }}>{children}</Body></Pressable>;
 }
-export function IconButton({ icon: Icon, onPress, label, filled = false, color }: { icon: LucideIcon; onPress: () => void; label: string; filled?: boolean; color?: string }) {
+export function IconButton({ icon: Icon, onPress, label, filled = false, color, backgroundColor }: { icon: LucideIcon; onPress: () => void; label: string; filled?: boolean; color?: string; backgroundColor?: string }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
-  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={5} style={({ pressed }) => [s.icon, filled && { backgroundColor: colors.primary }, { opacity: pressed ? 0.7 : 1 }]}>
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={5} style={({ pressed }) => [s.icon, filled && { backgroundColor: colors.primary }, backgroundColor !== undefined && { backgroundColor }, { opacity: pressed ? 0.7 : 1 }]}>
     <Icon size={22} color={color ?? (filled ? t('#fff') : colors.burgundy)} strokeWidth={1.7} />
   </Pressable>;
 }
