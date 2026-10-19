@@ -1,4 +1,5 @@
 import { applyWishCommand } from '../../../src/services/wish-actions.ts';
+import { deliverWebGifts } from '../_shared/deliver-web.ts';
 import { artNames, categories, type MockSnapshot, type WishCommand } from '../../../src/types/domain.ts';
 import { admin, authenticate, cors, json } from '../_shared/backend.ts';
 import { deliverGifts } from '../_shared/deliver.ts';
@@ -55,6 +56,7 @@ Deno.serve(async request => {
       if (!committed) continue;
       // The persisted queue retries transient failures even if the phone closes.
       if (gift) EdgeRuntime.waitUntil(deliverGifts(gift.id).catch(() => {}));
+      if (gift) EdgeRuntime.waitUntil(deliverWebGifts(gift.id).catch(() => {}));
       const token = request.headers.get('Authorization')!;
       const { createClient } = await import('npm:@supabase/supabase-js@2');
       const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: token } }, auth: { persistSession: false } });

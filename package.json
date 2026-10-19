@@ -54,6 +54,7 @@
     "typecheck": "tsc --noEmit",
     "test:domain": "node --test tests/domain.test.cjs",
     "test:account-deletion": "node --test tests/account-deletion.test.cjs",
+    "test:web-push": "node --test tests/web-push.test.cjs",
     "build:web": "expo export --platform web",
     "preview": "node scripts/serve-preview.cjs"
   },

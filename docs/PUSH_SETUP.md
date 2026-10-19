@@ -1,5 +1,7 @@
 # Thông báo hoàn thành điều ước và hộp quà
 
+Web Push trên bản Vercel được cấu hình riêng theo [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md). Các bước Expo Push dưới đây dành cho bản cài Android/iOS.
+
 Mã nguồn đã có hai chế độ. Khi chưa cấu hình Supabase, app dùng hồ sơ demo Minh/Linh và lưu hộp thư trên thiết bị. Khi có cấu hình, app dùng Supabase Auth, ghép đôi bằng mã mời, dữ liệu chung trên máy chủ và Expo Push Service. Hai chế độ không trộn dữ liệu.
 
 ## 1. Tạo Supabase

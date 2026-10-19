@@ -31,7 +31,7 @@ All added packages are resolved with `expo install` for SDK compatibility. `npm 
 - `/wish/bear/complete`: completion date, local photos and note.
 - `/memories`: memory grid and category filters.
 - `/us`: couple profile, anniversary, profile switching and reset.
-- `/notifications`: recipient inbox, unread status and native push permissions.
+- `/notifications`: recipient inbox, unread status, native push permissions and browser Web Push controls. See [Web Push setup for Vercel](docs/WEB_PUSH_SETUP.md).
 - `/gift/[id]`: animated gift lid, flying ribbons/confetti and the linked memory.
 - `/pair`: authenticated accounts create or join a shared couple space.
 

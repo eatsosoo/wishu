@@ -7,6 +7,7 @@ import { Body, EmptyState, Heading, SecondaryButton } from '../components/ui';
 import { useWishStore } from '../hooks/use-wish-store';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { registerPush, scheduleTestNotification } from '../services/push';
+import { WebPushControls } from '../components/WebPushControls';
 
 export default function NotificationsScreen() {
   const store = useWishStore();
@@ -37,6 +38,7 @@ export default function NotificationsScreen() {
     <AppHeader back title="Thông báo" />
     <Heading>Một chút bất ngờ ♡</Heading>
     <Body style={{ color: colors.muted, marginTop: 8, marginBottom: 24 }}>Những điều người ấy đã dành riêng cho bạn.</Body>
+    {store.cloudEnabled ? <WebPushControls /> : null}
     {__DEV__ && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}>
       <SecondaryButton onPress={() => void testNotification()}>{testing ? 'Đang hẹn…' : 'Thử nhận quà từ người ấy 🎁'}</SecondaryButton>
       <SecondaryButton onPress={() => router.push({ pathname: '/gift/[id]', params: { id: 'test-preview', preview: '1' } })}>Xem thử hiệu ứng hộp quà</SecondaryButton>
