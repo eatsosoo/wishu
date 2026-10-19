@@ -1,8 +1,8 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps, type TextProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, X, type LucideIcon } from 'lucide-react-native';
+import { Eye, EyeOff, Heart, X, type LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../constants/theme';
 import type { Category, CategoryFilter } from '../types/domain';
 
@@ -14,7 +14,7 @@ export function Body({ style, ...props }: TextProps) {
 export function Heading({ style, ...props }: TextProps) {
   const { colors } = useAppTheme();
 
-  return <Text {...props} accessibilityRole="header" style={[{ fontFamily: fonts.heading, color: colors.burgundy, fontSize: 27, lineHeight: 36 }, style]} />;
+  return <Text {...props} accessibilityRole="header" style={[{ fontFamily: fonts.heading, color: colors.burgundy, fontSize: 27, lineHeight: 44, paddingVertical: 4, paddingHorizontal: 3 }, style]} />;
 }
 export function PrimaryButton({ children, onPress, disabled }: { children: ReactNode; onPress: () => void; disabled?: boolean }) {
   const { t } = useAppTheme();
@@ -56,16 +56,20 @@ export function FilterChips({ value, onChange, options = ['Tất cả', 'Quà t�
     </Pressable>)}
   </ScrollView>;
 }
-export function AppInput({ label, error, trailing, style, multiline, clearable = true, value, onChangeText, editable, ...props }: TextInputProps & { label?: string; error?: string; trailing?: ReactNode; clearable?: boolean }) {
+export function AppInput({ label, error, trailing, style, multiline, clearable = true, value, onChangeText, editable, secureTextEntry, ...props }: TextInputProps & { label?: string; error?: string; trailing?: ReactNode; clearable?: boolean }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const showClear = !secureTextEntry && clearable && !!value && !!onChangeText && editable !== false;
+  const PasswordIcon = passwordVisible ? EyeOff : Eye;
 
   return <View style={{ gap: 7 }}>
     {!!label && <Body style={s.label}>{label}</Body>}
     <View style={[s.inputWrap, !!error && { borderColor: t('#C85D73') }]}>
-      <TextInput accessibilityLabel={label} placeholderTextColor={t("#B1969F")} {...props} value={value} onChangeText={onChangeText} editable={editable} multiline={multiline} style={[s.input, multiline && { minHeight: 78, textAlignVertical: 'top', paddingTop: 12 }, style]} />
-      {(clearable && !!value && !!onChangeText && editable !== false || trailing) && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: 7 }}>
-        {clearable && !!value && !!onChangeText && editable !== false && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label ?? 'nội dung'}`} onPress={() => onChangeText('')} hitSlop={5} style={s.clearButton}><X size={15} color={t('#987E87')} strokeWidth={2} /></Pressable>}
+      <TextInput accessibilityLabel={label} placeholderTextColor={t("#B1969F")} {...props} value={value} onChangeText={onChangeText} editable={editable} multiline={multiline} secureTextEntry={secureTextEntry ? !passwordVisible : secureTextEntry} style={[s.input, multiline && { minHeight: 78, textAlignVertical: 'top', paddingTop: 12 }, style]} />
+      {(showClear || secureTextEntry || trailing) && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: 10 }}>
+        {showClear && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label ?? 'nội dung'}`} onPress={() => onChangeText?.('')} hitSlop={9} style={s.clearButton}><X size={12} color={t('#987E87')} strokeWidth={2} /></Pressable>}
+        {secureTextEntry && <Pressable accessibilityRole="button" accessibilityLabel={passwordVisible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} accessibilityState={{ disabled: editable === false }} disabled={editable === false} onPress={() => setPasswordVisible(visible => !visible)} hitSlop={9} style={s.passwordButton}><PasswordIcon size={19} color={t('#987E87')} strokeWidth={1.8} /></Pressable>}
         {trailing}
       </View>}
     </View>
@@ -92,7 +96,7 @@ export function BottomSheet({ visible, onClose, title, children }: { visible: bo
       <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Đóng" onPress={onClose} />
       <View accessibilityViewIsModal style={s.sheet}>
         <View style={s.handle} />
-        <View className="flex-row items-center justify-between" style={{ marginBottom: 18 }}><Heading style={{ fontSize: 24 }}>{title}</Heading><IconButton icon={X} label="Đóng" onPress={onClose} /></View>
+        <View className="flex-row items-center justify-between" style={{ marginBottom: 18, gap: 12 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{title}</Heading><IconButton icon={X} label="Đóng" onPress={onClose} /></View>
         {children}
       </View>
     </View>
@@ -116,8 +120,9 @@ const baseStyles = StyleSheet.create({
   filter: { borderRadius: 999, backgroundColor: '#F5E7E7', paddingVertical: 8, paddingHorizontal: 16 },
   label: { color: '#967784', fontSize: 14, lineHeight: 21 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9F7', borderWidth: 1, borderColor: '#F1E3E1', borderRadius: 17, minHeight: 45 },
-  input: { flex: 1, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 16, color: '#704654' },
-  clearButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7EDEE' },
+  input: { flex: 1, minWidth: 0, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 16, color: '#704654' },
+  clearButton: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7EDEE' },
+  passwordButton: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
   overlay: { flex: 1, backgroundColor: 'rgba(73,37,47,0.25)', justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 430, padding: 24, paddingBottom: 38, borderTopLeftRadius: 32, borderTopRightRadius: 32, backgroundColor: colors.background },
   handle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 999, backgroundColor: '#DBC7CB', marginBottom: 18 },

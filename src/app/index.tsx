@@ -7,7 +7,7 @@ import { Body, Heading, IconButton } from '../components/ui';
 import { NotificationBell } from '../components/NotificationBell';
 import { Artwork } from '../components/Artwork';
 import { WishJar } from '../components/WishJar';
-import { fonts } from '../constants/theme';
+import { fonts, spacing } from '../constants/theme';
 import { useWishStore } from '../hooks/use-wish-store';
 import { togetherDays } from '../features/couple/selectors';
 
@@ -33,8 +33,8 @@ export default function HomeScreen() {
   </AppScreen>;
 }
 const baseStyles = StyleSheet.create({
-  greeting: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 28 },
+  greeting: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: spacing.lg },
   greetingCopy: { flex: 1, minWidth: 0 },
-  greetingActions: { alignItems: 'center', gap: 8, paddingTop: 2 },
-  together: { marginTop: 18, marginHorizontal: 24, borderRadius: 25, backgroundColor: 'rgba(255,248,241,0.72)', paddingVertical: 17, alignItems: 'center' },
+  greetingActions: { alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
+  together: { marginTop: 18, marginHorizontal: spacing.lg, borderRadius: 25, backgroundColor: 'rgba(255,248,241,0.72)', paddingVertical: 17, alignItems: 'center' },
 });

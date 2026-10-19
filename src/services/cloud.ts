@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import type { MockSnapshot, PersonId, Photo, WishCommand } from '../types/domain';
 import { photoBytes } from './photo-bytes';
+import { PHOTO_LIMITS } from '../features/photos/limits';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -48,7 +49,7 @@ async function uploadPhoto(photo: Photo): Promise<Photo> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!couple || !user) throw new Error('Bạn cần đăng nhập và ghép đôi trước.');
   const { bytes, type } = await photoBytes(photo.uri);
-  if (bytes.byteLength > 10 * 1024 * 1024) throw new Error('Ảnh cần nhỏ hơn 10 MB.');
+  if (bytes.byteLength > PHOTO_LIMITS.uploadBytes) throw new Error('Ảnh sau tối ưu cần nhỏ hơn 2 MB.');
   const extension = ({ 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic' } as Record<string, string>)[type] ?? 'jpg';
   const path = `${couple.id}/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
   const { error } = await supabase.storage.from('wish-photos').upload(path, bytes, { contentType: type, upsert: false });
@@ -59,6 +60,7 @@ export async function cloudCommand(command: WishCommand): Promise<CloudCouple> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
   if (command.kind === 'add') command = { ...command, input: { ...command.input, cover: await uploadPhoto(command.input.cover) } };
   if (command.kind === 'complete') {
+    if (command.input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
     const photos: Photo[] = [];
     // Upload one photo at a time to keep memory bounded on mobile.
     for (const photo of command.input.photos) photos.push(await uploadPhoto(photo));

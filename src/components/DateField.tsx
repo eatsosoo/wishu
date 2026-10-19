@@ -20,7 +20,7 @@ export function DateField({ label, value, onChange, optional = false }: { label:
     <Body style={{ color: t('#967784') }}>{label}</Body>
     <View style={{ minHeight: 45, borderRadius: 17, backgroundColor: t('#FFF9F7'), borderWidth: 1, borderColor: t('#F1E3E1'), paddingLeft: 14, paddingRight: 7, flexDirection: 'row', alignItems: 'center' }}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Chọn ${label.toLowerCase()}`} onPress={show} style={{ flex: 1, minHeight: 43, flexDirection: 'row', alignItems: 'center' }}><Body style={{ flex: 1, color: value ? t('#704654') : colors.muted }}>{value || 'Chọn ngày'}</Body><CalendarDays size={19} color={colors.primary} /></Pressable>
-      {optional && !!value && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label.toLowerCase()}`} onPress={() => onChange('')} hitSlop={5} style={{ width: 34, height: 34, marginLeft: 7, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: t('#F7EDEE') }}><X size={15} color={t('#987E87')} strokeWidth={2} /></Pressable>}
+      {optional && !!value && <Pressable accessibilityRole="button" accessibilityLabel={`Xóa ${label.toLowerCase()}`} onPress={() => onChange('')} hitSlop={9} style={{ width: 26, height: 26, marginLeft: 10, marginRight: 3, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: t('#F7EDEE') }}><X size={12} color={t('#987E87')} strokeWidth={2} /></Pressable>}
     </View>
     <BottomSheet visible={open} onClose={() => setOpen(false)} title={label}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

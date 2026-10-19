@@ -26,7 +26,7 @@ npx supabase functions deploy deliver-gifts
 
 `wish-action` xác thực JWT với Supabase Auth, lấy danh tính từ membership và dùng cùng hàm xử lý điều ước với app. Người gọi không được chọn người nhận push. Snapshot, thông báo và hàng đợi gửi được ghi trong một transaction. Version của snapshot chống ghi đè khi hai điện thoại cập nhật cùng lúc. RPC đọc dữ liệu lọc các bất ngờ đang chuẩn bị của người còn lại.
 
-Ảnh được tải vào bucket riêng `wish-photos`, giới hạn 10 MB mỗi ảnh. Chỉ thành viên cặp đôi được tải lên/đọc; app dùng URL ký có hạn. Dữ liệu thật của cặp đôi mới bắt đầu trống, không có kỷ niệm mẫu.
+Ảnh được tải vào bucket riêng `wish-photos`, giới hạn 2 MB mỗi ảnh sau tối ưu. App nhận ảnh tối đa 20 MB/48 megapixel, giữ tỷ lệ và thu cạnh dài xuống tối đa 1600px, nén JPEG. Mỗi kỷ niệm có tối đa 8 ảnh. Chỉ thành viên cặp đôi được tải lên/đọc; app dùng URL ký có hạn. Dữ liệu thật của cặp đôi mới bắt đầu trống, không có kỷ niệm mẫu. Xem [tối ưu ảnh và xoá điều ước](PHOTO_UPLOADS.md) để cập nhật backend.
 
 ## 2. Bật worker gửi lại và kiểm tra receipt
 

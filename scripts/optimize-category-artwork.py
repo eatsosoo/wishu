@@ -11,9 +11,9 @@ if __name__ == '__main__':
         source = ROOT / f'{name}.png'
         destination = ROOT / f'{name}.webp'
         with Image.open(source) as original:
-            image = original.convert('RGB')
+            image = original.convert('RGBA')
             image.thumbnail((640, 640), Image.Resampling.LANCZOS)
-            image.save(destination, 'WEBP', quality=82, method=6)
+            image.save(destination, 'WEBP', quality=82, method=6, exact=True)
         before += source.stat().st_size
         after += destination.stat().st_size
         print(f'{name}: {source.stat().st_size:,} -> {destination.stat().st_size:,} bytes')

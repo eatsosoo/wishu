@@ -66,7 +66,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
       <Pressable accessibilityRole="button" accessibilityLabel="Ảnh sau" accessibilityState={{ disabled: currentIndex === slides.length - 1 }} disabled={currentIndex === slides.length - 1} onPress={() => jump(currentIndex + 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', opacity: currentIndex === slides.length - 1 ? 0.35 : 1 }}><ChevronRight size={21} color={colors.primary} /></Pressable>
     </View>
     <View style={{ padding: 19, borderRadius: 24, backgroundColor: colors.surface, gap: 13 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}><Heading style={{ flex: 1, fontSize: 24, lineHeight: 31 }}>{active.memory.title}</Heading><IconButton icon={Heart} color={active.memory.favorite ? colors.primary : colors.muted} label={active.memory.favorite ? 'Bỏ yêu thích kỷ niệm' : 'Yêu thích kỷ niệm'} onPress={() => toggleMemoryFavorite(active.memory.id)} /></View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{active.memory.title}</Heading><IconButton icon={Heart} color={active.memory.favorite ? colors.primary : colors.muted} label={active.memory.favorite ? 'Bỏ yêu thích kỷ niệm' : 'Yêu thích kỷ niệm'} onPress={() => toggleMemoryFavorite(active.memory.id)} /></View>
       <CategoryChip category={active.memory.category} />
       {!!active.memory.note && <Body style={{ color: colors.muted, lineHeight: 25 }}>{active.memory.note}</Body>}
     </View>

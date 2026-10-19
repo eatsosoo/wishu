@@ -41,7 +41,7 @@ With Supabase configured, login uses email/password and `/pair` connects two aut
 
 Anniversary, optional wish date, and completion date use a shared calendar picker with month/year selection rather than text entry.
 
-The sample day counter is frozen at 14/06/2025 for visual review. Completion defaults to today's date. Selected images remain local in demo mode; cloud mode uploads them to private Supabase Storage and reads them through signed URLs.
+The day counter uses today's local calendar date. Completion defaults to today's date. Selected photos are resized to a maximum 1600px long edge and JPEG-compressed to at most 2 MB before upload to private Supabase Storage. Each memory accepts up to eight photos. Owners can delete their wishes from the detail menu while preserving completed memories. See [photo and deletion setup](docs/PHOTO_UPLOADS.md).
 
 ## Structure
 

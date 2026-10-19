@@ -14,6 +14,7 @@ import { useWishStore } from '../../hooks/use-wish-store';
 import { DateField } from '../../components/DateField';
 import { parseDate } from '../../features/wishes/format';
 import { categories, type Category, type Photo } from '../../types/domain';
+import { optimizePickedPhoto } from '../../services/optimize-photo';
 
 export default function AddWish() {
   const { preview } = useLocalSearchParams<{ preview?: string }>();
@@ -22,10 +23,10 @@ export default function AddWish() {
   const s = useThemeStyles(baseStyles);
 
   const store = useWishStore();
-  const [title, setTitle] = useState('Chụp photobooth cùng nhau');
-  const [description, setDescription] = useState('Muốn lưu lại thật nhiều khoảnh khắc dễ thương của hai đứa ♡');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Trải nghiệm');
-  const [cost, setCost] = useState('500.000');
+  const [cost, setCost] = useState('');
   const [priority, setPriority] = useState(3);
   const [url, setUrl] = useState('');
   const [date, setDate] = useState('');
@@ -34,16 +35,23 @@ export default function AddWish() {
   const [picker, setPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [processingPhoto, setProcessingPhoto] = useState(false);
   const [saved, setSaved] = useState(false);
   useEffect(() => { void prefetchCategoryArtwork(); void prefetchRevealArtwork('jar'); }, []);
   async function chooseImage() {
+    if (processingPhoto || busy) return;
+    setProcessingPhoto(true);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-      if (!result.canceled && result.assets[0]) setCover({ uri: result.assets[0].uri });
-    } catch { setErrors(previous => ({ ...previous, photo: 'Chưa chọn được ảnh. Bạn thử lại nhé.' })); }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+      if (!result.canceled && result.assets[0]) {
+        setCover(await optimizePickedPhoto(result.assets[0]));
+        setErrors(previous => ({ ...previous, photo: '' }));
+      }
+    } catch (error) { setErrors(previous => ({ ...previous, photo: error instanceof Error ? error.message : 'Chưa xử lý được ảnh. Bạn thử lại nhé.' })); }
+    finally { setProcessingPhoto(false); }
   }
   async function save() {
-    if (busy) return;
+    if (busy || processingPhoto) return;
     const estimatedCost = Number(cost.replace(/[.\s,đ₫]/g, ''));
     const targetDate = date ? parseDate(date) : undefined;
     const validation: Record<string, string> = {};
@@ -68,20 +76,21 @@ export default function AddWish() {
       </View>
     </View>
   </AppScreen>;
-  return <AppScreen contentStyle={{ paddingTop: 6 }}>
+  return <AppScreen>
     <AppHeader back title="Thêm điều ước mới" />
     <View style={s.image}><PhotoView photo={cover ?? defaultWishCover(category)} height={180} fit={cover ? 'cover' : 'contain'} label={`Ảnh điều ước ${category}`} /><View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
+    <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted, marginTop: 8 }}>{processingPhoto ? 'Đang tối ưu ảnh…' : 'Ảnh tối đa 20 MB · tự tối ưu còn tối đa 2 MB'}</Body>
     <View style={{ gap: 13, marginTop: 18 }}>
       {!!errors.photo && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{errors.photo}</Body>}
-      <AppInput label="Tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
-      <AppTextarea label="Mô tả" value={description} onChangeText={setDescription} maxLength={1000} />
+      <AppInput label="Tên điều ước" placeholder="Nhập tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
+      <AppTextarea label="Mô tả" placeholder="Mô tả điều ước" value={description} onChangeText={setDescription} maxLength={1000} />
       <View style={{ gap: 7 }}><Body style={s.label}>Loại</Body><Pressable accessibilityRole="button" accessibilityLabel="Chọn loại điều ước" onPress={() => setPicker(true)} style={s.category}><Camera size={19} color={colors.primary} /><Body style={{ flex: 1, color: t('#75404F') }}>{category}</Body><ChevronDown size={18} color={colors.primary} /></Pressable></View>
-      <AppInput label="Ngân sách dự kiến" value={cost} onChangeText={setCost} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
+      <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={setCost} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
       <PrioritySelector value={priority} onChange={setPriority} />
-      <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="https://..." autoCapitalize="none" keyboardType="url" error={errors.url} />
+      <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}
       {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
-      <PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? 'Đang lưu…' : 'Thêm vào hũ ✨'}</PrimaryButton>
+      <PrimaryButton disabled={busy || processingPhoto} onPress={() => void save()}>{busy ? 'Đang lưu…' : processingPhoto ? 'Đang tối ưu ảnh…' : 'Thêm vào hũ ✨'}</PrimaryButton>
       {!showDate && <Pressable accessibilityRole="button" onPress={() => setShowDate(true)}><Body style={{ color: colors.muted, fontSize: 12, textAlign: 'center' }}>+ Thêm ngày mong muốn</Body></Pressable>}
     </View>
     <BottomSheet visible={picker} onClose={() => setPicker(false)} title="Một điều ước về…">{categories.map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: item === category }} onPress={() => { setCategory(item); setPicker(false); }} style={{ paddingVertical: 14 }}><Body style={{ color: item === category ? colors.primary : colors.ink }}>{item}</Body></Pressable>)}</BottomSheet>

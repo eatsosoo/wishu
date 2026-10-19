@@ -135,6 +135,7 @@ function useStoreValue() {
     notifications: snapshot.notifications.filter(item => item.recipient === actor),
     addWish: (input: WishInput) => dispatch({ kind: 'add', input }),
     prepareWish: (id: string) => dispatch({ kind: 'prepare', id }),
+    deleteWish: (id: string) => dispatch({ kind: 'delete', id }),
     completeWish: (input: CompletionInput) => dispatch({ kind: 'complete', input }),
     markGiftRead: (id: string) => dispatch({ kind: 'read', id }),
     toggleWishFavorite: (id: string) => dispatch({ kind: 'wishFavorite', id }),

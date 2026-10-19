@@ -7,7 +7,7 @@ import * as Linking from 'expo-linking';
 import { AppScreen } from '../../../components/AppScreen';
 import { BearHero, PhotoView, Artwork } from '../../../components/Artwork';
 import { Body, BottomSheet, CategoryChip, EmptyState, Heading, IconButton, PrimaryButton, SecondaryButton } from '../../../components/ui';
-import { fonts } from '../../../constants/theme';
+import { fonts, spacing } from '../../../constants/theme';
 import { formatCost } from '../../../features/wishes/format';
 import { useWishStore } from '../../../hooks/use-wish-store';
 
@@ -20,10 +20,19 @@ export default function WishDetail() {
   const wish = store.wishes.find(item => item.id === id);
   const [confirm, setConfirm] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   if (!wish) return <AppScreen><EmptyState title="Điều ước chưa có ở đây" description="Mình trở lại hũ và chọn một điều ước khác nhé." action="Về hũ điều ước" onAction={() => router.replace('/wishes')} /></AppScreen>;
   const ownWish = wish.createdBy === store.actor;
+  async function removeWish() {
+    if (!wish || busy || !ownWish) return;
+    setBusy(true); setError('');
+    const success = await store.deleteWish(wish.id);
+    setBusy(false);
+    if (success) router.replace({ pathname: '/wishes', params: { owner: store.actor } });
+    else setError('Chưa xoá được điều ước. Bạn thử lại nhé.');
+  }
   async function openReference() {
     try { await Linking.openURL(wish!.referenceUrl); } catch { setError('Chưa mở được liên kết. Bạn thử lại nhé.'); }
   }
@@ -52,12 +61,13 @@ export default function WishDetail() {
       <View style={{ marginTop: 17 }}>{ownWish ? <Body style={{ textAlign: 'center', color: colors.muted }}>Một điều nhỏ mình đang mong chờ ♡</Body> : <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton>}</View>
     </View>
     <BottomSheet visible={confirm} onClose={() => setConfirm(false)} title="Một bất ngờ dành cho người ấy"><Body style={{ color: colors.muted, marginBottom: 22 }}>Điều ước này sẽ nằm trong danh sách riêng của bạn. Người ấy chỉ biết khi bất ngờ trở thành hiện thực ♡</Body>{store.storageError ? <Body accessibilityRole="alert" style={{ color: colors.primary, marginBottom: 12 }}>{store.storageError}</Body> : null}<PrimaryButton disabled={busy} onPress={() => void prepare()}>{busy ? 'Đang lưu…' : 'Bắt đầu chuẩn bị 🎁'}</PrimaryButton></BottomSheet>
-    <BottomSheet visible={menu} onClose={() => setMenu(false)} title="Điều ước nhỏ"><View style={{ gap: 12 }}><SecondaryButton onPress={() => { setMenu(false); router.push('/preparing'); }}>Những điều mình đang chuẩn bị</SecondaryButton><SecondaryButton onPress={() => { setMenu(false); router.replace('/wishes'); }}>Về hũ điều ước</SecondaryButton></View></BottomSheet>
+    <BottomSheet visible={menu} onClose={() => setMenu(false)} title="Điều ước nhỏ"><View style={{ gap: 12 }}><SecondaryButton onPress={() => { setMenu(false); router.push('/preparing'); }}>Những điều mình đang chuẩn bị</SecondaryButton><SecondaryButton onPress={() => { setMenu(false); router.replace('/wishes'); }}>Về hũ điều ước</SecondaryButton>{ownWish && <Pressable accessibilityRole="button" onPress={() => { setMenu(false); setError(''); setConfirmDelete(true); }} style={{ minHeight: 46, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: colors.primary }}>Xoá điều ước</Body></Pressable>}</View></BottomSheet>
+    <BottomSheet visible={confirmDelete} onClose={() => { if (!busy) setConfirmDelete(false); }} title="Xoá điều ước?"><Body style={{ color: colors.muted, marginBottom: 20 }}>Điều ước sẽ được xoá khỏi hũ. Các kỷ niệm đã lưu vẫn được giữ lại. Bạn không thể hoàn tác thao tác này.</Body>{!!error && <Body accessibilityRole="alert" style={{ color: colors.primary, marginBottom: 12 }}>{error}</Body>}<View style={{ gap: 12 }}><PrimaryButton disabled={busy} onPress={() => void removeWish()}>{busy ? 'Đang xoá…' : 'Xoá điều ước'}</PrimaryButton><SecondaryButton onPress={() => { if (!busy) setConfirmDelete(false); }}>Giữ lại</SecondaryButton></View></BottomSheet>
   </AppScreen>;
 }
 const baseStyles = StyleSheet.create({
-  heroButtons: { position: 'absolute', top: 18, left: 22, right: 22, flexDirection: 'row', justifyContent: 'space-between' },
-  detail: { backgroundColor: '#FFF8F5', borderTopLeftRadius: 34, borderTopRightRadius: 34, marginTop: -13, padding: 24, paddingBottom: 18 },
+  heroButtons: { position: 'absolute', top: 18, left: spacing.lg, right: spacing.lg, flexDirection: 'row', justifyContent: 'space-between' },
+  detail: { backgroundColor: '#FFF8F5', borderTopLeftRadius: 34, borderTopRightRadius: 34, marginTop: -13, padding: spacing.lg, paddingBottom: 18 },
   favorite: { width: 40, height: 40, borderRadius: 999, backgroundColor: '#FCE5E5', alignItems: 'center', justifyContent: 'center' },
   label: { marginTop: 23, marginBottom: 9, color: '#8B5969', fontSize: 14 },
   thumbnail: { borderRadius: 14 },

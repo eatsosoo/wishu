@@ -1,4 +1,5 @@
 import type { CompletionInput, MockSnapshot, PersonId, WishInput, WishCommand } from '../types/domain.ts';
+import { PHOTO_LIMITS } from '../features/photos/limits.ts';
 
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -12,6 +13,7 @@ export function prepareWish(snapshot: MockSnapshot, wishId: string, actor: Perso
   return { ...snapshot, preparations: [{ id: makeId('preparation'), wishId, preparedBy: actor, status: 'preparing', startedAt: new Date().toISOString().slice(0, 10) }, ...snapshot.preparations] };
 }
 export function completeWish(snapshot: MockSnapshot, input: CompletionInput, actor: PersonId): MockSnapshot {
+  if (input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
   const preparation = snapshot.preparations.find(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'preparing');
   const wish = snapshot.wishes.find(item => item.id === input.wishId);
   if (!preparation && snapshot.preparations.some(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'completed')) return snapshot;
@@ -32,12 +34,24 @@ export function readGift(snapshot: MockSnapshot, id: string, actor: PersonId): M
 }
 export const privatePreparations = (snapshot: MockSnapshot, actor: PersonId) => snapshot.preparations.filter(item => item.preparedBy === actor);
 
+export function deleteWish(snapshot: MockSnapshot, id: string, actor: PersonId): MockSnapshot {
+  const wish = snapshot.wishes.find(item => item.id === id);
+  if (!wish) return snapshot;
+  if (wish.createdBy !== actor) throw new Error('Bạn chỉ có thể xoá điều ước của mình.');
+  return {
+    ...snapshot,
+    wishes: snapshot.wishes.filter(item => item.id !== id),
+    preparations: snapshot.preparations.filter(item => item.wishId !== id),
+  };
+}
+
 export function applyWishCommand(snapshot: MockSnapshot, command: WishCommand, actor: PersonId): MockSnapshot {
   switch (command.kind) {
     case 'add': return addWish(snapshot, { ...command.input, createdBy: actor });
     case 'prepare': return prepareWish(snapshot, command.id, actor);
     case 'complete': return completeWish(snapshot, command.input, actor);
     case 'read': return readGift(snapshot, command.id, actor);
+    case 'delete': return deleteWish(snapshot, command.id, actor);
     case 'wishFavorite': return { ...snapshot, wishes: snapshot.wishes.map(wish => wish.id === command.id ? { ...wish, favorite: !wish.favorite } : wish) };
     case 'memoryFavorite': return { ...snapshot, memories: snapshot.memories.map(memory => memory.id === command.id ? { ...memory, favorite: !memory.favorite } : memory) };
     case 'couple': return { ...snapshot, couple: { ...snapshot.couple, name: command.name, anniversaryDate: command.anniversaryDate } };

@@ -1,16 +1,24 @@
 # Category cover artwork
 
-Generated with the built-in `image_gen` tool using `assets/artwork/home.png` as a style reference. Each PNG is a separate, opaque square asset. Legacy art IDs are retained; IDs referencing the missing travel/photobooth/photoMemory files now display the matching new cover.
+Generated with the built-in `image_gen` tool using `assets/artwork/home.png` as a style reference. Each PNG is a separate square asset. On 2026-10-19 all five illustrations were edited with built-in ImageGen to extract the objects onto transparent backgrounds. Legacy art IDs are retained; IDs referencing the missing travel/photobooth/photoMemory files display the matching cover.
 
 Used by `src/features/wishes/default-cover.ts` when no personal photo is selected. Preview and saved cover share the same mapping. Uploaded photos take precedence.
 
-Runtime uses 640×640 WebP derivatives (quality 82) instead of the original 1254×1254 PNGs. All five total 120,464 bytes rather than 7,899,227 bytes (98.5% smaller). PNGs remain as source files and are not imported into the app bundle.
+Runtime uses 640×640 WebP derivatives (quality 82) with preserved alpha channels. All five total 300,664 bytes rather than 6,631,851 bytes of PNG sources (95.5% smaller). PNGs remain as source files and are not imported into the app bundle.
 
 Regenerate with `python scripts/optimize-category-artwork.py` (requires Pillow with WebP support). Only derivative `.webp` files are overwritten. The add-wish screen prefetches these five covers with `expo-image`; requests are deduplicated and a failed prefetch can be retried on the next visit. Image transitions keep the previous cover visible until its replacement loads.
 
 New art names are validated by Supabase `wish-action`; deploy that function before releasing the updated frontend.
 
 ## Prompts
+
+### Transparent background edit (all five assets)
+
+Built-in ImageGen, one edit per existing PNG, with `transparent_background: true`:
+
+Use case: background-extraction. Edit the provided category illustration. Remove the entire cream studio background and floor; output a true transparent alpha background, including all gaps between objects. Preserve all existing objects, pastel colors, glossy clay material, camera angle, composition and details. Do not add anything, do not add a checkerboard, text, border or backdrop. Keep objects fully within a square image with a small transparent margin. Preserve the original appearance as closely as possible.
+
+Original generation prompts are retained below for reference.
 
 ### Quà tặng — gift.png
 

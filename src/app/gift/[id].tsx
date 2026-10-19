@@ -30,7 +30,7 @@ export default function GiftScreen() {
   if (!gift && !isPreview) return loadedId !== id ? <LoadingState /> : <AppScreen><AppHeader back /><EmptyState title="Chưa tìm thấy hộp quà" description="Hộp quà chỉ dành cho tài khoản người nhận. Bạn có thể làm mới hộp thư để thử lại." action="Về thông báo" onAction={() => router.replace('/notifications')} /></AppScreen>;
   const sender = (isPreview ? store.couple.members.find(member => member.id !== store.actor)?.name : store.couple.members.find(member => member.id === gift?.sender)?.name) ?? 'Người ấy';
   const memory = store.memories.find(item => item.id === gift?.memoryId);
-  return <AppScreen contentStyle={{ paddingHorizontal: 22 }}>
+  return <AppScreen>
     <AppHeader back title={`Quà từ ${sender} ♡`} />
     <GiftReveal key={isPreview ? 'test-preview' : gift?.id} />
     <View style={{ padding: 16, borderRadius: 24, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, marginTop: 4 }}>

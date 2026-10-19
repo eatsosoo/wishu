@@ -10,6 +10,7 @@ import { Heading, IconButton } from './ui';
 import { NotificationBell } from './NotificationBell';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useNavigationHighlight } from '../hooks/use-navigation-highlight';
+import { spacing } from '../constants/theme';
 
 const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon: LucideIcon }[] = [
   { path: '/', label: 'Trang chủ', icon: Home }, { path: '/wishes', label: 'Điều ước', icon: Heart },
@@ -69,24 +70,24 @@ export function AppHeader({ title, back = false, right }: { title?: string; back
 
   return <View style={s.header}>
     {back ? <IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} /> : <View style={{ width: 41 }} />}
-    {!!title && <Heading style={{ flex: 1, fontSize: 20, lineHeight: 27 }}>{title}</Heading>}
+    {!!title && <Heading style={{ flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34 }}>{title}</Heading>}
     {right ?? <View style={{ width: 41 }} />}
   </View>;
 }
 export function ScreenTitle({ title, right }: { title: string; right?: ReactNode }) {
   return <View style={baseStyles.screenTitle}>
-    <Heading numberOfLines={2} style={{ flex: 1, minWidth: 0, fontSize: 27, lineHeight: 34 }}>{title}</Heading>
-    <View style={baseStyles.titleActions}>{right}<NotificationBell /></View>
+    <Heading style={{ flex: 1, minWidth: 0, fontSize: 27, lineHeight: 44 }}>{title}</Heading>
+    <View style={baseStyles.titleActions}><NotificationBell />{right}</View>
   </View>;
 }
 const baseStyles = StyleSheet.create({
-  content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 18, paddingBottom: 24 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
+  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: 18, paddingBottom: spacing.lg },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
   nav: { position: 'absolute', left: 16, right: 16, borderRadius: 32, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 10 },
   navGlass: { height: 62, paddingHorizontal: 6, paddingVertical: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden' },
   navRow: { flexDirection: 'row', height: 50, alignItems: 'center' },
-  screenTitle: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
-  titleActions: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  screenTitle: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
+  titleActions: { flexShrink: 0, alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
   navSlot: { width: '20%', height: 50, alignItems: 'center', justifyContent: 'center' },
   navItem: { width: '100%', height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 26 },
   navHighlight: { position: 'absolute', left: 0, top: 0, height: 50, borderRadius: 26 },

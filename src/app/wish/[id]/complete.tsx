@@ -11,6 +11,8 @@ import { useWishStore } from '../../../hooks/use-wish-store';
 import { DateField } from '../../../components/DateField';
 import { parseDate } from '../../../features/wishes/format';
 import type { Photo } from '../../../types/domain';
+import { optimizePickedPhoto } from '../../../services/optimize-photo';
+import { PHOTO_LIMITS } from '../../../features/photos/limits';
 
 export default function CompleteWish() {
   const { colors, t } = useAppTheme();
@@ -27,17 +29,27 @@ export default function CompleteWish() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [processingPhotos, setProcessingPhotos] = useState(false);
   const saving = useRef(false);
 
   if (!wish || !preparation) return <AppScreen><EmptyState title="Mình chọn một điều đang chuẩn bị nhé" description="Chỉ bạn mới có thể hoàn thành bất ngờ mình đang chuẩn bị." action="Đang chuẩn bị" onAction={() => router.replace('/preparing')} /></AppScreen>;
   async function addPhotos() {
+    if (processingPhotos || busy || photos.length >= PHOTO_LIMITS.memoryCount) return;
+    setProcessingPhotos(true);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: Math.max(1, 8 - photos.length), quality: 0.8 });
-      if (!result.canceled) setPhotos(previous => [...previous, ...result.assets.map(asset => ({ uri: asset.uri }))].slice(0, 8));
-    } catch { setError('Chưa chọn được ảnh. Bạn thử lại nhé.'); }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: PHOTO_LIMITS.memoryCount - photos.length, quality: 1 });
+      if (!result.canceled) {
+        if (result.assets.length > PHOTO_LIMITS.memoryCount - photos.length) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
+        const optimized: Photo[] = [];
+        for (const asset of result.assets) optimized.push(await optimizePickedPhoto(asset));
+        setPhotos(previous => [...previous, ...optimized].slice(0, PHOTO_LIMITS.memoryCount));
+        setError('');
+      }
+    } catch (error) { setError(error instanceof Error ? error.message : 'Chưa xử lý được ảnh. Bạn thử lại nhé.'); }
+    finally { setProcessingPhotos(false); }
   }
   async function save() {
-    if (saving.current) return;
+    if (saving.current || processingPhotos) return;
     const completedAt = parseDate(date);
     if (!completedAt) { setError('Nhập ngày hoàn thành hợp lệ nhé.'); return; }
     saving.current = true; setBusy(true); setError('');
@@ -55,10 +67,11 @@ export default function CompleteWish() {
         {photos.map((photo, index) => <View key={index} style={{ width: 75, height: 75 }}><PhotoView photo={photo} width={75} height={75} style={{ borderRadius: 14 }} /><Pressable accessibilityRole="button" accessibilityLabel={`Bỏ ảnh ${index + 1}`} hitSlop={4} onPress={() => setPhotos(previous => previous.filter((_, i) => i !== index))} style={{ position: 'absolute', top: 3, right: 3, backgroundColor: t('rgba(255,249,246,0.82)'), borderRadius: 999, padding: 2 }}><X size={13} color={colors.primary} /></Pressable></View>)}
         {photos.length < 8 && <Pressable accessibilityRole="button" accessibilityLabel="Thêm ảnh kỷ niệm" onPress={addPhotos} style={{ width: 75, height: 75, borderRadius: 14, backgroundColor: t('#F2DEDC'), alignItems: 'center', justifyContent: 'center' }}><Plus size={24} color={t("#AF8792")} strokeWidth={1.5} /></Pressable>}
       </View></View>
+      <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted }}>{processingPhotos ? 'Đang tối ưu ảnh…' : `${photos.length}/8 ảnh · tối đa 20 MB/ảnh · tự tối ưu còn tối đa 2 MB/ảnh`}</Body>
       <AppTextarea label="Chia sẻ cảm xúc (tùy chọn)" value={note} onChangeText={setNote} maxLength={2000} />
       {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
       {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
-      <PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
+      <PrimaryButton disabled={busy || processingPhotos} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
     </View>
   </AppScreen>;
 }

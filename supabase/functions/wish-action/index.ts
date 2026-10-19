@@ -3,6 +3,7 @@ import { deliverWebGifts } from '../_shared/deliver-web.ts';
 import { artNames, categories, type MockSnapshot, type WishCommand } from '../../../src/types/domain.ts';
 import { admin, authenticate, cors, json } from '../_shared/backend.ts';
 import { deliverGifts } from '../_shared/deliver.ts';
+import { PHOTO_LIMITS } from '../../../src/features/photos/limits.ts';
 
 function validate(command: WishCommand, coupleId: string) {
   const photo = (value: unknown) => {
@@ -16,7 +17,7 @@ function validate(command: WishCommand, coupleId: string) {
   if (!command || typeof command !== 'object') throw new Error('Yêu cầu không hợp lệ.');
   switch (command.kind) {
     case 'complete':
-      if (!command.input || !text(command.input.wishId, 100) || !date(command.input.completedAt) || !text(command.input.note, 2000) || !Array.isArray(command.input.photos) || command.input.photos.length > 8 || !command.input.photos.every(photo)) throw new Error('Thông tin kỷ niệm chưa hợp lệ.');
+      if (!command.input || !text(command.input.wishId, 100) || !date(command.input.completedAt) || !text(command.input.note, 2000) || !Array.isArray(command.input.photos) || command.input.photos.length > PHOTO_LIMITS.memoryCount || !command.input.photos.every(photo)) throw new Error('Thông tin kỷ niệm chưa hợp lệ.');
       break;
     case 'add': {
       const input = command.input;
@@ -24,7 +25,7 @@ function validate(command: WishCommand, coupleId: string) {
       break;
     }
     case 'couple': if (!text(command.name, 60) || !command.name.trim() || !date(command.anniversaryDate)) throw new Error('Thông tin cặp đôi chưa hợp lệ.'); break;
-    case 'prepare': case 'read': case 'wishFavorite': case 'memoryFavorite':
+    case 'prepare': case 'read': case 'wishFavorite': case 'memoryFavorite': case 'delete':
       if (!text(command.id, 100)) throw new Error('Yêu cầu không hợp lệ.'); break;
     default: throw new Error('Thao tác không hợp lệ.');
   }

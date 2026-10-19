@@ -3,6 +3,8 @@ const { test } = require('node:test');
 const { createMockSnapshot } = require('../src/services/mock-data.ts');
 const { addWish, prepareWish, completeWish, privatePreparations, readGift } = require('../src/services/wish-actions.ts');
 const { parseDate } = require('../src/features/wishes/format.ts');
+const { togetherDays } = require('../src/features/couple/selectors.ts');
+const { applyWishCommand } = require('../src/services/wish-actions.ts');
 
 test('preparation is visible only to the mock actor who started it', () => {
   const snapshot = createMockSnapshot();
@@ -54,4 +56,56 @@ test('completion dates reject impossible days and fractional years', () => {
   assert.equal(parseDate('29/02/2023'), null);
   assert.equal(parseDate('31/04/2024'), null);
   assert.equal(parseDate('20/10/2024.5'), null);
+});
+
+test('together days use the current local calendar date, including leap days', () => {
+  assert.equal(togetherDays('2026-10-18', new Date(2026, 9, 19, 0, 1)), 1);
+  assert.equal(togetherDays('2026-10-18', new Date(2026, 9, 19, 23, 59)), 1);
+  assert.equal(togetherDays('2024-02-28', new Date(2024, 2, 1)), 2);
+  assert.equal(togetherDays('2026-10-19', new Date(2026, 9, 19)), 0);
+  assert.equal(togetherDays('2026-10-20', new Date(2026, 9, 19)), 0);
+  const today = new Date();
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  assert.equal(togetherDays(iso), 0);
+});
+
+test('together days safely handle missing and invalid anniversary dates', () => {
+  for (const value of ['', 'invalid', '19/10/2026', '2023-02-29', '2026-13-01']) {
+    assert.equal(togetherDays(value, new Date(2026, 9, 19)), 0);
+  }
+});
+
+test('changing the anniversary updates the day count without changing other couple data', () => {
+  const snapshot = createMockSnapshot();
+  const now = new Date(2026, 9, 19);
+  const next = applyWishCommand(snapshot, { kind: 'couple', name: snapshot.couple.name, anniversaryDate: '2026-10-01' }, 'minh');
+  assert.equal(togetherDays(next.couple.anniversaryDate, now), 18);
+  assert.notEqual(togetherDays(snapshot.couple.anniversaryDate, now), 18);
+  assert.deepEqual(next.couple.members, snapshot.couple.members);
+  assert.equal(snapshot.couple.anniversaryDate, '2024-02-14');
+});
+
+test('only the creator can delete a wish and related preparations are removed', () => {
+  const snapshot = createMockSnapshot();
+  const own = snapshot.wishes.find(wish => wish.id === 'bear');
+  assert.throws(() => applyWishCommand(snapshot, { kind: 'delete', id: own.id }, own.createdBy === 'minh' ? 'linh' : 'minh'));
+  const next = applyWishCommand(snapshot, { kind: 'delete', id: own.id }, own.createdBy);
+  assert.equal(next.wishes.some(wish => wish.id === own.id), false);
+  assert.equal(next.preparations.some(item => item.wishId === own.id), false);
+  assert.equal(snapshot.wishes.some(wish => wish.id === own.id), true);
+  assert.deepEqual(next.wishes, snapshot.wishes.filter(wish => wish.id !== own.id));
+  assert.strictEqual(applyWishCommand(next, { kind: 'delete', id: own.id }, own.createdBy), next);
+});
+
+test('deleting a completed wish preserves its memory, gift and shared cover', () => {
+  const snapshot = completeWish(createMockSnapshot(), { wishId: 'bear', completedAt: '2026-10-19', note: '', photos: [] }, 'minh');
+  const wish = snapshot.wishes.find(item => item.id === 'bear');
+  const next = applyWishCommand(snapshot, { kind: 'delete', id: wish.id }, wish.createdBy);
+  assert.deepEqual(next.memories, snapshot.memories);
+  assert.deepEqual(next.notifications, snapshot.notifications);
+  assert.deepEqual(next.memories[0].photos, [wish.cover]);
+});
+
+test('more than eight memory photos are rejected before changing data', () => {
+  assert.throws(() => completeWish(createMockSnapshot(), { wishId: 'bear', completedAt: '2026-10-19', note: '', photos: Array.from({ length: 9 }, () => ({ art: 'bear' })) }, 'minh'));
 });

@@ -63,6 +63,6 @@ export type WishInput = Omit<Wish, 'id' | 'favorite'>;
 export interface CompletionInput { wishId: string; completedAt: string; note: string; photos: Photo[] }
 export type WishCommand =
   | { kind: 'add'; input: WishInput }
-  | { kind: 'prepare' | 'read' | 'wishFavorite' | 'memoryFavorite'; id: string }
+  | { kind: 'prepare' | 'read' | 'wishFavorite' | 'memoryFavorite' | 'delete'; id: string }
   | { kind: 'complete'; input: CompletionInput }
   | { kind: 'couple'; name: string; anniversaryDate: string };

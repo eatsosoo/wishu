@@ -3,3 +3,6 @@ export async function photoBytes(uri: string): Promise<{ bytes: ArrayBuffer; typ
   const file = new File(uri);
   return { bytes: await file.arrayBuffer(), type: file.type || 'image/jpeg' };
 }
+export async function photoSize(uri: string): Promise<number> {
+  return new File(uri).size;
+}
