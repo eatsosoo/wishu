@@ -2,7 +2,7 @@ export const categories = ['Quà tặng', 'Du lịch', 'Ăn uống', 'Trải ngh
 export type Category = typeof categories[number];
 export type CategoryFilter = Category | 'Tất cả';
 export type PersonId = 'minh' | 'linh';
-export const artNames = ['home', 'couple', 'jar', 'jarOpen', 'gift', 'openGift', 'camera', 'bear', 'bearPortrait', 'bearReference', 'travel', 'travelMemory', 'photobooth', 'concert', 'photoMemory', 'memoryOne', 'memoryTwo', 'memoryThree'] as const;
+export const artNames = ['home', 'couple', 'jar', 'jarOpen', 'gift', 'openGift', 'camera', 'bear', 'bearPortrait', 'bearReference', 'travel', 'travelMemory', 'photobooth', 'concert', 'photoMemory', 'memoryOne', 'memoryTwo', 'memoryThree', 'categoryGift', 'categoryTravel', 'categoryDining', 'categoryExperience', 'categoryMoments'] as const;
 export type ArtName = typeof artNames[number];
 export type Photo = { art: ArtName } | { uri: string; storagePath?: string };
 export interface Wish {

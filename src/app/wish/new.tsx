@@ -1,11 +1,13 @@
 import { useAppTheme, useThemeStyles } from '../../hooks/use-app-theme';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
-import { Camera, ChevronDown, Plus, Star } from 'lucide-react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Camera, ChevronDown, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { AppHeader, AppScreen } from '../../components/AppScreen';
-import { PhotoView, Artwork } from '../../components/Artwork';
+import { PhotoView, prefetchCategoryArtwork } from '../../components/Artwork';
+import { WishAddedAnimation } from '../../components/WishAddedAnimation';
+import { defaultWishCover } from '../../features/wishes/default-cover';
 import { AppInput, AppTextarea, Body, BottomSheet, IconButton, PrimaryButton, PrioritySelector } from '../../components/ui';
 import { useWishStore } from '../../hooks/use-wish-store';
 import { DateField } from '../../components/DateField';
@@ -30,17 +32,7 @@ export default function AddWish() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [starProgress] = useState(() => new Animated.Value(0));
-  const [lidProgress] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    if (saved) Animated.sequence([
-      Animated.timing(lidProgress, { toValue: 1, duration: 420, useNativeDriver: true }),
-      Animated.delay(120),
-      Animated.timing(starProgress, { toValue: 1, duration: 650, useNativeDriver: true }),
-      Animated.delay(100),
-      Animated.timing(lidProgress, { toValue: 0, duration: 420, useNativeDriver: true }),
-    ]).start();
-  }, [saved, starProgress, lidProgress]);
+  useEffect(() => { void prefetchCategoryArtwork(); }, []);
   async function chooseImage() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
@@ -59,20 +51,14 @@ export default function AddWish() {
     setErrors(validation);
     if (Object.keys(validation).length) return;
     setBusy(true);
-    const success = await store.addWish({ createdBy: store.actor, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? { art: 'photobooth' }, targetDate: targetDate ?? undefined });
+    const success = await store.addWish({ createdBy: store.actor, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? defaultWishCover(category), targetDate: targetDate ?? undefined });
     setBusy(false);
     if (success) setSaved(true);
   }
   if (saved) return <AppScreen contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
     <View style={s.success}>
       <Body style={{ color: colors.primary }}>ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI</Body>
-      <View style={s.jarReveal}>
-        <Artwork name="jarOpen" width={208} height={208} label="Hũ điều ước 3D đã mở nắp" />
-        <Animated.View style={[s.flyingStar, { transform: [{ translateY: starProgress.interpolate({ inputRange: [0, 1], outputRange: [-20, 104] }) }, { scale: starProgress.interpolate({ inputRange: [0, 1], outputRange: [1.1, 0.55] }) }] }]}>
-          <Star size={36} color="#F2B84B" fill="#F9D36F" strokeWidth={1.5} />
-        </Animated.View>
-        <Animated.Image source={require('../../../assets/artwork/jar-lid.png')} resizeMode="contain" accessibilityLabel="Nắp hũ 3D" style={[s.jarLid, { transform: [{ translateY: lidProgress.interpolate({ inputRange: [0, 1], outputRange: [0, -38] }) }, { translateX: lidProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 19] }) }, { rotate: lidProgress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-35deg'] }) }] }]} />
-      </View>
+      <WishAddedAnimation />
       <View style={{ gap: 8, alignItems: 'center' }}>
         <Body style={{ color: colors.muted, textAlign: 'center' }}>Một ngôi sao nhỏ đã tìm được chỗ trong hũ của hai đứa.</Body>
         <PrimaryButton onPress={() => router.replace({ pathname: '/wishes', params: { owner: store.actor } })}>Xem hũ điều ước ♡</PrimaryButton>
@@ -81,7 +67,7 @@ export default function AddWish() {
   </AppScreen>;
   return <AppScreen contentStyle={{ paddingTop: 6 }}>
     <AppHeader back title="Thêm điều ước mới" />
-    <View style={s.image}>{cover ? <PhotoView photo={cover} height={140} /> : <Artwork name="camera" height={140} />}<View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
+    <View style={s.image}><PhotoView photo={cover ?? defaultWishCover(category)} height={180} fit={cover ? 'cover' : 'contain'} label={`Ảnh điều ước ${category}`} /><View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
     <View style={{ gap: 13, marginTop: 18 }}>
       {!!errors.photo && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{errors.photo}</Body>}
       <AppInput label="Tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
@@ -99,12 +85,9 @@ export default function AddWish() {
   </AppScreen>;
 }
 const baseStyles = StyleSheet.create({
-  image: { borderRadius: 24, overflow: 'hidden', borderWidth: 2, borderColor: '#FFF9F7', backgroundColor: '#F6DBD8' },
+  image: { borderRadius: 24, overflow: 'hidden', borderWidth: 2, borderColor: '#FFF9F7', backgroundColor: '#FFF9F5' },
   addPhoto: { position: 'absolute', right: 11, bottom: 12 },
   label: { color: '#967784', fontSize: 14 },
   category: { flexDirection: 'row', alignItems: 'center', minHeight: 45, gap: 11, backgroundColor: '#FFF9F7', borderRadius: 17, paddingHorizontal: 14, borderWidth: 1, borderColor: '#F1E3E1' },
   success: { minHeight: 470, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 12 },
-  jarReveal: { height: 235, width: '100%', alignItems: 'center', justifyContent: 'flex-start', overflow: 'visible' },
-  flyingStar: { position: 'absolute', top: 0, alignSelf: 'center', zIndex: 2 },
-  jarLid: { position: 'absolute', top: -9, left: '50%', marginLeft: -97, width: 194, height: 194, zIndex: 3 },
 });

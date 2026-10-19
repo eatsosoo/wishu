@@ -1,8 +1,15 @@
-import { Image, View, type ImageResizeMode, type ImageSourcePropType, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type ImageResizeMode, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, type ImageContentFit } from 'expo-image';
+import { Asset } from 'expo-asset';
 import type { ArtName, Photo } from '../types/domain';
 
 // Each illustration/photo is a standalone asset. Never enlarge or offset a UI screenshot.
-const assets: Record<ArtName, { source: ImageSourcePropType; aspectRatio: number; clay?: boolean }> = {
+const assets: Record<ArtName, { source: number; aspectRatio: number; clay?: boolean }> = {
+  categoryGift: { source: require('../../assets/artwork/categories/gift.webp'), aspectRatio: 1, clay: true },
+  categoryTravel: { source: require('../../assets/artwork/categories/travel.webp'), aspectRatio: 1, clay: true },
+  categoryDining: { source: require('../../assets/artwork/categories/dining.webp'), aspectRatio: 1, clay: true },
+  categoryExperience: { source: require('../../assets/artwork/categories/experience.webp'), aspectRatio: 1, clay: true },
+  categoryMoments: { source: require('../../assets/artwork/categories/moments.webp'), aspectRatio: 1, clay: true },
   home: { source: require('../../assets/artwork/home.png'), aspectRatio: 299 / 322, clay: true },
   couple: { source: require('../../assets/artwork/couple.png'), aspectRatio: 244 / 153, clay: true },
   jar: { source: require('../../assets/artwork/jar.png'), aspectRatio: 81 / 78, clay: true },
@@ -13,22 +20,44 @@ const assets: Record<ArtName, { source: ImageSourcePropType; aspectRatio: number
   bear: { source: require('../../assets/artwork/bear.png'), aspectRatio: 68 / 77 },
   bearPortrait: { source: require('../../assets/artwork/bear.png'), aspectRatio: 120 / 121 },
   bearReference: { source: require('../../assets/artwork/bear.png'), aspectRatio: 99 / 58 },
-  travel: { source: require('../../assets/artwork/travel.png'), aspectRatio: 72 / 78 },
-  travelMemory: { source: require('../../assets/artwork/travel.png'), aspectRatio: 121 / 121 },
-  photobooth: { source: require('../../assets/artwork/photobooth.png'), aspectRatio: 73 / 77 },
+  travel: { source: require('../../assets/artwork/categories/travel.webp'), aspectRatio: 1, clay: true },
+  travelMemory: { source: require('../../assets/artwork/categories/travel.webp'), aspectRatio: 1, clay: true },
+  photobooth: { source: require('../../assets/artwork/categories/moments.webp'), aspectRatio: 1, clay: true },
   concert: { source: require('../../assets/artwork/concert.png'), aspectRatio: 120 / 127 },
-  photoMemory: { source: require('../../assets/artwork/photoMemory.png'), aspectRatio: 121 / 126 },
+  photoMemory: { source: require('../../assets/artwork/categories/moments.webp'), aspectRatio: 1, clay: true },
   memoryOne: { source: require('../../assets/artwork/bear.png'), aspectRatio: 55 / 52 },
-  memoryTwo: { source: require('../../assets/artwork/travel.png'), aspectRatio: 55 / 52 },
-  memoryThree: { source: require('../../assets/artwork/photobooth.png'), aspectRatio: 55 / 52 },
+  memoryTwo: { source: require('../../assets/artwork/categories/travel.webp'), aspectRatio: 1, clay: true },
+  memoryThree: { source: require('../../assets/artwork/categories/moments.webp'), aspectRatio: 1, clay: true },
 };
+
+const categoryArtNames: ArtName[] = ['categoryGift', 'categoryTravel', 'categoryDining', 'categoryExperience', 'categoryMoments'];
+let categoryPrefetch: Promise<boolean> | undefined;
+
+// Warm just the five small covers, not the entire illustration library.
+export function prefetchCategoryArtwork(): Promise<boolean> {
+  if (!categoryPrefetch) {
+    const urls = categoryArtNames.map(name => Asset.fromModule(assets[name].source).uri);
+    categoryPrefetch = Image.prefetch(urls, 'memory-disk').then(success => {
+      if (!success) categoryPrefetch = undefined;
+      return success;
+    }).catch(() => { categoryPrefetch = undefined; return false; });
+  }
+  return categoryPrefetch;
+}
+
+function contentFit(fit: ImageResizeMode): ImageContentFit {
+  if (fit === 'stretch') return 'fill';
+  if (fit === 'center') return 'scale-down';
+  return fit === 'contain' ? 'contain' : 'cover';
+}
 
 export function Artwork({ name, width, height, style, label, fit }: {
   name: ArtName; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode;
 }) {
   const asset = assets[name];
   return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? asset.aspectRatio : undefined, overflow: 'hidden' }, style]}>
-    <Image source={asset.source} resizeMode={fit ?? (asset.clay ? 'contain' : 'cover')} accessibilityLabel={label}
+    <Image source={asset.source} contentFit={contentFit(fit ?? (asset.clay ? 'contain' : 'cover'))} accessibilityLabel={label}
+      cachePolicy="memory-disk" transition={100}
       accessible={!!label} accessibilityElementsHidden={!label} importantForAccessibility={label ? 'auto' : 'no-hide-descendants'}
       style={{ width: '100%', height: '100%' }} />
   </View>;
@@ -36,7 +65,7 @@ export function Artwork({ name, width, height, style, label, fit }: {
 
 export function PhotoView({ photo, width, height, style, label, fit }: { photo: Photo; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode }) {
   if ('art' in photo) return <Artwork name={photo.art} width={width} height={height} style={style} label={label} fit={fit} />;
-  return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? 1 : undefined, borderRadius: 15, overflow: 'hidden' }, style]}><Image source={{ uri: photo.uri }} accessibilityLabel={label} resizeMode={fit ?? 'cover'} style={{ width: '100%', height: '100%' }} /></View>;
+  return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? 1 : undefined, borderRadius: 15, overflow: 'hidden' }, style]}><Image source={{ uri: photo.uri }} accessibilityLabel={label} contentFit={contentFit(fit ?? 'cover')} cachePolicy="memory-disk" transition={100} style={{ width: '100%', height: '100%' }} /></View>;
 }
 
 export function BearHero({ height }: { height: number }) {

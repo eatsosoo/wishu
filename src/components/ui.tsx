@@ -116,7 +116,7 @@ const baseStyles = StyleSheet.create({
   filter: { borderRadius: 999, backgroundColor: '#F5E7E7', paddingVertical: 8, paddingHorizontal: 16 },
   label: { color: '#967784', fontSize: 14, lineHeight: 21 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9F7', borderWidth: 1, borderColor: '#F1E3E1', borderRadius: 17, minHeight: 45 },
-  input: { flex: 1, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 14, color: '#704654' },
+  input: { flex: 1, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 16, color: '#704654' },
   clearButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7EDEE' },
   overlay: { flex: 1, backgroundColor: 'rgba(73,37,47,0.25)', justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 430, padding: 24, paddingBottom: 38, borderTopLeftRadius: 32, borderTopRightRadius: 32, backgroundColor: colors.background },

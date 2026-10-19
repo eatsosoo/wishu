@@ -34,7 +34,7 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
       <Icon size={27} strokeWidth={1.9} color={selected ? '#FFFFFF' : colors.burgundy} fill={selected && path === '/' ? '#FFFFFF' : 'transparent'} />
     </Pressable></View>;
   }
-  return <View style={[s.nav, { bottom: Math.max(insets.bottom, 2) }]}>
+  return <View style={[s.nav, { bottom: Math.max(insets.bottom, 0) + 16 }]}>
     <View style={s.navGlass}>
       <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
       <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />

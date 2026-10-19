@@ -26,8 +26,23 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-font", { "fonts": ["./assets/fonts/Pacifico-Regular.ttf"] }],
-      ["expo-notifications", { "color": "#BB607D", "defaultChannel": "gifts" }]
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Pacifico-Regular.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#BB607D",
+          "defaultChannel": "gifts"
+        }
+      ],
+      "expo-image",
+      "expo-asset"
     ]
   }
 }

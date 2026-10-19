@@ -21,7 +21,7 @@ function SettingRow({ icon: Icon, label, right, onPress }: { icon: LucideIcon; l
   return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={s.row}><View style={s.icon}><Icon size={23} color={t("#AF4057")} strokeWidth={1.7} /></View><Body style={{ flex: 1, fontFamily: fonts.medium, color: t('#662F3E') }}>{label}</Body>{right}<ChevronRight size={18} color={t("#A8808F")} strokeWidth={1.5} /></Pressable>;
 }
 export default function CoupleProfile() {
-  const { colors, t, id: themeId, setTheme, error: themeError } = useAppTheme();
+  const { colors, id: themeId, setTheme, error: themeError } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
   const store = useWishStore();
@@ -50,7 +50,7 @@ export default function CoupleProfile() {
   }
   function open(value: Exclude<typeof sheet, null>) { setName(store.couple.name); setDate(formatDate(store.couple.anniversaryDate)); setError(''); setSheet(value); }
   return <AppScreen navigation>
-    <ScreenTitle title="Của chúng ta" /><Body style={{ color: t('#915365'), marginTop: -8 }}>Cùng nhau viết tiếp những ngày tháng{ '\n' }thật đẹp nhé ♡</Body>
+    <ScreenTitle title="Của chúng ta" />
     <View style={{ marginTop: 14, marginBottom: 17 }}><CoupleAvatar /></View>
     {store.cloudCouple?.inviteCode ? <View style={{ padding: 18, borderRadius: 22, backgroundColor: colors.surface, gap: 8, marginTop: 14, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Mời người ấy vào không gian của mình ♡</Body><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><Body selectable style={{ flex: 1, fontSize: 16, letterSpacing: 2, fontFamily: fonts.bold }}>{store.cloudCouple.inviteCode.toUpperCase()}</Body><Pressable accessibilityRole="button" accessibilityLabel={copied ? 'Đã sao chép mã mời' : 'Sao chép mã mời'} onPress={() => void copyInviteCode()} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: colors.rose }}>{copied ? <Check size={18} color={colors.primary} /> : <Copy size={18} color={colors.primary} />}</Pressable></View><Body style={{ color: colors.muted, fontSize: 12 }}>Người ấy đăng nhập trên điện thoại của mình rồi nhập mã này để ghép đôi.</Body></View> : null}
     <View style={s.settings}>
