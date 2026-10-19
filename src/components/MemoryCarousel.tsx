@@ -58,7 +58,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
         keyExtractor={slide => slide.key} getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         disableScrollViewPanResponder={Platform.OS === 'web'}
         onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.x; setIndex(Math.max(0, Math.min(slides.length - 1, Math.round(scrollOffset.current / width)))); }} scrollEventThrottle={32}
-        renderItem={({ item }) => <PhotoView photo={item.photo} width={width} height={width} fit="contain" label={item.memory.title} />} />}
+        renderItem={({ item }) => <PhotoView photo={item.photo} width={width} height={width} fit="cover" label={item.memory.title} />} />}
     </View>
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
       <Pressable accessibilityRole="button" accessibilityLabel="Ảnh trước" accessibilityState={{ disabled: currentIndex === 0 }} disabled={currentIndex === 0} onPress={() => jump(currentIndex - 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', opacity: currentIndex === 0 ? 0.35 : 1 }}><ChevronLeft size={21} color={colors.primary} /></Pressable>

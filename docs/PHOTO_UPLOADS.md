@@ -4,6 +4,8 @@ Selected photos must be JPEG, PNG, WebP or HEIC/HEIF, at most 20 MiB and 48 mega
 
 The private `wish-photos` Storage bucket also rejects new uploads above 2 MiB. Its accepted upload MIME types are JPEG, PNG and WebP; HEIC inputs are converted to JPEG by the app. Existing uploaded files remain readable. Built-in category artwork is bundled separately and retains its alpha channel.
 
+Memory photo selections are center-cropped to a square before resizing and compression. Each selected thumbnail has a crop button at its bottom-right corner. Before completing the wish, users can drag, zoom, move with arrow buttons, or reset the crop to the center. Every edit is regenerated from the selected original, which stays local to the form; only the final square JPEG is uploaded. Wish cover photos retain their original aspect ratio. Existing memories display with a centered square crop without rewriting their files.
+
 The owner's wish detail menu includes **Xoá điều ước** and a confirmation sheet. The backend independently checks ownership. Deletion removes the wish and its preparations, preserving memories and gift notifications. Storage files are retained because completed memories can reference the same cover. Account deletion remains responsible for removing the couple's stored files.
 
 ## Apply backend changes

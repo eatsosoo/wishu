@@ -56,14 +56,14 @@ export default function Memories() {
       <View style={{ flexDirection: 'row', marginBottom: 8 }}>{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => <Body key={day} style={{ width: '14.2857%', textAlign: 'center', color: colors.muted, fontSize: 12 }}>{day}</Body>)}</View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{Array.from({ length: slots }, (_, i) => {
         const day = i - offset + 1;
-        if (day < 1 || day > count) return <View key={i} style={{ width: '14.2857%', aspectRatio: 0.78 }} />;
+        if (day < 1 || day > count) return <View key={i} style={{ width: '14.2857%', aspectRatio: 1 }} />;
         const date = `${prefix}-${String(day).padStart(2, '0')}`;
         const memories = byDate.get(date) ?? [];
         const photos = memories.reduce((total, memory) => total + memory.photos.length, 0);
         const selected = emptyDay === day;
-        return <Pressable key={date} accessibilityRole="button" accessibilityLabel={`Ngày ${day} tháng ${monthIndex + 1} năm ${year}, ${photos} ảnh kỷ niệm`} accessibilityState={{ selected }} onPress={() => openDay(day)} style={{ width: '14.2857%', aspectRatio: 0.78, padding: 3 }}>
+        return <Pressable key={date} accessibilityRole="button" accessibilityLabel={`Ngày ${day} tháng ${monthIndex + 1} năm ${year}, ${photos} ảnh kỷ niệm`} accessibilityState={{ selected }} onPress={() => openDay(day)} style={{ width: '14.2857%', aspectRatio: 1, padding: 3 }}>
           <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: selected ? colors.rose : colors.background, borderWidth: memories.length ? 1.5 : 0, borderColor: colors.primary, justifyContent: 'center', alignItems: 'center' }}>
-            {memories.length > 0 && <View style={{ position: 'absolute', inset: 0 }}><PhotoView photo={memories[0].photos[0]} height={70} /></View>}
+            {memories.length > 0 && <View style={{ position: 'absolute', inset: 0 }}><PhotoView photo={memories[0].photos[0]} /></View>}
             <Body style={{ fontSize: 12, fontFamily: fonts.bold, color: memories.length ? '#fff' : colors.muted, ...(memories.length ? { position: 'absolute', left: 3, bottom: 3, backgroundColor: 'rgba(35,25,30,0.55)', borderRadius: 7, minWidth: 20, textAlign: 'center' as const } : {}) }}>{day}</Body>
             {photos > 1 && <View style={{ position: 'absolute', top: 3, right: 3, width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />}
           </View>
@@ -72,7 +72,7 @@ export default function Memories() {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingTop: 14, paddingBottom: 5 }}><Heart size={13} color={colors.primary} /><Body style={{ color: colors.muted, fontSize: 12 }}>{monthGroups.length} ngày đáng nhớ · {photoCount} ảnh</Body></View>
     </View>
     {emptyDay !== null ? <View style={{ paddingVertical: 23, gap: 5 }}><Body style={{ textAlign: 'center', color: colors.primary }}>Ngày {emptyDay}/{monthIndex + 1} còn chờ một kỷ niệm ♡</Body><Body style={{ textAlign: 'center', color: colors.muted, fontSize: 12 }}>Hoàn thành một điều ước để lưu khoảnh khắc mới.</Body></View> : null}
-    {!!latestDate && <SecondaryButton onPress={() => { setFilter('Tất cả'); changeMonth(new Date(`${latestDate}T12:00:00`)); }}>Về tháng có kỷ niệm mới nhất</SecondaryButton>}
+    {!!latestDate && <View style={{ marginTop: 20 }}><SecondaryButton onPress={() => { setFilter('Tất cả'); changeMonth(new Date(`${latestDate}T12:00:00`)); }}>Về tháng có kỷ niệm mới nhất</SecondaryButton></View>}
     {!store.memories.length && <EmptyState title="Để dành một kỷ niệm" description="Khi điều ước thành hiện thực, khoảnh khắc ấy sẽ ở đây ♡" />}
     <BottomSheet visible={picker} onClose={() => setPicker(false)} title="Chọn tháng kỷ niệm"><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}><IconButton icon={ChevronLeft} label="Năm trước" onPress={() => setPickerYear(value => value - 1)} /><Heading style={{ fontSize: 22 }}>{pickerYear}</Heading><IconButton icon={ChevronRight} label="Năm sau" onPress={() => setPickerYear(value => value + 1)} /></View><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{Array.from({ length: 12 }, (_, i) => <Pressable key={i} accessibilityRole="button" accessibilityLabel={`Tháng ${i + 1} năm ${pickerYear}`} onPress={() => { changeMonth(new Date(pickerYear, i, 1)); setPicker(false); }} style={{ width: '30%', minHeight: 48, borderRadius: 15, backgroundColor: i === monthIndex && pickerYear === year ? colors.rose : colors.surface, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: colors.primary }}>Tháng {i + 1}</Body></Pressable>)}</View></BottomSheet>
   </AppScreen>;

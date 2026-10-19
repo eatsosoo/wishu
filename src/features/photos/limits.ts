@@ -13,5 +13,7 @@ export function validatePhotoSource(width: number, height: number, size: number)
 
 export function photoResize(width: number, height: number) {
   if (Math.max(width, height) <= PHOTO_LIMITS.maxDimension) return null;
-  return width >= height ? { width: PHOTO_LIMITS.maxDimension, height: null } : { width: null, height: PHOTO_LIMITS.maxDimension };
+  const scale = PHOTO_LIMITS.maxDimension / Math.max(width, height);
+  // Web treats an explicit null dimension as zero, unlike the native implementation.
+  return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
 }
