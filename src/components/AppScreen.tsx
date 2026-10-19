@@ -48,11 +48,12 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
     </View>
   </View>;
 }
-export function AppScreen({ children, navigation = false, contentStyle, home = false }: {
-  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean;
+export function AppScreen({ children, navigation = false, contentStyle, home = false, bottomAction }: {
+  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean; bottomAction?: ReactNode;
 }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
+  const insets = useSafeAreaInsets();
 
   const blurTarget = useRef<View | null>(null);
   return <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -63,6 +64,13 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     </SafeAreaView>
     </BlurTargetView>
     {navigation && <BottomNavigation blurTarget={blurTarget} />}
+    {bottomAction && <View style={[s.actionBar, { bottom: Math.max(insets.bottom, 0) + 16 }]}>
+      <View style={[s.navGlass, s.actionGlass]}>
+        <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
+        <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={{ gap: 8 }}>{bottomAction}</View>
+      </View>
+    </View>}
   </View>;
 }
 export function AppHeader({ title, back = false, right }: { title?: string; back?: boolean; right?: ReactNode }) {
@@ -85,6 +93,8 @@ const baseStyles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
   nav: { position: 'absolute', left: 16, right: 16, borderRadius: 32, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 10 },
   navGlass: { height: 62, paddingHorizontal: 6, paddingVertical: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden' },
+  actionBar: { position: 'absolute', left: 16, right: 16, borderRadius: 999, boxShadow: '0px 6px 16px rgba(130,40,65,0.22)' },
+  actionGlass: { height: 'auto', paddingHorizontal: 0, paddingVertical: 0, borderWidth: 0, borderRadius: 999 },
   navRow: { flexDirection: 'row', height: 50, alignItems: 'center' },
   screenTitle: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
   titleActions: { flexShrink: 0, alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
