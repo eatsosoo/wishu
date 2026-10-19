@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { Gift, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -8,6 +8,7 @@ import { useWishStore } from '../hooks/use-wish-store';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { registerPush, scheduleTestNotification } from '../services/push';
 import { WebPushControls } from '../components/WebPushControls';
+import { prefetchRevealArtwork } from '../components/reveal-artwork';
 
 export default function NotificationsScreen() {
   const store = useWishStore();
@@ -16,6 +17,7 @@ export default function NotificationsScreen() {
   const [busy, setBusy] = useState(false);
   const [testMessage, setTestMessage] = useState('');
   const [testing, setTesting] = useState(false);
+  useEffect(() => { void prefetchRevealArtwork('gift'); }, []);
   async function testNotification() {
     if (testing) return;
     setTesting(true);

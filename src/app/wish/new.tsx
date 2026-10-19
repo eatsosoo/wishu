@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Camera, ChevronDown, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { AppHeader, AppScreen } from '../../components/AppScreen';
 import { PhotoView, prefetchCategoryArtwork } from '../../components/Artwork';
 import { WishAddedAnimation } from '../../components/WishAddedAnimation';
+import { prefetchRevealArtwork } from '../../components/reveal-artwork';
 import { defaultWishCover } from '../../features/wishes/default-cover';
 import { AppInput, AppTextarea, Body, BottomSheet, IconButton, PrimaryButton, PrioritySelector } from '../../components/ui';
 import { useWishStore } from '../../hooks/use-wish-store';
@@ -15,6 +16,8 @@ import { parseDate } from '../../features/wishes/format';
 import { categories, type Category, type Photo } from '../../types/domain';
 
 export default function AddWish() {
+  const { preview } = useLocalSearchParams<{ preview?: string }>();
+  const isPreview = __DEV__ && preview === '1';
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
@@ -32,7 +35,7 @@ export default function AddWish() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  useEffect(() => { void prefetchCategoryArtwork(); }, []);
+  useEffect(() => { void prefetchCategoryArtwork(); void prefetchRevealArtwork('jar'); }, []);
   async function chooseImage() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
@@ -55,9 +58,9 @@ export default function AddWish() {
     setBusy(false);
     if (success) setSaved(true);
   }
-  if (saved) return <AppScreen contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+  if (saved || isPreview) return <AppScreen contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
     <View style={s.success}>
-      <Body style={{ color: colors.primary }}>ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI</Body>
+      <Body style={{ color: colors.primary }}>{isPreview ? 'XEM THỬ THẢ SAO VÀO HŨ' : 'ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI'}</Body>
       <WishAddedAnimation />
       <View style={{ gap: 8, alignItems: 'center' }}>
         <Body style={{ color: colors.muted, textAlign: 'center' }}>Một ngôi sao nhỏ đã tìm được chỗ trong hũ của hai đứa.</Body>
