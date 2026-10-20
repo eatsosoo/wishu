@@ -1,6 +1,7 @@
 import { useAppTheme } from '../../../hooks/use-app-theme';
 import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Crop, Plus, X } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -20,6 +21,7 @@ type MemoryPhotoDraft = { id: string; source: ImagePicker.ImagePickerAsset; phot
 
 export default function CompleteWish() {
   const { colors, t } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const store = useWishStore();
@@ -75,8 +77,13 @@ export default function CompleteWish() {
     if (success) router.replace({ pathname: '/memories', params: { giftCreated: 'yes' } });
     else setError('Chưa lưu và tạo thông báo được. Bạn thử lại nhé.');
   }
-  return <AppScreen>
-    <View><ClayObject name="openGift" width={275} height={157} style={{ alignSelf: 'center' }} /><View style={{ position: 'absolute', top: 0, left: 0 }}><IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/preparing')} /></View></View>
+  return <View style={{ flex: 1 }}>
+  <AppScreen contentStyle={{ paddingBottom: 150 }} bottomAction={<>
+    {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
+    {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
+    <PrimaryButton disabled={busy || processingPhotos || editingId !== null} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
+  </>}>
+    <View><ClayObject name="openGift" width={275} height={157} style={{ alignSelf: 'center' }} /></View>
     <Heading style={{ color: t('#251D23'), textAlign: 'center', marginTop: 14, fontSize: 26 }}>Hoàn thành điều ước</Heading><Body style={{ textAlign: 'center', color: t('#915365'), marginTop: 8 }}>Đánh dấu khoảnh khắc đặc biệt này{ '\n' }cùng một vài kỷ niệm nhé ♡</Body>
     <View style={{ marginTop: 25, gap: 17 }}>
       <DateField label="Ngày hoàn thành" value={date} onChange={setDate} />
@@ -86,10 +93,9 @@ export default function CompleteWish() {
       </View></View>
       <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted }}>{processingPhotos ? 'Đang tối ưu ảnh…' : `${photos.length}/8 ảnh · cắt vuông từ giữa · chạm icon để chỉnh vùng ảnh`}</Body>
       <AppTextarea label="Chia sẻ cảm xúc (tùy chọn)" value={note} onChangeText={setNote} maxLength={2000} />
-      {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
-      {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
-      <PrimaryButton disabled={busy || processingPhotos} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
     </View>
     {editingPhoto && <SquarePhotoCropper key={editingPhoto.id} source={editingPhoto.source} initialSelection={editingPhoto.selection} onCancel={() => setEditingId(null)} onApply={applyCrop} />}
-  </AppScreen>;
+  </AppScreen>
+  <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 10, left: 16 }}><IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/preparing')} /></View>
+  </View>;
 }
