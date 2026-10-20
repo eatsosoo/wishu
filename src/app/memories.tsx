@@ -44,7 +44,7 @@ export default function Memories() {
     router.push({ pathname: '/memory-day/[date]', params: { date, category: filter } });
   }
   return <AppScreen navigation>
-    {giftCreated === 'yes' ? <View accessibilityRole="alert" style={{ padding: 16, backgroundColor: colors.rose, borderRadius: 18, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Đã lưu kỷ niệm và tạo thông báo cho người ấy 🎁</Body><Body style={{ color: colors.muted, fontSize: 12 }}>Push sẽ gửi tới thiết bị người ấy đã bật thông báo.</Body></View> : null}
+    {giftCreated === 'yes' ? <View accessibilityRole="alert" style={{ padding: 16, backgroundColor: colors.rose, borderRadius: 18, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Một khoảnh khắc đã thành kỷ niệm, một lời thương gửi đến {store.partnerName} 🎁</Body></View> : null}
     <ScreenTitle title="Kỷ niệm" />
     <FilterChips value={filter} onChange={value => { setFilter(value); setEmptyDay(null); }} options={['Tất cả', 'Quà tặng', 'Du lịch', 'Trải nghiệm', 'Khoảnh khắc']} />
     <View style={{ marginTop: 20, borderRadius: 28, padding: 13, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>

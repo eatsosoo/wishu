@@ -8,18 +8,18 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
 });
 const tokenKey = 'ourwish:push-token';
-export async function scheduleTestNotification(): Promise<void> {
+export async function scheduleTestNotification(partner = 'người ấy'): Promise<void> {
   if (!__DEV__) throw new Error('Thông báo thử chỉ dành cho bản phát triển.');
   if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('gifts', {
-    name: 'Bất ngờ từ người ấy', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
+    name: 'Những lời thương gửi bạn', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
   });
   let permission = await Notifications.getPermissionsAsync();
   if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
   if (!permission.granted) throw new Error('Bạn chưa cho phép thông báo. Có thể bật lại trong cài đặt điện thoại.');
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Bạn có một bất ngờ 🎁',
-      body: 'Người ấy đã hoàn thành “Một buổi hẹn chỉ dành cho hai đứa”. Chạm để mở quà ♡',
+      title: 'Một lời thương vừa ghé đến 🎁',
+      body: `${partner === 'người ấy' ? 'Người ấy' : partner} đã hoàn thành “Một buổi hẹn chỉ dành cho hai đứa”. Chạm để mở quà ♡`,
       sound: 'default',
       data: { giftId: 'test-preview', giftPreview: true },
     },
@@ -32,7 +32,7 @@ export async function registerPush(requestPermission = true): Promise<string> {
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
   if (!projectId) throw new Error('Chưa cấu hình EAS project ID.');
   if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('gifts', {
-    name: 'Bất ngờ từ người ấy', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
+    name: 'Những lời thương gửi bạn', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
   });
   let permission = await Notifications.getPermissionsAsync();
   if (!permission.granted && requestPermission) permission = await Notifications.requestPermissionsAsync();

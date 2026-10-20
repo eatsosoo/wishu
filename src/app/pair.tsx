@@ -32,9 +32,9 @@ export default function PairScreen() {
   }
   return <AppScreen contentStyle={{ justifyContent: 'center', gap: 20 }}>
     <Heading style={{ textAlign: 'center' }}>Một nơi cho hai đứa ♡</Heading>
-    <Body style={{ textAlign: 'center', color: colors.muted }}>Tạo không gian và gửi mã mời cho người ấy,{ '\n' }hoặc nhập mã bạn nhận được.</Body>
+    <Body style={{ textAlign: 'center', color: colors.muted }}>Tạo không gian và gửi mã mời cho {store.partnerName},{ '\n' }hoặc nhập mã bạn nhận được.</Body>
     <AppInput label="Tên của bạn" value={name} onChangeText={setName} maxLength={40} />
-    {joining ? <AppInput label="Mã mời từ người ấy (5 ký tự chữ và số)" value={code} onChangeText={value => setCode(value.toUpperCase())} autoCapitalize="characters" autoCorrect={false} maxLength={5} /> : <AppInput label="Tên không gian" value={space} onChangeText={setSpace} maxLength={60} />}
+    {joining ? <AppInput label={`Mã mời từ ${store.partnerName} (5 ký tự chữ và số)`} value={code} onChangeText={value => setCode(value.toUpperCase())} autoCapitalize="characters" autoCorrect={false} maxLength={5} /> : <AppInput label="Tên không gian" value={space} onChangeText={setSpace} maxLength={60} />}
     {error ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body> : null}
     <PrimaryButton disabled={busy || !name.trim() || (joining ? !validCode : !space.trim())} onPress={() => void pair()}>{busy ? 'Đang kết nối…' : joining ? 'Ghép đôi ♡' : 'Tạo không gian ♡'}</PrimaryButton>
     <SecondaryButton onPress={() => { if (!busy) { setJoining(value => !value); setError(''); } }}>{joining ? 'Mình muốn tạo không gian mới' : 'Mình đã có mã mời'}</SecondaryButton>

@@ -1,5 +1,6 @@
 import type { CompletionInput, WishSnapshot, PersonId, WishInput, WishCommand } from '../types/domain.ts';
 import { PHOTO_LIMITS } from '../features/photos/limits.ts';
+import { partnerName } from '../features/couple/selectors.ts';
 
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -8,7 +9,7 @@ export function addWish(snapshot: WishSnapshot, input: WishInput): WishSnapshot 
 }
 export function prepareWish(snapshot: WishSnapshot, wishId: string, actor: PersonId): WishSnapshot {
   const wish = snapshot.wishes.find(item => item.id === wishId);
-  if (!wish || wish.createdBy === actor) throw new Error('Chỉ có thể chuẩn bị điều ước của người ấy.');
+  if (!wish || wish.createdBy === actor) throw new Error(`Chỉ có thể chuẩn bị điều ước của ${partnerName(snapshot.couple, actor)}.`);
   if (snapshot.preparations.some(item => item.wishId === wishId && item.preparedBy === actor && item.status === 'preparing')) return snapshot;
   return { ...snapshot, preparations: [{ id: makeId('preparation'), wishId, preparedBy: actor, status: 'preparing', startedAt: new Date().toISOString().slice(0, 10) }, ...snapshot.preparations] };
 }
@@ -18,7 +19,7 @@ export function completeWish(snapshot: WishSnapshot, input: CompletionInput, act
   const wish = snapshot.wishes.find(item => item.id === input.wishId);
   if (!preparation && snapshot.preparations.some(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'completed')) return snapshot;
   if (!wish || !preparation) throw new Error('Điều ước này chưa có trong danh sách bạn đang chuẩn bị.');
-  if (wish.createdBy === actor) throw new Error('Chỉ có thể hoàn thành điều ước của người ấy.');
+  if (wish.createdBy === actor) throw new Error(`Chỉ có thể hoàn thành điều ước của ${partnerName(snapshot.couple, actor)}.`);
   const memoryId = makeId('memory');
   return {
     ...snapshot,

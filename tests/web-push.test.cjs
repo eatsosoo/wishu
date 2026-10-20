@@ -56,6 +56,15 @@ test('malformed push still shows a visible fallback', async () => {
   assert.equal(h.shown[0].data.url, '/notifications');
 });
 
+test('background push uses the sender name without showing the private wish title', async () => {
+  const h = workerHarness();
+  let done;
+  h.events.push({ data: { json: () => ({ giftId: 'gift-123', senderName: 'Linh', title: 'Private title' }) }, waitUntil: promise => { done = promise; } });
+  await done;
+  assert.equal(h.shown[0].body, 'Linh đã gửi một món quà. Chạm để mở ♡');
+  assert.equal(JSON.stringify(h.shown).includes('Private title'), false);
+});
+
 test('notification clicks cannot navigate to another origin or arbitrary app routes', async () => {
   for (const path of ['https://attacker.test', '//attacker.test', '/gift/../../us', '/us', '/gift/gift-123']) {
     const h = workerHarness();
@@ -80,14 +89,15 @@ test('notification click focuses an existing app window after navigating to the 
   assert.equal(h.opened.length, 0);
 });
 
-function deliveryHarness({ recipient = 'recipient', owner = 'recipient', endpoint = 'https://fcm.googleapis.com/push/token', failure, configured = true } = {}) {
+function deliveryHarness({ recipient = 'recipient', owner = 'recipient', endpoint = 'https://fcm.googleapis.com/push/token', failure, configured = true, senderName = 'Linh' } = {}) {
   const sent = [], saved = [], disabled = [];
   const subscription = { user_id: owner, enabled: true, endpoint, p256dh: 'key', auth: 'secret', updated_at: 'now' };
   const delivery = { id: 'delivery', notification_id: 'gift-123', subscription_id: 'subscription', attempts: 1 };
   const admin = { rpc: async () => ({ data: [delivery] }), from: table => {
     const chain = {
       select: () => chain, eq: () => chain,
-      single: async () => ({ data: table === 'gift_notifications' ? { recipient_id: recipient } : subscription }),
+      single: async () => ({ data: table === 'gift_notifications' ? { recipient_id: recipient, sender_id: 'sender', couple_id: 'couple' } : subscription }),
+      maybeSingle: async () => ({ data: senderName === null ? null : { display_name: senderName } }),
       update: values => { (table === 'gift_web_push_deliveries' ? saved : disabled).push(values); return chain; },
       then: resolve => resolve({ error: null }),
     };
@@ -113,9 +123,15 @@ test('worker sends encrypted Web Push using server credentials and records provi
   const h = deliveryHarness();
   await h.run('gift-123');
   assert.equal(h.sent.length, 1);
-  assert.deepEqual(JSON.parse(h.sent[0][1]), { giftId: 'gift-123' });
+  assert.deepEqual(JSON.parse(h.sent[0][1]), { giftId: 'gift-123', senderName: 'Linh' });
   assert.equal(h.sent[0][2].vapidDetails.privateKey, 'private');
   assert.equal(h.saved[0].status, 'accepted');
+});
+
+test('worker falls back when the sender no longer has a display name', async () => {
+  const h = deliveryHarness({ senderName: null });
+  await h.run('gift-123');
+  assert.equal(JSON.parse(h.sent[0][1]).senderName, 'Người ấy');
 });
 
 test('worker refuses another account, untrusted endpoint, and unconfigured backend', async () => {

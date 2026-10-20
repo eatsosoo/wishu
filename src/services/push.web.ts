@@ -84,6 +84,6 @@ export async function unregisterPush(): Promise<void> {
   notifications.forEach(notification => notification.close());
 }
 
-export async function scheduleTestNotification(): Promise<void> {
-  throw new Error('Hãy nhờ người ấy hoàn thành một điều ước để kiểm tra thông báo web.');
+export async function scheduleTestNotification(partner = 'người ấy'): Promise<void> {
+  throw new Error(`Hãy nhờ ${partner} hoàn thành một điều ước để kiểm tra thông báo web.`);
 }

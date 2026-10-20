@@ -5,6 +5,20 @@ const { addWish, prepareWish, completeWish, privatePreparations, readGift } = re
 const { formatBudgetInput, parseDate } = require('../src/features/wishes/format.ts');
 const { togetherDays } = require('../src/features/couple/selectors.ts');
 const { applyWishCommand } = require('../src/services/wish-actions.ts');
+const { partnerName, personalizePartnerText } = require('../src/features/couple/selectors.ts');
+
+test('partner copy follows the other member and falls back while waiting for them', () => {
+  const couple = { name: '', anniversaryDate: '', members: [{ id: 'minh', name: 'Minh' }] };
+  assert.equal(partnerName(couple, 'minh'), 'người ấy');
+  couple.members.push({ id: 'linh', name: '  Linh  ' });
+  assert.equal(partnerName(couple, 'minh'), 'Linh');
+  assert.equal(partnerName(couple, 'linh'), 'Minh');
+  assert.equal(personalizePartnerText('Người ấy đang chờ. Gửi cho người ấy nhé.', 'Linh'), 'Linh đang chờ. Gửi cho Linh nhé.');
+  assert.equal(personalizePartnerText('Người ấy đang chờ.', 'người ấy'), 'Người ấy đang chờ.');
+  assert.equal(personalizePartnerText('Gửi cho người ấy.', '$&'), 'Gửi cho $&.');
+  couple.members[1].name = '   ';
+  assert.equal(partnerName(couple, 'minh'), 'người ấy');
+});
 
 test('preparation is visible only to the mock actor who started it', () => {
   const snapshot = createMockSnapshot();

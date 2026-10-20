@@ -12,16 +12,20 @@ export async function deliverGifts(notificationId?: string) {
   for (let offset = 0; offset < deliveries.length; offset += 5) {
     await Promise.all(deliveries.slice(offset, offset + 5).map(async delivery => {
     try {
-      const { data: notification, error: giftError } = await admin.from('gift_notifications').select('payload,recipient_id').eq('id', delivery.notification_id).single();
+      const { data: notification, error: giftError } = await admin.from('gift_notifications').select('payload,recipient_id,sender_id,couple_id').eq('id', delivery.notification_id).single();
       const { data: device } = await admin.from('wish_push_tokens').select('user_id,enabled').eq('token', delivery.token).single();
       if (giftError || !notification) throw new Error('NotificationMissing');
       if (!device?.enabled || device.user_id !== notification.recipient_id) {
         await admin.from('gift_push_deliveries').update({ status: 'failed', error: 'AccountChanged' }).eq('id', delivery.id);
         return;
       }
+      const { data: sender, error: senderError } = await admin.from('wish_members').select('display_name')
+        .eq('user_id', notification.sender_id).eq('couple_id', notification.couple_id).maybeSingle();
+      if (senderError) throw senderError;
+      const senderName = sender?.display_name?.trim() || 'Người ấy';
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST', headers: expoHeaders,
-        body: JSON.stringify({ to: delivery.token, title: 'Bạn có một bất ngờ 🎁', body: `Người ấy đã hoàn thành “${notification.payload.title}”. Chạm để mở quà ♡`,
+        body: JSON.stringify({ to: delivery.token, title: 'Một lời thương vừa ghé đến 🎁', body: `${senderName} đã hoàn thành “${notification.payload.title}”. Chạm để mở quà ♡`,
           sound: 'default', channelId: 'gifts', priority: 'high', data: { giftId: delivery.notification_id } }),
         signal: AbortSignal.timeout(10000),
       });

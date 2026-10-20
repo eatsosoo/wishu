@@ -22,7 +22,7 @@ export async function deliverWebGifts(notificationId?: string) {
         if (error) throw error;
       };
       try {
-        const { data: gift, error: giftError } = await admin.from('gift_notifications').select('recipient_id').eq('id', delivery.notification_id).single();
+        const { data: gift, error: giftError } = await admin.from('gift_notifications').select('recipient_id,sender_id,couple_id').eq('id', delivery.notification_id).single();
         const { data: subscription, error: subscriptionError } = await admin.from('wish_web_push_subscriptions')
           .select('user_id,endpoint,p256dh,auth,enabled,updated_at').eq('id', delivery.subscription_id).single();
         if (giftError || subscriptionError) throw new Error('LookupFailed');
@@ -30,10 +30,13 @@ export async function deliverWebGifts(notificationId?: string) {
           await save({ status: 'failed', error: 'InvalidSubscriptionOrAccountChanged' });
           return;
         }
+        const { data: sender, error: senderError } = await admin.from('wish_members').select('display_name')
+          .eq('user_id', gift.sender_id).eq('couple_id', gift.couple_id).maybeSingle();
+        if (senderError) throw senderError;
         try {
           // Generic text protects private wish titles on a shared lock screen.
           await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
-            JSON.stringify({ giftId: delivery.notification_id }), {
+            JSON.stringify({ giftId: delivery.notification_id, senderName: sender?.display_name?.trim() || 'Người ấy' }), {
               vapidDetails: { subject, publicKey, privateKey }, TTL: 86400, urgency: 'high', timeout: 10000,
             });
           // Push-service acceptance does not prove device display or that the gift was read.

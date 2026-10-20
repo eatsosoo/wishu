@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
+import { partnerName, personalizePartnerText } from '../features/couple/selectors';
 import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
 import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
 
@@ -128,8 +129,11 @@ function useStoreValue() {
     commands.current = result;
     return result;
   }
+  const partner = partnerName(snapshot.couple, actor);
   return {
-    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount, storageError,
+    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount,
+    partnerName: partner,
+    storageError: personalizePartnerText(storageError, partner),
     cloudEnabled: !!supabase, paired: !!cloudCouple, cloudCouple, session, refresh,
     preparations: privatePreparations(snapshot, actor),
     notifications: snapshot.notifications.filter(item => item.recipient === actor),

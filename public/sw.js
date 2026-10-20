@@ -7,9 +7,10 @@ self.addEventListener('push', event => {
   let payload;
   try { payload = event.data?.json(); } catch { /* Still display a visible fallback. */ }
   const giftId = typeof payload?.giftId === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(payload.giftId) ? payload.giftId : null;
+  const senderName = typeof payload?.senderName === 'string' && payload.senderName.trim() ? payload.senderName.trim() : 'Người ấy';
   event.waitUntil(Promise.all([
-    self.registration.showNotification('Bạn có một bất ngờ 🎁', {
-      body: 'Người ấy đã gửi một món quà. Chạm để mở ♡',
+    self.registration.showNotification('Một lời thương vừa ghé đến 🎁', {
+      body: `${senderName} đã gửi một món quà. Chạm để mở ♡`,
       icon: '/icon.png',
       tag: giftId ? `gift:${giftId}` : 'gift',
       data: { url: giftId ? `/gift/${encodeURIComponent(giftId)}` : '/notifications' },

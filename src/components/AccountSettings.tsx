@@ -30,7 +30,7 @@ export function AccountSettings({ visible, onClose }: { visible: boolean; onClos
       <Body style={{ color: colors.muted }}>{store.session?.user.email}</Body>
       {confirming ? <>
         <Body>Tài khoản của bạn sẽ bị xoá vĩnh viễn. Nếu đã ghép đôi, toàn bộ không gian chung, điều ước, kỷ niệm và ảnh của hai người cũng sẽ bị xoá.</Body>
-        <Body style={{ color: colors.muted }}>Người ấy vẫn giữ tài khoản nhưng sẽ cần tạo hoặc tham gia không gian mới. Thao tác này không thể hoàn tác.</Body>
+        <Body style={{ color: colors.muted }}>{store.partnerName === 'người ấy' ? 'Người ấy' : store.partnerName} vẫn giữ tài khoản nhưng sẽ cần tạo hoặc tham gia không gian mới. Thao tác này không thể hoàn tác.</Body>
         {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
         <PrimaryButton disabled={busy} onPress={() => void removeAccount()}>{busy ? 'Đang xoá tài khoản…' : 'Xoá vĩnh viễn'}</PrimaryButton>
         <SecondaryButton onPress={() => { if (!submitting.current) { setConfirming(false); setError(''); } }}>Giữ tài khoản</SecondaryButton>

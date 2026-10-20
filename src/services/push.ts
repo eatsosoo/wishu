@@ -1,4 +1,4 @@
-export async function scheduleTestNotification(): Promise<void> {
+export async function scheduleTestNotification(_partner = 'người ấy'): Promise<void> {
   throw new Error('Mở app trên điện thoại bằng Expo Go để thử thông báo cục bộ.');
 }
 export async function registerPush(_requestPermission = true): Promise<string> {
