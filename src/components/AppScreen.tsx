@@ -65,11 +65,11 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     {navigation && <BottomNavigation blurTarget={blurTarget} />}
   </View>;
 }
-export function AppHeader({ title, back = false, right }: { title?: string; back?: boolean; right?: ReactNode }) {
+export function AppHeader({ title, back = false, onBack, right }: { title?: string; back?: boolean; onBack?: () => void; right?: ReactNode }) {
   const s = useThemeStyles(baseStyles);
 
   return <View style={s.header}>
-    {back ? <IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} /> : <View style={{ width: 41 }} />}
+    {back ? <IconButton icon={ChevronLeft} label="Quay lại" onPress={onBack ?? (() => router.canGoBack() ? router.back() : router.replace('/'))} /> : <View style={{ width: 41 }} />}
     {!!title && <Heading style={{ flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34 }}>{title}</Heading>}
     {right ?? <View style={{ width: 41 }} />}
   </View>;
