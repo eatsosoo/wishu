@@ -1,9 +1,7 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
 import { StyleSheet, View } from 'react-native';
-import { CalendarHeart } from 'lucide-react-native';
-import { router } from 'expo-router';
 import { AppScreen } from '../components/AppScreen';
-import { Body, Heading, IconButton } from '../components/ui';
+import { Body, Heading } from '../components/ui';
 import { NotificationBell } from '../components/NotificationBell';
 import { Artwork } from '../components/Artwork';
 import { WishJar } from '../components/WishJar';
@@ -25,7 +23,6 @@ export default function HomeScreen() {
       </View>
       <View style={s.greetingActions}>
         <NotificationBell />
-        <IconButton icon={CalendarHeart} label="Ngày kỷ niệm của chúng ta" onPress={() => router.push('/us')} />
       </View>
     </View>
     <View style={{ marginTop: 24 }}><Artwork name="home" label="Hai hũ điều ước chứa những ngôi sao và trái tim pastel" />{store.couple.members.map((member, index) => <WishJar key={member.id} owner={member.id} name={member.name} count={store.wishes.filter(wish => wish.createdBy === member.id).length} side={index === 0 ? 'left' : 'right'} />)}</View>

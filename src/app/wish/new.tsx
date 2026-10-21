@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AppHeader, AppScreen } from '../../components/AppScreen';
 import { PhotoView, prefetchCategoryArtwork } from '../../components/Artwork';
 import { WishAddedAnimation } from '../../components/WishAddedAnimation';
+import { WishVisibility } from '../../components/WishVisibility';
 import { prefetchRevealArtwork } from '../../components/reveal-artwork';
 import { defaultWishCover } from '../../features/wishes/default-cover';
 import { AppInput, AppTextarea, Body, BottomSheet, IconButton, PrimaryButton, PrioritySelector } from '../../components/ui';
@@ -24,6 +25,7 @@ export default function AddWish() {
 
   const store = useWishStore();
   const [title, setTitle] = useState('');
+  const [active, setActive] = useState(true);
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Trải nghiệm');
   const [cost, setCost] = useState('');
@@ -62,7 +64,7 @@ export default function AddWish() {
     setErrors(validation);
     if (Object.keys(validation).length) return;
     setBusy(true);
-    const success = await store.addWish({ createdBy: store.actor, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? defaultWishCover(category), targetDate: targetDate ?? undefined });
+    const success = await store.addWish({ createdBy: store.actor, active, title: title.trim(), description: description.trim(), category, estimatedCost, priority, referenceUrl: url.trim(), cover: cover ?? defaultWishCover(category), targetDate: targetDate ?? undefined });
     setBusy(false);
     if (success) setSaved(true);
   }
@@ -71,7 +73,7 @@ export default function AddWish() {
       <Body style={{ color: colors.primary }}>{isPreview ? 'XEM THỬ THẢ SAO VÀO HŨ' : 'ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI'}</Body>
       <WishAddedAnimation />
       <View style={{ gap: 8, alignItems: 'center' }}>
-        <Body style={{ color: colors.muted, textAlign: 'center' }}>Một ngôi sao nhỏ đã tìm được chỗ trong hũ của hai đứa.</Body>
+        <Body style={{ color: colors.muted, textAlign: 'center' }}>{active ? 'Một ngôi sao nhỏ đã tìm được chỗ trong hũ của hai đứa.' : 'Điều ước đã lưu riêng cho bạn. Bật hiển thị khi bạn muốn chia sẻ với người ấy.'}</Body>
         <PrimaryButton onPress={() => router.replace({ pathname: '/wishes', params: { owner: store.actor } })}>Xem hũ điều ước ♡</PrimaryButton>
       </View>
     </View>
@@ -87,6 +89,7 @@ export default function AddWish() {
       <View style={{ gap: 7 }}><Body style={s.label}>Loại</Body><Pressable accessibilityRole="button" accessibilityLabel="Chọn loại điều ước" onPress={() => setPicker(true)} style={s.category}><Camera size={19} color={colors.primary} /><Body style={{ flex: 1, color: t('#75404F') }}>{category}</Body><ChevronDown size={18} color={colors.primary} /></Pressable></View>
       <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={value => setCost(formatBudgetInput(value))} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
       <PrioritySelector value={priority} onChange={setPriority} />
+      <WishVisibility active={active} onChange={setActive} disabled={busy} />
       <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}
       {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}

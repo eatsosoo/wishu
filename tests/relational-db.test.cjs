@@ -14,7 +14,7 @@ const completion = { kind: 'complete', input: { wishId: 'bear', completedAt: '20
 test('migration preserves wishes, profile, preparation privacy, memories and ordered photos', async t => {
   const h = await setup(t);
   const first = await h.state(users[0]), second = await h.state(users[1]);
-  assert.deepEqual(first.snapshot.wishes, h.snapshot.wishes);
+  assert.deepEqual(first.snapshot.wishes, h.snapshot.wishes.map(wish => ({ ...wish, active: true })));
   assert.deepEqual(first.snapshot.couple, h.snapshot.couple);
   assert.deepEqual(first.snapshot.memories, h.snapshot.memories);
   assert.deepEqual(first.snapshot.preparations, h.snapshot.preparations);

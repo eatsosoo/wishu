@@ -9,7 +9,7 @@ export function addWish(snapshot: WishSnapshot, input: WishInput): WishSnapshot 
 }
 export function prepareWish(snapshot: WishSnapshot, wishId: string, actor: PersonId): WishSnapshot {
   const wish = snapshot.wishes.find(item => item.id === wishId);
-  if (!wish || wish.createdBy === actor) throw new Error(`Chỉ có thể chuẩn bị điều ước của ${partnerName(snapshot.couple, actor)}.`);
+  if (!wish || wish.active === false || wish.createdBy === actor) throw new Error(`Chỉ có thể chuẩn bị điều ước đang hiển thị của ${partnerName(snapshot.couple, actor)}.`);
   if (snapshot.preparations.some(item => item.wishId === wishId && item.preparedBy === actor && item.status === 'preparing')) return snapshot;
   return { ...snapshot, preparations: [{ id: makeId('preparation'), wishId, preparedBy: actor, status: 'preparing', startedAt: new Date().toISOString().slice(0, 10) }, ...snapshot.preparations] };
 }
@@ -18,7 +18,7 @@ export function completeWish(snapshot: WishSnapshot, input: CompletionInput, act
   const preparation = snapshot.preparations.find(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'preparing');
   const wish = snapshot.wishes.find(item => item.id === input.wishId);
   if (!preparation && snapshot.preparations.some(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'completed')) return snapshot;
-  if (!wish || !preparation) throw new Error('Điều ước này chưa có trong danh sách bạn đang chuẩn bị.');
+  if (!wish || wish.active === false || !preparation) throw new Error('Điều ước này chưa có trong danh sách bạn đang chuẩn bị.');
   if (wish.createdBy === actor) throw new Error(`Chỉ có thể hoàn thành điều ước của ${partnerName(snapshot.couple, actor)}.`);
   const memoryId = makeId('memory');
   return {
@@ -48,11 +48,17 @@ export function deleteWish(snapshot: WishSnapshot, id: string, actor: PersonId):
 
 export function applyWishCommand(snapshot: WishSnapshot, command: WishCommand, actor: PersonId): WishSnapshot {
   switch (command.kind) {
+    case 'personalProfile': return { ...snapshot, couple: { ...snapshot.couple, members: snapshot.couple.members.map(member => member.id === actor ? { ...member, birthDate: command.input.birthDate ?? undefined, gender: command.input.gender ?? undefined } : member) } };
     case 'add': return addWish(snapshot, { ...command.input, createdBy: actor });
     case 'prepare': return prepareWish(snapshot, command.id, actor);
     case 'complete': return completeWish(snapshot, command.input, actor);
     case 'read': return readGift(snapshot, command.id, actor);
     case 'delete': return deleteWish(snapshot, command.id, actor);
+    case 'wishActive': {
+      const wish = snapshot.wishes.find(item => item.id === command.id);
+      if (!wish || wish.createdBy !== actor) throw new Error('Bạn chỉ có thể đổi hiển thị điều ước của mình.');
+      return { ...snapshot, wishes: snapshot.wishes.map(item => item.id === command.id ? { ...item, active: command.active } : item) };
+    }
     case 'wishFavorite': return { ...snapshot, wishes: snapshot.wishes.map(wish => wish.id === command.id ? { ...wish, favorite: !wish.favorite } : wish) };
     case 'memoryFavorite': return { ...snapshot, memories: snapshot.memories.map(memory => memory.id === command.id ? { ...memory, favorite: !memory.favorite } : memory) };
     case 'couple': return { ...snapshot, couple: { ...snapshot.couple, name: command.name, anniversaryDate: command.anniversaryDate } };

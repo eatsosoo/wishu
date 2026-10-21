@@ -6,6 +6,7 @@ import { ChevronLeft, ExternalLink, Heart, MoreHorizontal } from 'lucide-react-n
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { AppScreen } from '../../../components/AppScreen';
+import { WishVisibility } from '../../../components/WishVisibility';
 import { BearHero, PhotoView, Artwork } from '../../../components/Artwork';
 import { Body, BottomSheet, CategoryChip, EmptyState, Heading, IconButton, PrimaryButton, SecondaryButton } from '../../../components/ui';
 import { fonts, spacing } from '../../../constants/theme';
@@ -19,7 +20,7 @@ export default function WishDetail() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const store = useWishStore();
-  const wish = store.wishes.find(item => item.id === id);
+  const wish = store.wishes.find(item => item.id === id && (item.createdBy === store.actor || item.active !== false));
   const [confirm, setConfirm] = useState(false);
   const [menu, setMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -27,6 +28,14 @@ export default function WishDetail() {
   const [busy, setBusy] = useState(false);
   if (!wish) return <AppScreen><EmptyState title="Điều ước chưa có ở đây" description="Mình trở lại hũ và chọn một điều ước khác nhé." action="Về hũ điều ước" onAction={() => router.replace('/wishes')} /></AppScreen>;
   const ownWish = wish.createdBy === store.actor;
+  const completed = store.memories.some(memory => memory.wishId === wish.id);
+  async function changeVisibility(active: boolean) {
+    if (!wish || busy || !ownWish) return;
+    setBusy(true); setError('');
+    const success = await store.setWishActive(wish.id, active);
+    setBusy(false);
+    if (!success) setError('Chưa đổi được trạng thái hiển thị. Bạn thử lại nhé.');
+  }
   async function removeWish() {
     if (!wish || busy || !ownWish) return;
     setBusy(true); setError('');
@@ -47,12 +56,14 @@ export default function WishDetail() {
     else setError('Chưa bắt đầu chuẩn bị được. Bạn thử lại nhé.');
   }
   return <View style={{ flex: 1 }}>
-    <AppScreen contentStyle={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 118 }} bottomAction={!ownWish ? <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton> : undefined}>
+    <AppScreen contentStyle={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 118 }} bottomAction={!ownWish && !completed ? <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton> : undefined}>
     <View>{'art' in wish.cover && wish.cover.art === 'bear' ? <BearHero height={350} /> : <PhotoView photo={wish.cover} height={350} label={wish.title} />}</View>
     <View style={s.detail}>
       <View className="flex-row items-center justify-between" style={{ gap: 7 }}><Heading style={{ flex: 1, color: t('#261D24'), fontFamily: fonts.headingBold }}>{wish.title}</Heading><Pressable onPress={() => store.toggleWishFavorite(wish.id)} accessibilityRole="button" accessibilityLabel={wish.favorite ? 'Bỏ yêu thích' : 'Yêu thích'} style={s.favorite}><Heart size={23} strokeWidth={1.6} color={t("#EF718D")} fill={wish.favorite ? t('#EF718D') : 'transparent'} /></Pressable></View>
       <View className="flex-row items-center" style={{ gap: 14, marginTop: 14 }}><CategoryChip category={wish.category} /><Body style={{ color: colors.muted, fontSize: 14 }}>{formatCost(wish.estimatedCost)}</Body></View>
       <Body style={{ marginTop: 20, color: t('#85717A'), lineHeight: 23 }}>“{wish.description}”</Body>
+      {completed && <Body style={{ color: colors.primary, marginTop: 12 }}>Đã hoàn thành ♡</Body>}
+      {ownWish && <WishVisibility active={wish.active !== false} onChange={value => void changeVisibility(value)} disabled={busy} />}
       <Body style={s.label}>Hình ảnh tham khảo</Body>
       <View className="flex-row" style={{ gap: 11 }}>
         {('art' in wish.cover && wish.cover.art === 'bear') ? <><Artwork name="bearPortrait" width={75} height={75} style={s.thumbnail} /><Artwork name="bear" width={75} height={75} style={s.thumbnail} /><Artwork name="bearReference" width={115} height={75} style={s.thumbnail} /></> : <PhotoView photo={wish.cover} width={100} height={85} style={s.thumbnail} />}

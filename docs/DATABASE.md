@@ -67,3 +67,5 @@ The archived JSON is a pre-cutover backup only. Once new relational writes have 
 ## Applied deployment
 
 On 2026-10-19, migrations `202610190002` and `202610190003` were applied to the linked Supabase project, and `wish-action` was deployed using API bundling. Postflight counts matched preflight: 2 couples, 9 wishes, 2 preparations, 1 memory and 1 photo. RLS was enabled on all four new tables; authenticated clients had no mutation-RPC privilege, and the backend had no legacy snapshot write privilege. The Storage upload limit was verified at 2 MiB.
+
+On 2026-10-21, migrations `202610210001` (wish visibility) and `202610210002` (personal profiles) were applied to linked project `rpodnpatutevydgpkzzd`, and `wish-action` was deployed using API bundling. `supabase/tests/personal-profile-postflight.sql` verified profile updates, snapshot reads, invalid-gender rejection and restricted mutation-RPC access inside a rolled-back transaction. Counts remained 2 members, 1 wish and 0 memories. Both `wish_members.birth_date` and `wish_members.gender` were present after deployment.

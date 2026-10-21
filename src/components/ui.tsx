@@ -1,10 +1,11 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
-import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps, type TextProps } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { ActivityIndicator, Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextInputProps, type TextProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Eye, EyeOff, Heart, X, type LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../constants/theme';
 import type { Category, CategoryFilter } from '../types/domain';
+import { useReducedMotion } from '../hooks/use-reduced-motion';
 
 export function Body({ style, ...props }: TextProps) {
   const { colors } = useAppTheme();
@@ -90,15 +91,37 @@ export function PrioritySelector({ value, onChange }: { value: number; onChange:
 }
 export function BottomSheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const s = useThemeStyles(baseStyles);
+  const reducedMotion = useReducedMotion();
+  const { height } = useWindowDimensions();
+  const [presented, setPresented] = useState(visible);
+  const [progress] = useState(() => new Animated.Value(0));
+  // Keep the native modal mounted until its exit animation finishes.
+  if (visible && !presented) setPresented(true);
+  useEffect(() => {
+    if (!presented) return;
+    let active = true;
+    const animation = Animated.timing(progress, {
+      toValue: visible ? 1 : 0,
+      duration: reducedMotion ? 0 : visible ? 280 : 220,
+      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    });
+    animation.start(({ finished }) => {
+      if (active && finished && !visible) setPresented(false);
+    });
+    return () => { active = false; animation.stop(); };
+  }, [visible, presented, progress, reducedMotion]);
 
-  return <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+  return <Modal transparent visible={visible || presented} animationType="none" onRequestClose={onClose}>
     <View style={s.overlay}>
-      <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Đóng" onPress={onClose} />
-      <View accessibilityViewIsModal style={s.sheet}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(73,37,47,0.25)', opacity: progress }]}>
+        <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Đóng" onPress={onClose} disabled={!visible} />
+      </Animated.View>
+      <Animated.View accessibilityViewIsModal pointerEvents={visible ? 'auto' : 'none'} style={[s.sheet, { transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }) }] }]}>
         <View style={s.handle} />
         <View className="flex-row items-center justify-between" style={{ marginBottom: 18, gap: 12 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{title}</Heading><IconButton icon={X} label="Đóng" onPress={onClose} /></View>
         {children}
-      </View>
+      </Animated.View>
     </View>
   </Modal>;
 }
@@ -123,7 +146,7 @@ const baseStyles = StyleSheet.create({
   input: { flex: 1, minWidth: 0, minHeight: 43, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.body, fontSize: 16, color: '#704654' },
   clearButton: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7EDEE' },
   passwordButton: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
-  overlay: { flex: 1, backgroundColor: 'rgba(73,37,47,0.25)', justifyContent: 'flex-end', alignItems: 'center' },
+  overlay: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 430, padding: 24, paddingBottom: 38, borderTopLeftRadius: 32, borderTopRightRadius: 32, backgroundColor: colors.background },
   handle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 999, backgroundColor: '#DBC7CB', marginBottom: 18 },
 });

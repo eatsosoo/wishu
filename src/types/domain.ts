@@ -2,6 +2,8 @@ export const categories = ['Quà tặng', 'Du lịch', 'Ăn uống', 'Trải ngh
 export type Category = typeof categories[number];
 export type CategoryFilter = Category | 'Tất cả';
 export type PersonId = 'minh' | 'linh';
+export type Gender = 'male' | 'female' | 'other';
+export interface PersonalProfileInput { birthDate: string | null; gender: Gender | null }
 export const artNames = ['home', 'couple', 'jar', 'jarOpen', 'gift', 'openGift', 'camera', 'bear', 'bearPortrait', 'bearReference', 'travel', 'travelMemory', 'photobooth', 'concert', 'photoMemory', 'memoryOne', 'memoryTwo', 'memoryThree', 'categoryGift', 'categoryTravel', 'categoryDining', 'categoryExperience', 'categoryMoments'] as const;
 export type ArtName = typeof artNames[number];
 export type Photo = { art: ArtName } | { uri: string; storagePath?: string };
@@ -18,6 +20,7 @@ export interface Wish {
   cover: Photo;
   targetDate?: string;
   favorite: boolean;
+  active?: boolean; // Older clients omit this field; existing wishes remain visible.
 }
 export interface Preparation {
   id: string;
@@ -40,7 +43,7 @@ export interface Memory {
 export interface Couple {
   name: string;
   anniversaryDate: string;
-  members: { id: PersonId; name: string }[];
+  members: { id: PersonId; name: string; birthDate?: string; gender?: Gender }[];
 }
 export interface GiftNotification {
   id: string;
@@ -64,6 +67,8 @@ export type WishInput = Omit<Wish, 'id' | 'favorite'>;
 export interface CompletionInput { wishId: string; completedAt: string; note: string; photos: Photo[] }
 export type WishCommand =
   | { kind: 'add'; input: WishInput }
+  | { kind: 'wishActive'; id: string; active: boolean }
+  | { kind: 'personalProfile'; input: PersonalProfileInput }
   | { kind: 'prepare' | 'read' | 'wishFavorite' | 'memoryFavorite' | 'delete'; id: string }
   | { kind: 'complete'; input: CompletionInput }
   | { kind: 'couple'; name: string; anniversaryDate: string };

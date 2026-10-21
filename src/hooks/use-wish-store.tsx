@@ -6,7 +6,7 @@ import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
 import { partnerName, personalizePartnerText } from '../features/couple/selectors';
 import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
-import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput } from '../types/domain';
+import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
 
 function useStoreValue() {
   const [snapshot, setSnapshot] = useState(createEmptySnapshot);
@@ -138,6 +138,8 @@ function useStoreValue() {
     preparations: privatePreparations(snapshot, actor),
     notifications: snapshot.notifications.filter(item => item.recipient === actor),
     addWish: (input: WishInput) => dispatch({ kind: 'add', input }),
+    setWishActive: (id: string, active: boolean) => dispatch({ kind: 'wishActive', id, active }),
+    updatePersonalProfile: (input: PersonalProfileInput) => dispatch({ kind: 'personalProfile', input }),
     prepareWish: (id: string) => dispatch({ kind: 'prepare', id }),
     deleteWish: (id: string) => dispatch({ kind: 'delete', id }),
     completeWish: (input: CompletionInput) => dispatch({ kind: 'complete', input }),

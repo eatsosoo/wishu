@@ -3,12 +3,13 @@ import { ActivityIndicator, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors as defaultColors } from '../constants/theme';
 
-export type ThemeId = 'rose' | 'lavender' | 'sage';
+export type ThemeId = 'rose' | 'lavender' | 'sage' | 'ocean';
 export type ThemeColors = typeof defaultColors;
 export const themes: Record<ThemeId, { name: string; description: string; colors: ThemeColors }> = {
   rose: { name: 'Hồng ấm', description: 'Dịu dàng như một lời thương', colors: defaultColors },
   lavender: { name: 'Lavender', description: 'Một chút mơ màng của hai đứa', colors: { background: '#F2EFF9', surface: '#FCFAFF', primary: '#8062AE', burgundy: '#503A73', rose: '#E4DCF2', lavender: '#DCD5F0', ink: '#352F43', muted: '#80738F', line: '#E3DDED' } },
   sage: { name: 'Xanh sage', description: 'Bình yên như một buổi sớm', colors: { background: '#EEF4EE', surface: '#FAFDF8', primary: '#62846C', burgundy: '#345A42', rose: '#DCE9D9', lavender: '#DDE8E0', ink: '#2F3D32', muted: '#758477', line: '#DBE6DA' } },
+  ocean: { name: 'Xanh biển', description: 'Dịu mát như làn gió từ biển', colors: { background: '#EEF5FC', surface: '#F9FCFF', primary: '#3275A5', burgundy: '#245477', rose: '#D8EAF6', lavender: '#D7E4F5', ink: '#283D50', muted: '#5D758A', line: '#D5E3EF' } },
 };
 
 function rgb(hex: string) {
@@ -43,7 +44,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const writes = useRef(Promise.resolve());
   useEffect(() => {
     let active = true;
-    AsyncStorage.getItem('ourwish:theme').then(saved => { if (active && (saved === 'rose' || saved === 'lavender' || saved === 'sage')) setId(saved); })
+    AsyncStorage.getItem('ourwish:theme').then(saved => { if (active && (saved === 'rose' || saved === 'lavender' || saved === 'sage' || saved === 'ocean')) setId(saved); })
       .catch(() => { if (active) setError('Chưa đọc được màu đã lưu trên thiết bị.'); })
       .finally(() => { if (active) setReady(true); });
     return () => { active = false; };

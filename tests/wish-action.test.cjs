@@ -75,6 +75,26 @@ test('validation and authentication reject requests before invoking the database
   assert.equal((await unauthorized.request({ kind: 'read', id: 'gift' })).status, 401);
   assert.equal(unauthorized.calls.length, 0);
 });
+
+test('visibility commands require a boolean and are passed to the transaction', async () => {
+  const h = harness();
+  assert.equal((await h.request({ kind: 'wishActive', id: 'wish', active: 'false' })).status, 400);
+  assert.equal(h.calls.length, 0);
+  assert.equal((await h.request({ kind: 'wishActive', id: 'wish', active: false })).status, 200);
+  assert.equal(h.calls[0].args.p_command.active, false);
+});
+
+test('personal profile validates dates and gender before reaching the database', async () => {
+  const h = harness();
+  for (const input of [
+    { birthDate: '2000-02-30', gender: 'female' },
+    { birthDate: '2000-02-29', gender: 'invalid' },
+    { birthDate: null },
+  ]) assert.equal((await h.request({ kind: 'personalProfile', input })).status, 400);
+  assert.equal(h.calls.length, 0);
+  assert.equal((await h.request({ kind: 'personalProfile', input: { birthDate: '2000-02-29', gender: 'female' } })).status, 200);
+  assert.equal((await h.request({ kind: 'personalProfile', input: { birthDate: null, gender: null } })).status, 200);
+});
 test('database permission errors are shown safely and never start delivery workers', async () => {
   const h = harness({ error: { code: 'P0001', message: 'Bạn chỉ có thể xoá điều ước của mình.' } });
   const response = await h.request({ kind: 'delete', id: 'other-wish' });

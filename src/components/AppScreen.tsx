@@ -1,10 +1,10 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
 import { useRef, useState, type ReactNode, type RefObject } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Home, Heart, Plus, Images, UsersRound, type LucideIcon } from 'lucide-react-native';
+import { ChevronLeft, Home, Heart, Plus, CalendarHeart, UsersRound, type LucideIcon } from 'lucide-react-native';
 import { router, usePathname } from 'expo-router';
 import { Heading, IconButton } from './ui';
 import { NotificationBell } from './NotificationBell';
@@ -14,7 +14,7 @@ import { spacing } from '../constants/theme';
 
 const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon: LucideIcon }[] = [
   { path: '/', label: 'Trang chủ', icon: Home }, { path: '/wishes', label: 'Điều ước', icon: Heart },
-  { path: '/memories', label: 'Kỷ niệm', icon: Images }, { path: '/us', label: 'Của chúng ta', icon: UsersRound },
+  { path: '/memories', label: 'Kỷ niệm', icon: CalendarHeart }, { path: '/us', label: 'Của chúng ta', icon: UsersRound },
 ];
 export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View | null> }) {
   const s = useThemeStyles(baseStyles);
@@ -77,9 +77,9 @@ export function AppHeader({ title, back = false, onBack, right }: { title?: stri
   const s = useThemeStyles(baseStyles);
 
   return <View style={s.header}>
-    {back ? <IconButton icon={ChevronLeft} label="Quay lại" onPress={onBack ?? (() => router.canGoBack() ? router.back() : router.replace('/'))} /> : <View style={{ width: 41 }} />}
-    {!!title && <Heading style={{ flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34 }}>{title}</Heading>}
-    {right ?? <View style={{ width: 41 }} />}
+    <View style={s.headerAction}>{back && <IconButton icon={ChevronLeft} label="Quay lại" onPress={onBack ?? (() => router.canGoBack() ? router.back() : router.replace('/'))} />}</View>
+    {!!title && <Heading style={s.headerTitle}>{title}</Heading>}
+    <View style={s.headerAction}>{right}</View>
   </View>;
 }
 export function ScreenTitle({ title, right }: { title: string; right?: ReactNode }) {
@@ -90,7 +90,14 @@ export function ScreenTitle({ title, right }: { title: string; right?: ReactNode
 }
 const baseStyles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: 18, paddingBottom: spacing.lg },
-  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 17, minHeight: 42, gap: 6 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17, minHeight: 44, gap: 6 },
+  headerAction: { minWidth: 44, minHeight: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: {
+    flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34, paddingVertical: 0,
+    includeFontPadding: false, textAlignVertical: 'center',
+    // Pacifico's iOS glyph baseline sits below the visual center of the line box.
+    ...Platform.select({ ios: { transform: [{ translateY: -4 }] }, default: {} }),
+  },
   nav: { position: 'absolute', left: 16, right: 16, borderRadius: 32, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 10 },
   navGlass: { height: 62, paddingHorizontal: 6, paddingVertical: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden' },
   actionBar: { position: 'absolute', left: 16, right: 16, borderRadius: 999, boxShadow: '0px 6px 16px rgba(130,40,65,0.22)' },

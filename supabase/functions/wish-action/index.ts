@@ -15,14 +15,20 @@ function validate(command: WishCommand, coupleId: string) {
   const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max;
   if (!command || typeof command !== 'object') throw new Error('Yêu cầu không hợp lệ.');
   switch (command.kind) {
+    case 'personalProfile':
+      if (!command.input || (command.input.birthDate !== null && !date(command.input.birthDate)) || (command.input.gender !== null && !['male', 'female', 'other'].includes(command.input.gender))) throw new Error('Thông tin cá nhân chưa hợp lệ.');
+      break;
     case 'complete':
       if (!command.input || !text(command.input.wishId, 100) || !date(command.input.completedAt) || !text(command.input.note, 2000) || !Array.isArray(command.input.photos) || command.input.photos.length > PHOTO_LIMITS.memoryCount || !command.input.photos.every(photo)) throw new Error('Thông tin kỷ niệm chưa hợp lệ.');
       break;
     case 'add': {
       const input = command.input;
+      if (input?.active !== undefined && typeof input.active !== 'boolean') throw new Error('Trạng thái hiển thị không hợp lệ.');
       if (!input || !text(input.title, 100) || !input.title.trim() || !text(input.description, 1000) || !categories.includes(input.category) || !Number.isFinite(input.estimatedCost) || input.estimatedCost < 0 || !Number.isInteger(input.priority) || input.priority < 1 || input.priority > 5 || !photo(input.cover) || !text(input.referenceUrl, 2048) || (input.referenceUrl && !/^https?:\/\//.test(input.referenceUrl)) || (input.targetDate && !date(input.targetDate))) throw new Error('Thông tin điều ước chưa hợp lệ.');
       break;
     }
+    case 'wishActive':
+      if (!text(command.id, 100) || typeof command.active !== 'boolean') throw new Error('Trạng thái hiển thị không hợp lệ.'); break;
     case 'couple': if (!text(command.name, 60) || !command.name.trim() || !date(command.anniversaryDate)) throw new Error('Thông tin cặp đôi chưa hợp lệ.'); break;
     case 'prepare': case 'read': case 'wishFavorite': case 'memoryFavorite': case 'delete':
       if (!text(command.id, 100)) throw new Error('Yêu cầu không hợp lệ.'); break;
