@@ -1,5 +1,20 @@
 import type { Couple, PersonId } from '../../types/domain.ts';
 
+export function homeJarMembers(members: Couple['members']): Couple['members'] {
+  const rank = (member: Couple['members'][number]) => member.gender === 'male' ? 0 : member.gender === 'female' ? 2 : 1;
+  // Preserve membership order when genders are the same or not specified.
+  return [...members].sort((first, second) => rank(first) - rank(second));
+}
+
+export function localGreeting(now = new Date()): string {
+  const hour = now.getHours();
+  if (hour >= 5 && hour < 11) return 'Chào buổi sáng,';
+  if (hour >= 11 && hour < 13) return 'Chào buổi trưa,';
+  if (hour >= 13 && hour < 18) return 'Chào buổi chiều,';
+  if (hour >= 18 && hour < 23) return 'Chào buổi tối,';
+  return 'Chào buổi đêm,';
+}
+
 export function partnerName(couple: Couple, actor: PersonId) {
   return couple.members.find(member => member.id !== actor)?.name.trim() || 'người ấy';
 }
