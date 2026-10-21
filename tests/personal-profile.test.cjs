@@ -13,13 +13,13 @@ test('profile updates persist only for the verified member and synchronize to th
   assert.equal(owner.gender, 'female');
   assert.deepEqual(partnerView.find(member => member.id === 'linh'), owner);
   assert.equal(partnerView.find(member => member.id === 'minh').birthDate, undefined);
-  const birthdays = getCalendarEvents(2, 14, owner);
+  const birthdays = getCalendarEvents(2, 14, partnerView);
   assert.deepEqual(birthdays.map(event => event.icon), ['heart', 'birthday']);
   await h.command(users[1], { kind: 'personalProfile', input: { birthDate: null, gender: 'other' } });
   const cleared = (await h.state(users[0])).snapshot.couple.members.find(member => member.id === 'linh');
   assert.equal(cleared.birthDate, undefined);
   assert.equal(cleared.gender, 'other');
-  assert.deepEqual(getCalendarEvents(2, 14, cleared).map(event => event.icon), ['heart']);
+  assert.deepEqual(getCalendarEvents(2, 14, [cleared]).map(event => event.icon), ['heart']);
 });
 
 test('invalid profile fields roll back and profile writes require the service command', async t => {
@@ -56,7 +56,7 @@ test('calendar keeps annual holidays and birthdays separate, including leap birt
   assert.equal(getCalendarEvents(12, 25)[0].icon, 'tree');
   assert.deepEqual(getCalendarEvents(4, 15), []);
   const partner = { name: 'Linh', birthDate: '2000-02-29' };
-  assert.equal(getCalendarEvents(2, 29, partner)[0].name, 'Sinh nhật Linh');
-  assert.deepEqual(getCalendarEvents(2, 28, partner), []);
-  assert.deepEqual(getCalendarEvents(3, 29, partner), []);
+  assert.equal(getCalendarEvents(2, 29, [partner])[0].name, 'Sinh nhật Linh');
+  assert.deepEqual(getCalendarEvents(2, 28, [partner]), []);
+  assert.deepEqual(getCalendarEvents(3, 29, [partner]), []);
 });

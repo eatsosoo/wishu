@@ -13,7 +13,6 @@ import { shiftCalendarMonth } from '../features/calendar/swipe';
 export function DateField({ label, value, onChange, optional = false }: { label: string; value: string; onChange: (value: string) => void; optional?: boolean }) {
   const { colors, t } = useAppTheme();
   const store = useWishStore();
-  const partner = store.couple.members.find(member => member.id !== store.actor);
 
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(new Date());
@@ -46,7 +45,7 @@ export function DateField({ label, value, onChange, optional = false }: { label:
           if (day < 1) return <View key={i} style={{ width: '14.2857%', height: 44 }} />;
           const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const selected = parseDate(value) === iso;
-          const events = getCalendarEvents(month + 1, day, partner, { year, anniversaryDate: store.couple.anniversaryDate });
+          const events = getCalendarEvents(month + 1, day, store.couple.members, { year, anniversaryDate: store.couple.anniversaryDate });
           return <View key={i} style={{ width: '14.2857%', height: 44, padding: 2 }}><Pressable accessibilityRole="button" accessibilityLabel={`${formatDate(iso)}${events.length ? `, ${events.map(event => event.name).join(', ')}` : ''}`} accessibilityState={{ selected }} onPress={() => select(day)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: selected ? colors.primary : 'transparent' }}><Body style={{ color: selected ? t('#fff') : colors.ink }}>{day}</Body>{events.length > 0 && <HolidayDecoration events={events} />}</Pressable></View>;
         })}</View>
       </CalendarSwipe> : <ScrollView style={{ maxHeight: 280 }}><View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(mode === 'months' ? Array.from({ length: 12 }, (_, i) => i + 1) : Array.from({ length: 201 }, (_, i) => 1900 + i)).map(number => <Pressable key={number} accessibilityRole="button" onPress={() => { setCursor(new Date(mode === 'years' ? number : year, mode === 'months' ? number - 1 : month, 1)); setMode('days'); }} style={{ width: '25%', minHeight: 44, alignItems: 'center', justifyContent: 'center' }}><Body>{mode === 'months' ? `Tháng ${number}` : number}</Body></Pressable>)}</View></ScrollView>}

@@ -18,7 +18,7 @@ test('day milestones cross leap years and appear exactly once at 100, 300 and 10
 });
 
 test('annual markers show the number of years and do not hide overlapping holidays or birthdays', () => {
-  const events = getCalendarEvents(2, 14, { name: 'Linh', birthDate: '2000-02-14' }, { year: 2025, anniversaryDate: '2024-02-14' });
+  const events = getCalendarEvents(2, 14, [{ name: 'Linh', birthDate: '2000-02-14' }], { year: 2025, anniversaryDate: '2024-02-14' });
   assert.deepEqual(events.map(event => event.icon), ['heart', 'birthday', 'milestone']);
   assert.equal(events[2].marker, '1');
   assert.equal(events[2].name, 'Kỷ niệm 1 năm bên nhau');
@@ -44,9 +44,31 @@ test('every special day has a short message; milestones take priority when event
     assert.ok(getCalendarQuote(events).length < 100);
   }
   assert.notEqual(getCalendarQuote(getCalendarEvents(2, 14)), getCalendarQuote(getCalendarEvents(3, 14)));
-  const birthday = getCalendarEvents(2, 14, { name: 'Linh', birthDate: '2000-02-14' });
+  const birthday = getCalendarEvents(2, 14, [{ name: 'Linh', birthDate: '2000-02-14' }]);
   assert.equal(getCalendarQuote(birthday), birthday[1].quote);
   const anniversary = getCalendarEvents(2, 14, undefined, { year: 2025, anniversaryDate: '2024-02-14' });
   assert.equal(getCalendarQuote(anniversary), anniversary[1].quote);
   assert.ok(getCalendarQuote([]));
+});
+
+test('both members birthdays are visible regardless of who opens the calendar', () => {
+  const members = [
+    { id: 'minh', name: 'Minh', birthDate: '1998-04-15' },
+    { id: 'linh', name: 'Linh', birthDate: '2000-09-10' },
+  ];
+  assert.equal(getCalendarEvents(4, 15, members)[0].name, 'Sinh nhật Minh');
+  assert.equal(getCalendarEvents(9, 10, members)[0].name, 'Sinh nhật Linh');
+  assert.deepEqual(getCalendarEvents(4, 16, members), []);
+  assert.deepEqual(getCalendarEvents(4, 15, [members[0], { id: 'linh', name: 'Linh' }]).map(event => event.name), ['Sinh nhật Minh']);
+});
+
+test('same-day birthdays keep unique identities even when names and holidays overlap', () => {
+  const members = [
+    { id: 'minh', name: 'An', birthDate: '1998-02-14' },
+    { id: 'linh', name: 'An', birthDate: '2000-02-14' },
+  ];
+  const events = getCalendarEvents(2, 14, members, { year: 2025, anniversaryDate: '2024-02-14' });
+  assert.deepEqual(events.map(event => event.icon), ['heart', 'birthday', 'birthday', 'milestone']);
+  const birthdays = events.filter(event => event.icon === 'birthday');
+  assert.equal(new Set(birthdays.map(event => event.id)).size, 2);
 });

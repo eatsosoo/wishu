@@ -17,7 +17,6 @@ import type { CategoryFilter, Memory } from '../types/domain';
 export default function Memories() {
   const { colors } = useAppTheme();
   const store = useWishStore();
-  const partner = store.couple.members.find(member => member.id !== store.actor);
   const { giftCreated } = useLocalSearchParams<{ giftCreated?: string }>();
   const latestDate = store.memories.reduce((latest, memory) => memory.completedAt > latest ? memory.completedAt : latest, '');
   const [month, setMonth] = useState(() => new Date(`${latestDate || new Date().toISOString().slice(0, 10)}T12:00:00`));
@@ -47,7 +46,7 @@ export default function Memories() {
     setSelectedDay(null);
   }, []);
   const selectedDate = selectedDay === null ? '' : `${prefix}-${String(selectedDay).padStart(2, '0')}`;
-  const selectedEvents = selectedDay === null ? [] : getCalendarEvents(monthIndex + 1, selectedDay, partner, { year, anniversaryDate: store.couple.anniversaryDate });
+  const selectedEvents = selectedDay === null ? [] : getCalendarEvents(monthIndex + 1, selectedDay, store.couple.members, { year, anniversaryDate: store.couple.anniversaryDate });
   return <AppScreen navigation>
     {giftCreated === 'yes' ? <View accessibilityRole="alert" style={{ padding: 16, backgroundColor: colors.rose, borderRadius: 18, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Một khoảnh khắc đã thành kỷ niệm, một lời thương gửi đến {store.partnerName} 🎁</Body></View> : null}
     <ScreenTitle title="Kỷ niệm" />
@@ -67,7 +66,7 @@ export default function Memories() {
         const memories = byDate.get(date) ?? [];
         const photos = memories.reduce((total, memory) => total + memory.photos.length, 0);
         const selected = selectedDay === day;
-        const events = getCalendarEvents(monthIndex + 1, day, partner, { year, anniversaryDate: store.couple.anniversaryDate });
+        const events = getCalendarEvents(monthIndex + 1, day, store.couple.members, { year, anniversaryDate: store.couple.anniversaryDate });
         return <Pressable key={date} accessibilityRole="button" accessibilityLabel={`Ngày ${day} tháng ${monthIndex + 1} năm ${year}${events.length ? `, ${events.map(event => event.name).join(', ')}` : ''}, ${photos} ảnh kỷ niệm`} accessibilityState={{ selected }} onPress={() => setSelectedDay(day)} style={{ width: '14.2857%', aspectRatio: 1, padding: 3 }}>
           <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: selected ? colors.rose : colors.background, justifyContent: 'center', alignItems: 'center' }}>
             {memories.length > 0 && <>

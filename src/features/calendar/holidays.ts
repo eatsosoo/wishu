@@ -1,4 +1,5 @@
 export interface CalendarHoliday {
+  id?: string;
   name: string;
   icon: 'flower' | 'bouquet' | 'balloons' | 'tree' | 'moustache' | 'heart' | 'whiteHeart' | 'birthday' | 'milestone';
   marker?: string;
@@ -20,11 +21,13 @@ export function getCalendarHoliday(month: number, day: number): CalendarHoliday 
   return holidays[`${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`];
 }
 
-export function getCalendarEvents(month: number, day: number, partner?: { name: string; birthDate?: string }, context?: { year: number; anniversaryDate: string }): CalendarHoliday[] {
+export function getCalendarEvents(month: number, day: number, members: readonly { id?: string; name: string; birthDate?: string }[] = [], context?: { year: number; anniversaryDate: string }): CalendarHoliday[] {
   const holiday = getCalendarHoliday(month, day);
   const events = holiday ? [holiday] : [];
-  if (partner?.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(partner.birthDate) && Number(partner.birthDate.slice(5, 7)) === month && Number(partner.birthDate.slice(8, 10)) === day) {
-    events.push({ name: `Sinh nhật ${partner.name}`, icon: 'birthday', quote: 'Thêm một tuổi mới, thêm một năm có nhau.' });
+  for (const [index, member] of members.entries()) {
+    if (member.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(member.birthDate) && Number(member.birthDate.slice(5, 7)) === month && Number(member.birthDate.slice(8, 10)) === day) {
+      events.push({ id: `birthday-${member.id ?? index}`, name: `Sinh nhật ${member.name}`, icon: 'birthday', quote: 'Thêm một tuổi mới, thêm một năm có nhau.' });
+    }
   }
   if (context && /^\d{4}-\d{2}-\d{2}$/.test(context.anniversaryDate)) {
     const start = Date.parse(`${context.anniversaryDate}T00:00:00Z`);
