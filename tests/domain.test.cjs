@@ -120,8 +120,11 @@ test('deleting a completed wish preserves its memory, gift and shared cover', ()
   assert.deepEqual(next.memories[0].photos, [wish.cover]);
 });
 
-test('more than eight memory photos are rejected before changing data', () => {
-  assert.throws(() => completeWish(createMockSnapshot(), { wishId: 'bear', completedAt: '2026-10-19', note: '', photos: Array.from({ length: 9 }, () => ({ art: 'bear' })) }, 'minh'));
+test('four memory photos are accepted and five are rejected before changing data', () => {
+  const snapshot = createMockSnapshot();
+  const input = { wishId: 'bear', completedAt: '2026-10-19', note: '', photos: Array.from({ length: 4 }, () => ({ art: 'bear' })) };
+  assert.equal(completeWish(snapshot, input, 'minh').memories[0].photos.length, 4);
+  assert.throws(() => completeWish(snapshot, { ...input, photos: [...input.photos, { art: 'bear' }] }, 'minh'), /tối đa 4 ảnh/);
 });
 
 test('budget inputs group digits without changing the stored integer value', () => {

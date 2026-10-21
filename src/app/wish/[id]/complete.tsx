@@ -47,7 +47,7 @@ export default function CompleteWish() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: PHOTO_LIMITS.memoryCount - photos.length, quality: 1 });
       if (!result.canceled) {
-        if (result.assets.length > PHOTO_LIMITS.memoryCount - photos.length) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
+        if (result.assets.length > PHOTO_LIMITS.memoryCount - photos.length) throw new Error(`Mỗi kỷ niệm có tối đa ${PHOTO_LIMITS.memoryCount} ảnh.`);
         const optimized: MemoryPhotoDraft[] = [];
         for (const asset of result.assets) optimized.push({
           id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -89,9 +89,9 @@ export default function CompleteWish() {
       <DateField label="Ngày hoàn thành" value={date} onChange={setDate} />
       <View style={{ gap: 9 }}><Body style={{ color: t('#915365') }}>Thêm ảnh kỷ niệm</Body><View className="flex-row flex-wrap" style={{ gap: 9 }}>
         {photos.map((item, index) => <View key={item.id} style={{ width: 75, height: 75 }}><PhotoView photo={item.photo} width={75} height={75} style={{ borderRadius: 14 }} /><Pressable accessibilityRole="button" accessibilityLabel={`Bỏ ảnh ${index + 1}`} disabled={busy || processingPhotos} hitSlop={4} onPress={() => setPhotos(previous => previous.filter(photo => photo.id !== item.id))} style={{ position: 'absolute', top: 3, right: 3, backgroundColor: t('rgba(255,249,246,0.82)'), borderRadius: 999, padding: 2 }}><X size={13} color={colors.primary} /></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Chỉnh vùng cắt ảnh ${index + 1}`} disabled={busy || processingPhotos} hitSlop={5} onPress={() => setEditingId(item.id)} style={{ position: 'absolute', bottom: 3, right: 3, width: 26, height: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: t('rgba(255,249,246,0.94)'), borderRadius: 13 }}><Crop size={15} color={colors.primary} /></Pressable></View>)}
-        {photos.length < 8 && <Pressable accessibilityRole="button" accessibilityLabel="Thêm ảnh kỷ niệm" onPress={addPhotos} style={{ width: 75, height: 75, borderRadius: 14, backgroundColor: t('#F2DEDC'), alignItems: 'center', justifyContent: 'center' }}><Plus size={24} color={t("#AF8792")} strokeWidth={1.5} /></Pressable>}
+        {photos.length < PHOTO_LIMITS.memoryCount && <Pressable accessibilityRole="button" accessibilityLabel="Thêm ảnh kỷ niệm" onPress={addPhotos} style={{ width: 75, height: 75, borderRadius: 14, backgroundColor: t('#F2DEDC'), alignItems: 'center', justifyContent: 'center' }}><Plus size={24} color={t("#AF8792")} strokeWidth={1.5} /></Pressable>}
       </View></View>
-      <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted }}>{processingPhotos ? 'Đang tối ưu ảnh…' : `${photos.length}/8 ảnh · cắt vuông từ giữa · chạm icon để chỉnh vùng ảnh`}</Body>
+      <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted }}>{processingPhotos ? 'Đang tối ưu ảnh…' : `${photos.length}/${PHOTO_LIMITS.memoryCount} ảnh · cắt vuông từ giữa · chạm icon để chỉnh vùng ảnh`}</Body>
       <AppTextarea label="Chia sẻ cảm xúc (tùy chọn)" value={note} onChangeText={setNote} maxLength={2000} />
     </View>
     {editingPhoto && <SquarePhotoCropper key={editingPhoto.id} source={editingPhoto.source} initialSelection={editingPhoto.selection} onCancel={() => setEditingId(null)} onApply={applyCrop} />}

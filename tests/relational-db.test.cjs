@@ -76,7 +76,7 @@ test('completion commits memory, ordered photos, notification and both push outb
 test('completion failures roll back all effects and keep the preparation active', async t => {
   const h = await setup(t);
   for (const input of [
-    { ...completion.input, photos: Array(9).fill({ art: 'bear' }) },
+    { ...completion.input, photos: Array(5).fill({ art: 'bear' }) },
     { ...completion.input, photos: [{ uri: 'storage://different-couple/image', storagePath: 'different-couple/image' }] },
     { ...completion.input, note: 'x'.repeat(2001) },
     { ...completion.input, completedAt: '2026-02-30' },

@@ -60,7 +60,7 @@ export async function cloudCommand(command: WishCommand): Promise<CloudCouple> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
   if (command.kind === 'add') command = { ...command, input: { ...command.input, cover: await uploadPhoto(command.input.cover) } };
   if (command.kind === 'complete') {
-    if (command.input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
+    if (command.input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error(`Mỗi kỷ niệm có tối đa ${PHOTO_LIMITS.memoryCount} ảnh.`);
     const photos: Photo[] = [];
     // Upload one photo at a time to keep memory bounded on mobile.
     for (const photo of command.input.photos) photos.push(await uploadPhoto(photo));

@@ -39,7 +39,11 @@ async function database({ migrate = true, snapshot = createMockSnapshot() } = {}
   await db.query('insert into public.wish_couples(id,invite_code) values($1,$2)', [coupleId, 'ABCDE']);
   await db.query("insert into public.wish_members(user_id,couple_id,actor) values($1,$3,'minh'),($2,$3,'linh')", [users[0], users[1], coupleId]);
   await db.query('insert into public.wish_state(couple_id,snapshot) values($1,$2)', [coupleId, JSON.stringify(snapshot)]);
-  if (migrate) await db.exec(readFileSync(join(migrations, migrationName), 'utf8'));
+  if (migrate) {
+    for (const file of readdirSync(migrations).filter(name => name.endsWith('.sql') && name >= migrationName).sort()) {
+      await db.exec(readFileSync(join(migrations, file), 'utf8'));
+    }
+  }
 
   async function asUser(user, fn, role = 'authenticated') {
     await db.query("select set_config('request.jwt.claim.sub',$1,false)", [user || '']);

@@ -14,7 +14,7 @@ export function prepareWish(snapshot: WishSnapshot, wishId: string, actor: Perso
   return { ...snapshot, preparations: [{ id: makeId('preparation'), wishId, preparedBy: actor, status: 'preparing', startedAt: new Date().toISOString().slice(0, 10) }, ...snapshot.preparations] };
 }
 export function completeWish(snapshot: WishSnapshot, input: CompletionInput, actor: PersonId): WishSnapshot {
-  if (input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error('Mỗi kỷ niệm có tối đa 8 ảnh.');
+  if (input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error(`Mỗi kỷ niệm có tối đa ${PHOTO_LIMITS.memoryCount} ảnh.`);
   const preparation = snapshot.preparations.find(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'preparing');
   const wish = snapshot.wishes.find(item => item.id === input.wishId);
   if (!preparation && snapshot.preparations.some(item => item.wishId === input.wishId && item.preparedBy === actor && item.status === 'completed')) return snapshot;

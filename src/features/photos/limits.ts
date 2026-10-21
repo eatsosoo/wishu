@@ -3,7 +3,7 @@ export const PHOTO_LIMITS = {
   uploadBytes: 2 * 1024 * 1024,
   maxDimension: 1600,
   maxPixels: 48_000_000,
-  memoryCount: 8,
+  memoryCount: 4,
 } as const;
 
 export function validatePhotoSource(width: number, height: number, size: number) {
