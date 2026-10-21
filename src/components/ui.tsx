@@ -6,6 +6,7 @@ import { Eye, EyeOff, Heart, X, type LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../constants/theme';
 import type { Category, CategoryFilter } from '../types/domain';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { PopupHost } from './PopupMessage';
 
 export function Body({ style, ...props }: TextProps) {
   const { colors } = useAppTheme();
@@ -122,6 +123,7 @@ export function BottomSheet({ visible, onClose, title, children }: { visible: bo
         <View className="flex-row items-center justify-between" style={{ marginBottom: 18, gap: 12 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{title}</Heading><IconButton icon={X} label="Đóng" onPress={onClose} /></View>
         {children}
       </Animated.View>
+      <PopupHost modal active={visible || presented} />
     </View>
   </Modal>;
 }

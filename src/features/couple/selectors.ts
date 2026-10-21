@@ -6,6 +6,28 @@ export function homeJarMembers(members: Couple['members']): Couple['members'] {
   return [...members].sort((first, second) => rank(first) - rank(second));
 }
 
+export interface HomeJarSlot {
+  side: 'left' | 'right';
+  appearance: 'male' | 'female' | 'neutral' | 'waiting';
+  member?: Couple['members'][number];
+}
+
+export function homeJarSlots(members: Couple['members']): HomeJarSlot[] {
+  const joined = homeJarMembers(members.filter(member => member.joined !== false));
+  const slots: HomeJarSlot[] = [
+    { side: 'left', appearance: 'waiting' },
+    { side: 'right', appearance: 'waiting' },
+  ];
+  joined.slice(0, 2).forEach((member, index) => {
+    const position = joined.length === 1 && member.gender === 'female' ? 1 : index;
+    slots[position] = {
+      side: position === 0 ? 'left' : 'right', member,
+      appearance: member.gender === 'male' || member.gender === 'female' ? member.gender : 'neutral',
+    };
+  });
+  return slots;
+}
+
 export function localGreeting(now = new Date()): string {
   const hour = now.getHours();
   if (hour >= 5 && hour < 11) return 'Chào buổi sáng,';

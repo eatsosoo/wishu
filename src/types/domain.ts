@@ -43,7 +43,7 @@ export interface Memory {
 export interface Couple {
   name: string;
   anniversaryDate: string;
-  members: { id: PersonId; name: string; birthDate?: string; gender?: Gender }[];
+  members: { id: PersonId; name: string; birthDate?: string; gender?: Gender; joined?: boolean }[];
 }
 export interface GiftNotification {
   id: string;

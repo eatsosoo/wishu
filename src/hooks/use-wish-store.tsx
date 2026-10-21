@@ -7,6 +7,7 @@ import { privatePreparations } from '../services/wish-actions';
 import { partnerName, personalizePartnerText } from '../features/couple/selectors';
 import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
 import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
+import { completeProfile, readProfile } from '../features/auth/profile';
 
 function useStoreValue() {
   const [snapshot, setSnapshot] = useState(createEmptySnapshot);
@@ -16,6 +17,8 @@ function useStoreValue() {
   const [onboarded, setOnboarded] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const sessionRef = useRef<Session | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [cloudCouple, setCloudCouple] = useState<CloudCouple | null>(null);
   const [storageError, setStorageError] = useState(supabase ? '' : 'Chưa cấu hình kết nối Supabase.');
   const commands = useRef(Promise.resolve(true));
@@ -29,12 +32,27 @@ function useStoreValue() {
     if (deletingAccount.current) return;
     const revision = generation.current;
     const startedAt = snapshotRevision.current;
+    let userId = sessionRef.current?.user.id ?? null;
     try {
-      const next = await loadCloudCouple();
+      const current = await supabase?.auth.getSession();
+      if (current?.error) throw current.error;
+      userId = current?.data.session?.user.id ?? null;
+      let next = await loadCloudCouple();
+      if (generation.current !== revision || snapshotRevision.current !== startedAt) return;
+      if (next && supabase) {
+        const loadedActor = next.actor;
+        const member = next.snapshot.couple.members.find(item => item.id === loadedActor);
+        const profile = current?.data.session?.user.user_metadata.initialProfile;
+        if (!completeProfile(member) && completeProfile(profile)) {
+          try { next = await cloudCommand({ kind: 'personalProfile', input: profile }); }
+          catch { setStorageError('Chưa đồng bộ được thông tin cá nhân. Bạn thử lưu lại nhé.'); }
+        }
+      }
       if (generation.current !== revision || snapshotRevision.current !== startedAt) return;
       if (next) applyCloud(next);
       else { setCloudCouple(null); apply(createEmptySnapshot()); }
-    } catch { setStorageError('Chưa đồng bộ được với người ấy. Bạn kiểm tra kết nối nhé.'); }
+    } catch { if (generation.current === revision) setStorageError('Chưa đồng bộ được với người ấy. Bạn kiểm tra kết nối nhé.'); }
+    finally { if (generation.current === revision) setProfileUserId(userId); }
   }, [applyCloud, apply]);
 
   useEffect(() => {
@@ -48,6 +66,7 @@ function useStoreValue() {
           const { data, error } = await supabase.auth.getSession();
           if (error) throw error;
           if (!active) return;
+          sessionRef.current = data.session;
           setSession(data.session); setSignedIn(!!data.session);
           if (data.session) await refresh();
         }
@@ -57,8 +76,12 @@ function useStoreValue() {
     void restore();
     const listener = supabase?.auth.onAuthStateChange((_event, next) => {
       if (!active) return;
+      if (sessionRef.current?.user.id !== next?.user.id) {
+        generation.current++; setProfileUserId(null); setCloudCouple(null); apply(createEmptySnapshot());
+      }
+      sessionRef.current = next;
       setSession(next); setSignedIn(!!next);
-      if (!next) { generation.current++; setCloudCouple(null); apply(createEmptySnapshot()); }
+      if (!next) { generation.current++; setProfileUserId(null); setCloudCouple(null); apply(createEmptySnapshot()); }
     });
     return () => { active = false; listener?.data.subscription.unsubscribe(); };
   }, [apply, refresh]);
@@ -105,7 +128,7 @@ function useStoreValue() {
       try { await supabase?.auth.signOut({ scope: 'local' }); }
       catch { /* Account deletion already succeeded; clear the in-memory session below. */ }
       finally {
-        generation.current++; setSession(null); setSignedIn(false); setActor('minh');
+        generation.current++; sessionRef.current = null; setSession(null); setSignedIn(false); setActor('minh');
         setCloudCouple(null); apply(createEmptySnapshot()); setStorageError('');
       }
       await AsyncStorage.removeItem('ourwish:push-token').catch(() => {});
@@ -117,6 +140,7 @@ function useStoreValue() {
     const result = commands.current.then(async () => {
       if (generation.current !== revision) return false;
       try {
+        setStorageError('');
         const next = await cloudCommand(command);
         if (generation.current !== revision) return false;
         applyCloud(next);
@@ -130,9 +154,29 @@ function useStoreValue() {
     return result;
   }
   const partner = partnerName(snapshot.couple, actor);
+  const personalProfile = readProfile(cloudCouple
+    ? snapshot.couple.members.find(item => item.id === actor)
+    : session?.user.user_metadata.initialProfile);
+  async function saveInitialProfile(input: PersonalProfileInput) {
+    if (!supabase || !completeProfile(input)) return false;
+    if (cloudCouple) return dispatch({ kind: 'personalProfile', input });
+    const revision = generation.current;
+    try {
+      setStorageError('');
+      const { data, error } = await supabase.auth.updateUser({ data: { initialProfile: input } });
+      if (error) throw error;
+      if (revision !== generation.current) return false;
+      if (sessionRef.current?.user.id === data.user.id) sessionRef.current = { ...sessionRef.current, user: data.user };
+      setSession(current => current && data.user.id === current.user.id ? { ...current, user: data.user } : current);
+      setStorageError('');
+      return true;
+    } catch { setStorageError('Chưa lưu được thông tin cá nhân. Bạn thử lại nhé.'); return false; }
+  }
   return {
     ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount,
     partnerName: partner,
+    personalProfile, profileComplete: completeProfile(personalProfile), saveInitialProfile,
+    accountReady: !session || profileUserId === session.user.id,
     storageError: personalizePartnerText(storageError, partner),
     cloudEnabled: !!supabase, paired: !!cloudCouple, cloudCouple, session, refresh,
     preparations: privatePreparations(snapshot, actor),

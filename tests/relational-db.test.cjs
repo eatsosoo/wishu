@@ -15,7 +15,7 @@ test('migration preserves wishes, profile, preparation privacy, memories and ord
   const h = await setup(t);
   const first = await h.state(users[0]), second = await h.state(users[1]);
   assert.deepEqual(first.snapshot.wishes, h.snapshot.wishes.map(wish => ({ ...wish, active: true })));
-  assert.deepEqual(first.snapshot.couple, h.snapshot.couple);
+  assert.deepEqual(first.snapshot.couple, { ...h.snapshot.couple, members: h.snapshot.couple.members.map(member => ({ ...member, joined: true })) });
   assert.deepEqual(first.snapshot.memories, h.snapshot.memories);
   assert.deepEqual(first.snapshot.preparations, h.snapshot.preparations);
   assert.deepEqual(second.snapshot.preparations, []);
@@ -120,8 +120,11 @@ test('create, join and anniversary updates use relational data without legacy wr
   await h.db.query('insert into auth.users(id) values($1)', [fourth]);
   const created = await h.asUser(users[2], async () => (await h.db.query("select create_couple('A','Our space') as value")).rows[0].value);
   assert.equal(created.snapshot.couple.members[1].name, 'Người ấy');
+  assert.equal(created.snapshot.couple.members[0].joined, true);
+  assert.equal(created.snapshot.couple.members[1].joined, false);
   const joined = await h.asUser(fourth, async () => (await h.db.query("select join_couple($1,'B') as value", [created.inviteCode.toLowerCase()])).rows[0].value);
   assert.equal(joined.snapshot.couple.members[1].name, 'B');
+  assert.equal(joined.snapshot.couple.members[1].joined, true);
   assert.equal((await h.db.query('select * from wish_state')).rows.length, 1);
   await h.command(fourth, { kind: 'couple', name: 'Updated', anniversaryDate: '2026-01-02' });
   assert.equal((await h.state(users[2])).snapshot.couple.anniversaryDate, '2026-01-02');

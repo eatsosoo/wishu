@@ -1,3 +1,4 @@
+import { PopupMessage } from '../../components/PopupMessage';
 import { useAppTheme, useThemeStyles } from '../../hooks/use-app-theme';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -83,7 +84,7 @@ export default function AddWish() {
     <View style={s.image}><PhotoView photo={cover ?? defaultWishCover(category)} height={180} fit={cover ? 'cover' : 'contain'} label={`Ảnh điều ước ${category}`} /><View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
     <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted, marginTop: 8 }}>{processingPhoto ? 'Đang tối ưu ảnh…' : 'Ảnh tối đa 20 MB · tự tối ưu còn tối đa 2 MB'}</Body>
     <View style={{ gap: 13, marginTop: 18 }}>
-      {!!errors.photo && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{errors.photo}</Body>}
+      {!!errors.photo && <PopupMessage message={errors.photo} />}
       <AppInput label="Tên điều ước" placeholder="Nhập tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
       <AppTextarea label="Mô tả" placeholder="Mô tả điều ước" value={description} onChangeText={setDescription} maxLength={1000} />
       <View style={{ gap: 7 }}><Body style={s.label}>Loại</Body><Pressable accessibilityRole="button" accessibilityLabel="Chọn loại điều ước" onPress={() => setPicker(true)} style={s.category}><Camera size={19} color={colors.primary} /><Body style={{ flex: 1, color: t('#75404F') }}>{category}</Body><ChevronDown size={18} color={colors.primary} /></Pressable></View>
@@ -92,7 +93,7 @@ export default function AddWish() {
       <WishVisibility active={active} onChange={setActive} disabled={busy} />
       <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}
-      {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
+
       <PrimaryButton disabled={busy || processingPhoto} onPress={() => void save()}>{busy ? 'Đang lưu…' : processingPhoto ? 'Đang tối ưu ảnh…' : 'Thêm vào hũ ✨'}</PrimaryButton>
       {!showDate && <Pressable accessibilityRole="button" onPress={() => setShowDate(true)}><Body style={{ color: colors.muted, fontSize: 12, textAlign: 'center' }}>+ Thêm ngày mong muốn</Body></Pressable>}
     </View>

@@ -1,3 +1,4 @@
+import { PopupMessage, PopupHost } from './PopupMessage';
 import { useEffect, useRef, useState } from 'react';
 import { Modal, PanResponder, Platform, ScrollView, StyleSheet, View, useWindowDimensions, type PanResponderInstance, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -88,11 +89,12 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
             <IconButton icon={ArrowDown} label="Chọn vùng ảnh phía dưới" onPress={() => change({ ...selection, centerY: selection.centerY + 0.05 / selection.zoom })} />
             <IconButton icon={ArrowRight} label="Chọn vùng ảnh bên phải" onPress={() => change({ ...selection, centerX: selection.centerX + 0.05 / selection.zoom })} />
           </View>
-          {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
+          {!!error && <PopupMessage message={error} />}
           <PrimaryButton disabled={busy} onPress={() => void apply()}>{busy ? 'Đang xử lý ảnh…' : 'Dùng vùng ảnh này'}</PrimaryButton>
           <SecondaryButton onPress={() => change(centeredSquare)}>Căn giữa lại</SecondaryButton>
         </View>
       </ScrollView>
+      <PopupHost modal />
     </SafeAreaView>
   </Modal>;
 }

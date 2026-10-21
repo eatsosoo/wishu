@@ -1,3 +1,4 @@
+import { PopupMessage } from '../../../components/PopupMessage';
 import { useAppTheme } from '../../../hooks/use-app-theme';
 import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -79,8 +80,8 @@ export default function CompleteWish() {
   }
   return <View style={{ flex: 1 }}>
   <AppScreen contentStyle={{ paddingBottom: 150 }} bottomAction={<>
-    {!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}
-    {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{store.storageError}</Body>}
+    {!!error && <PopupMessage message={error} />}
+
     <PrimaryButton disabled={busy || processingPhotos || editingId !== null} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
   </>}>
     <View><ClayObject name="openGift" width={275} height={157} style={{ alignSelf: 'center' }} /></View>

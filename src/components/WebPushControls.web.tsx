@@ -1,3 +1,4 @@
+import { PopupMessage } from './PopupMessage';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Body, SecondaryButton } from './ui';
@@ -40,6 +41,6 @@ export function WebPushControls() {
   }
   return <View style={{ gap: 8, marginBottom: 20 }}>
     {reason ? <Body style={{ color: colors.muted }}>{reason}</Body> : <SecondaryButton onPress={() => void toggle()}>{busy ? 'Đang cập nhật…' : enabled ? 'Tắt thông báo trên trình duyệt này' : 'Bật thông báo trên trình duyệt này'}</SecondaryButton>}
-    {message ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{message}</Body> : null}
+    {message ? <PopupMessage message={message} /> : null}
   </View>;
 }

@@ -1,3 +1,4 @@
+import { PopupMessage } from '../components/PopupMessage';
 import { themes, useAppTheme, useThemeStyles, type ThemeId } from '../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -61,12 +62,12 @@ export default function CoupleProfile() {
     </View>
     <Pressable accessibilityRole="button" onPress={() => router.push('/preparing')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 19 }}><Gift size={18} color={colors.primary} /><Body style={{ color: colors.primary }}>Những bất ngờ mình đang chuẩn bị</Body></Pressable>
     <View className="flex-row justify-between" style={{ paddingHorizontal: 13 }}><Body style={s.stat}>{togetherDays(store.couple.anniversaryDate)} ngày bên nhau</Body><Body style={s.stat}>{store.memories.length} kỷ niệm ♡</Body></View>
-    {!!store.storageError && <Body accessibilityRole="alert" style={{ color: colors.primary, marginTop: 12 }}>{store.storageError}</Body>}
-    <BottomSheet visible={sheet === 'profile' || sheet === 'anniversary'} onClose={() => setSheet(null)} title={sheet === 'anniversary' ? 'Ngày mình bên nhau' : 'Không gian của hai đứa'}><View style={{ gap: 17 }}>{sheet === 'profile' && <AppInput label="Tên cặp đôi" value={name} onChangeText={setName} maxLength={60} />}<DateField label="Ngày kỷ niệm" value={date} onChange={setDate} />{!!error && <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body>}<PrimaryButton disabled={saving} onPress={() => void saveProfile()}>{saving ? 'Đang lưu…' : 'Lưu lại ♡'}</PrimaryButton></View></BottomSheet>
+
+    <BottomSheet visible={sheet === 'profile' || sheet === 'anniversary'} onClose={() => setSheet(null)} title={sheet === 'anniversary' ? 'Ngày mình bên nhau' : 'Không gian của hai đứa'}><View style={{ gap: 17 }}>{sheet === 'profile' && <AppInput label="Tên cặp đôi" value={name} onChangeText={setName} maxLength={60} />}<DateField label="Ngày kỷ niệm" value={date} onChange={setDate} />{!!error && <PopupMessage message={error} />}<PrimaryButton disabled={saving} onPress={() => void saveProfile()}>{saving ? 'Đang lưu…' : 'Lưu lại ♡'}</PrimaryButton></View></BottomSheet>
     <BottomSheet visible={sheet === 'theme'} onClose={() => setSheet(null)} title="Màu của hai đứa"><Body style={{ color: colors.muted, marginBottom: 20 }}>Chọn một sắc màu cho không gian của mình ♡</Body><View style={{ gap: 12, marginBottom: 22 }}>{(Object.keys(themes) as ThemeId[]).map(id => {
       const theme = themes[id], selected = id === themeId;
       return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={theme.name} accessibilityState={{ checked: selected }} onPress={() => setTheme(id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 15, borderRadius: 20, borderWidth: selected ? 2 : 1, borderColor: selected ? colors.primary : colors.line, backgroundColor: colors.surface }}><View style={{ width: 45, height: 45, borderRadius: 23, backgroundColor: theme.colors.rose, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 25, height: 25, borderRadius: 13, backgroundColor: theme.colors.primary }} /></View><View style={{ flex: 1 }}><Body style={{ fontFamily: fonts.bold }}>{theme.name}</Body><Body style={{ color: colors.muted, fontSize: 12 }}>{theme.description}</Body></View><Body style={{ color: colors.primary, fontSize: 20 }}>{selected ? '✓' : '○'}</Body></Pressable>;
-    })}</View>{!!themeError && <Body accessibilityRole="alert" style={{ color: colors.primary, marginBottom: 12 }}>{themeError}</Body>}<PrimaryButton onPress={() => setSheet(null)}>Xong ♡</PrimaryButton></BottomSheet>
+    })}</View>{!!themeError && <PopupMessage message={themeError} />}<PrimaryButton onPress={() => setSheet(null)}>Xong ♡</PrimaryButton></BottomSheet>
     <AccountSettings visible={sheet === 'settings'} onClose={() => setSheet(null)} />
   </AppScreen>;
 }

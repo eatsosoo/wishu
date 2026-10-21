@@ -3,11 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { AppScreen } from '../components/AppScreen';
 import { Body, Heading } from '../components/ui';
 import { NotificationBell } from '../components/NotificationBell';
-import { Artwork } from '../components/Artwork';
-import { WishJar } from '../components/WishJar';
+import { HomeWishJars } from '../components/HomeWishJars';
 import { fonts, spacing } from '../constants/theme';
 import { useWishStore } from '../hooks/use-wish-store';
-import { homeJarMembers, togetherDays } from '../features/couple/selectors';
+import { togetherDays } from '../features/couple/selectors';
 import { useLocalGreeting } from '../hooks/use-local-greeting';
 
 export default function HomeScreen() {
@@ -16,7 +15,6 @@ export default function HomeScreen() {
 
   const store = useWishStore();
   const greeting = useLocalGreeting();
-  const members = homeJarMembers(store.couple.members);
   const person = store.couple.members.find(member => member.id === store.actor)!;
   return <AppScreen navigation home contentStyle={{ paddingHorizontal: 0, paddingBottom: 15 }}>
     <View style={s.greeting}>
@@ -28,7 +26,7 @@ export default function HomeScreen() {
         <NotificationBell />
       </View>
     </View>
-    <View style={{ marginTop: 24 }}><Artwork name="home" label="Hai hũ điều ước chứa những ngôi sao và trái tim pastel" />{members.map((member, index) => <WishJar key={member.id} owner={member.id} name={member.name} count={store.wishes.filter(wish => wish.createdBy === member.id).length} side={index === 0 ? 'left' : 'right'} />)}</View>
+    <View style={{ marginTop: 24 }}><HomeWishJars members={store.couple.members} wishes={store.wishes} /></View>
     <View style={s.together}><Body style={{ color: colors.burgundy, fontSize: 12 }}>Chúng ta đã bên nhau</Body><View className="flex-row items-baseline" style={{ gap: 6 }}><Heading style={{ fontSize: 37, lineHeight: 47 }}>{togetherDays(store.couple.anniversaryDate)}</Heading><Heading style={{ fontSize: 22 }}>ngày</Heading></View></View>
   </AppScreen>;
 }

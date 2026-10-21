@@ -12,6 +12,7 @@ import { WishStoreProvider, useWishStore } from '../hooks/use-wish-store';
 import { LoadingState } from '../components/ui';
 import { NotificationBridge } from '../components/NotificationBridge';
 import { NavigationHighlightProvider } from '../hooks/use-navigation-highlight';
+import { PopupHost, PopupMessage, PopupProvider } from '../components/PopupMessage';
 
 export default function RootLayout() {
   return <AppThemeProvider><RootContent /></AppThemeProvider>;
@@ -28,25 +29,27 @@ function RootContent() {
   });
   const framed = Platform.OS === 'web' && width > 600;
   if (!loaded && !error) return <LoadingState />;
-  return <SafeAreaProvider><WishStoreProvider><View style={s.outer}><StatusBar style="dark" /><View style={[s.app, framed && s.framed]}>
+  return <SafeAreaProvider><PopupProvider><WishStoreProvider><View style={s.outer}><StatusBar style="dark" /><View style={[s.app, framed && s.framed]}>
     <NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
     <NotificationBridge />
-  </View></View></WishStoreProvider></SafeAreaProvider>;
+    <PopupHost />
+  </View></View></WishStoreProvider></PopupProvider></SafeAreaProvider>;
 }
 function SessionNavigator() {
   const { t } = useAppTheme();
 
-  const { ready, onboarded, signedIn, paired } = useWishStore();
-  if (!ready) return <LoadingState />;
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t('#FBF1EE') }, animation: 'fade', animationDuration: 180 }}>
+  const { ready, accountReady, onboarded, signedIn, paired, profileComplete, storageError } = useWishStore();
+  if (!ready || !accountReady) return <LoadingState />;
+  return <><PopupMessage message={storageError} /><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t('#FBF1EE') }, animation: 'fade', animationDuration: 180 }}>
     <Stack.Protected guard={!onboarded}><Stack.Screen name="onboarding" /></Stack.Protected>
     <Stack.Protected guard={onboarded && !signedIn}><Stack.Screen name="login" /></Stack.Protected>
-    <Stack.Protected guard={onboarded && signedIn && !paired}><Stack.Screen name="pair" /></Stack.Protected>
-    <Stack.Protected guard={onboarded && signedIn && paired}>
+    <Stack.Protected guard={onboarded && signedIn && !profileComplete}><Stack.Screen name="complete-profile" /></Stack.Protected>
+    <Stack.Protected guard={onboarded && signedIn && profileComplete && !paired}><Stack.Screen name="pair" /></Stack.Protected>
+    <Stack.Protected guard={onboarded && signedIn && profileComplete && paired}>
       <Stack.Screen name="notifications" /><Stack.Screen name="gift/[id]" />
       <Stack.Screen name="index" /><Stack.Screen name="wishes" /><Stack.Screen name="wish/new" /><Stack.Screen name="wish/[id]/index" /><Stack.Screen name="wish/[id]/complete" /><Stack.Screen name="preparing" /><Stack.Screen name="memories" /><Stack.Screen name="memory/[id]" /><Stack.Screen name="memory-day/[date]" /><Stack.Screen name="us" /><Stack.Screen name="+not-found" />
     </Stack.Protected>
-  </Stack>;
+  </Stack></>;
 }
 const baseStyles = StyleSheet.create({
   outer: { flex: 1, backgroundColor: '#EEDFDB', alignItems: 'center' },
