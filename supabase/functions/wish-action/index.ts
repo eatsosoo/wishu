@@ -3,8 +3,9 @@ import { artNames, categories, type WishCommand } from '../../../src/types/domai
 import { admin, authenticate, cors, json } from '../_shared/backend.ts';
 import { deliverGifts } from '../_shared/deliver.ts';
 import { PHOTO_LIMITS } from '../../../src/features/photos/limits.ts';
+import { privateCheckInPath } from '../../../src/features/check-in/privacy.ts';
 
-function validate(command: WishCommand, coupleId: string) {
+function validate(command: WishCommand, coupleId: string, userId: string) {
   const photo = (value: unknown) => {
     if (!value || typeof value !== 'object') return false;
     if ('art' in value) return typeof value.art === 'string' && (artNames as readonly string[]).includes(value.art);
@@ -18,6 +19,8 @@ function validate(command: WishCommand, coupleId: string) {
     case 'checkIn': {
       const input = command.input;
       if (!input || !text(input.id, 100) || !input.id || !text(input.title, 100) || !input.title.trim() || !date(input.visitedAt) || !text(input.note, 2000) || !text(input.companion, 100) || !Number.isFinite(input.latitude) || Math.abs(input.latitude) > 90 || !Number.isFinite(input.longitude) || Math.abs(input.longitude) > 180 || !photo(input.photo) || 'art' in input.photo) throw new Error('Thông tin check-in chưa hợp lệ.');
+      const path = privateCheckInPath(input.photo, coupleId);
+      if (!path || !path.startsWith(`${coupleId}/${userId}/`) || !('uri' in input.photo) || input.photo.uri !== `storage://${path}`) throw new Error('Ảnh check-in cần được tải lên kho riêng tư của bạn.');
       break;
     }
     case 'deleteCheckIn':
@@ -55,7 +58,7 @@ Deno.serve(async request => {
     const command = JSON.parse(body) as WishCommand;
     const { data: member, error: memberError } = await admin.from('wish_members').select('actor,couple_id').eq('user_id', user.id).single();
     if (memberError || !member) return json({ error: 'Bạn cần ghép đôi trước.' }, 403);
-    validate(command, member.couple_id);
+    validate(command, member.couple_id, user.id);
     const { data: result, error: commitError } = await admin.rpc('apply_wish_command', { p_user: user.id, p_command: command });
     if (commitError) {
       console.error('Relational wish command failed', { code: commitError.code, kind: command.kind });

@@ -21,6 +21,7 @@ function harness({ error = null, giftId = null, signedIn = true } = {}) {
     require: name => {
       if (name.endsWith('/types/domain.ts')) return domain;
       if (name.endsWith('/photos/limits.ts')) return { PHOTO_LIMITS };
+      if (name.endsWith('/check-in/privacy.ts')) return require('../src/features/check-in/privacy.ts');
       if (name === '../_shared/backend.ts') return {
         cors: {},
         authenticate: async () => { if (!signedIn) throw new Error('Unauthorized'); return { id: user }; },
@@ -103,4 +104,18 @@ test('database permission errors are shown safely and never start delivery worke
   assert.equal(h.deliveries.length, 0);
   const internal = harness({ error: { code: '23514', message: 'internal constraint detail' } });
   assert.doesNotMatch((await (await internal.request({ kind: 'delete', id: 'wish' })).json()).error, /internal/);
+});
+
+test('check-in Edge validation rejects public photos and references to the partner upload folder', async () => {
+  const h = harness();
+  const prefix = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/';
+  const base = { id: 'private', title: 'A place', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-22', note: '', companion: '' };
+  for (const photo of [
+    { uri: 'https://example.com/public.jpg' },
+    { uri: `storage://${prefix}22222222-2222-4222-8222-222222222222/draft.jpg`, storagePath: `${prefix}22222222-2222-4222-8222-222222222222/draft.jpg` },
+    { uri: `storage://${prefix}${h.user}/../outside.jpg`, storagePath: `${prefix}${h.user}/../outside.jpg` },
+  ]) assert.equal((await h.request({ kind: 'checkIn', input: { ...base, photo } })).status, 400);
+  assert.equal(h.calls.length, 0);
+  const storagePath = `${prefix}${h.user}/photo.jpg`;
+  assert.equal((await h.request({ kind: 'checkIn', input: { ...base, photo: { uri: `storage://${storagePath}`, storagePath } } })).status, 200);
 });

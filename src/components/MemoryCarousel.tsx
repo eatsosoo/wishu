@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, PanResponder, Platform, Pressable, View, type PanResponderInstance } from 'react-native';
-import { ChevronLeft, ChevronRight, Heart } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Heart, MapPin } from 'lucide-react-native';
+import { router } from 'expo-router';
+import type { CalendarMemory } from '../features/calendar/memories';
 import { PhotoView } from './Artwork';
 import { Body, CategoryChip, EmptyState, Heading, IconButton } from './ui';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useWishStore } from '../hooks/use-wish-store';
 import type { Memory, Photo } from '../types/domain';
 
-type Slide = { key: string; photo: Photo; memory: Memory };
-export function MemoryCarousel({ memories }: { memories: Memory[] }) {
+type CarouselMemory = Memory | CalendarMemory;
+type Slide = { key: string; photo: Photo; memory: CarouselMemory };
+export function MemoryCarousel({ memories }: { memories: CarouselMemory[] }) {
   const { colors } = useAppTheme();
   const { toggleMemoryFavorite } = useWishStore();
   const [width, setWidth] = useState(0);
@@ -16,7 +19,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
   const list = useRef<FlatList<Slide>>(null);
   const scrollOffset = useRef(0);
   const dragStart = useRef(0);
-  const slides = useMemo(() => memories.flatMap(memory => memory.photos.map((photo, i) => ({ key: `${memory.id}:${i}`, photo, memory }))), [memories]);
+  const slides = useMemo(() => memories.flatMap(memory => memory.photos.map((photo, i) => ({ key: `${'source' in memory ? memory.source : 'memory'}:${memory.id}:${i}`, photo, memory }))), [memories]);
   const currentIndex = Math.min(index, Math.max(0, slides.length - 1));
   const active = slides[currentIndex];
   const [mouseDrag, setMouseDrag] = useState<PanResponderInstance | null>(null);
@@ -50,6 +53,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
     setIndex(bounded);
   }
   if (!active) return <EmptyState title="Chưa có ảnh trong ngày này" description="Mình lưu thêm một khoảnh khắc nhé ♡" />;
+  const checkIn = 'source' in active.memory && active.memory.source === 'checkIn';
   const dotsStart = Math.max(0, Math.min(currentIndex - 3, slides.length - 7));
   return <View style={{ gap: 19 }}>
     <View {...(Platform.OS === 'web' ? mouseDrag?.panHandlers : {})} onLayout={event => setWidth(event.nativeEvent.layout.width)} style={{ width: '100%', aspectRatio: 1, borderRadius: 28, overflow: 'hidden', backgroundColor: colors.rose }}>
@@ -58,7 +62,7 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
         keyExtractor={slide => slide.key} getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         disableScrollViewPanResponder={Platform.OS === 'web'}
         onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.x; setIndex(Math.max(0, Math.min(slides.length - 1, Math.round(scrollOffset.current / width)))); }} scrollEventThrottle={32}
-        renderItem={({ item }) => <PhotoView photo={item.photo} width={width} height={width} fit="cover" label={item.memory.title} />} />}
+        renderItem={({ item, index: slideIndex }) => <PhotoView enabled={slideIndex === currentIndex} photo={item.photo} width={width} height={width} fit="cover" label={item.memory.title} />} />}
     </View>
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
       <Pressable accessibilityRole="button" accessibilityLabel="Ảnh trước" accessibilityState={{ disabled: currentIndex === 0 }} disabled={currentIndex === 0} onPress={() => jump(currentIndex - 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', opacity: currentIndex === 0 ? 0.35 : 1 }}><ChevronLeft size={21} color={colors.primary} /></Pressable>
@@ -66,8 +70,9 @@ export function MemoryCarousel({ memories }: { memories: Memory[] }) {
       <Pressable accessibilityRole="button" accessibilityLabel="Ảnh sau" accessibilityState={{ disabled: currentIndex === slides.length - 1 }} disabled={currentIndex === slides.length - 1} onPress={() => jump(currentIndex + 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', opacity: currentIndex === slides.length - 1 ? 0.35 : 1 }}><ChevronRight size={21} color={colors.primary} /></Pressable>
     </View>
     <View style={{ padding: 19, borderRadius: 24, backgroundColor: colors.surface, gap: 13 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{active.memory.title}</Heading><IconButton icon={Heart} color={active.memory.favorite ? colors.primary : colors.muted} label={active.memory.favorite ? 'Bỏ yêu thích kỷ niệm' : 'Yêu thích kỷ niệm'} onPress={() => toggleMemoryFavorite(active.memory.id)} /></View>
-      <CategoryChip category={active.memory.category} />
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{active.memory.title}</Heading>{!checkIn && <IconButton icon={Heart} color={active.memory.favorite ? colors.primary : colors.muted} label={active.memory.favorite ? 'Bỏ yêu thích kỷ niệm' : 'Yêu thích kỷ niệm'} onPress={() => toggleMemoryFavorite(active.memory.id)} />}</View>
+      {checkIn ? <Pressable accessibilityRole="button" accessibilityLabel={`Xem check-in ${active.memory.title}`} onPress={() => router.push({ pathname: '/check-in/[id]', params: { id: active.memory.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 44 }}><MapPin size={16} color={colors.primary} /><Body style={{ color: colors.primary }}>Xem nơi đã đến</Body></Pressable> : <CategoryChip category={active.memory.category} />}
+      {'companion' in active.memory && !!active.memory.companion && <Body style={{ color: colors.muted }}>Cùng {active.memory.companion}</Body>}
       {!!active.memory.note && <Body style={{ color: colors.muted, lineHeight: 25 }}>{active.memory.note}</Body>}
     </View>
     <Body style={{ textAlign: 'center', color: colors.muted, fontSize: 12 }}>Lướt ngang để xem những khoảnh khắc của ngày hôm ấy ♡</Body>

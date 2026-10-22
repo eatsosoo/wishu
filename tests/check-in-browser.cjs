@@ -37,7 +37,7 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     await context.addInitScript(({ storageKey, session }) => { if (window.top !== window) return; localStorage.setItem('ourwish:onboarded', 'yes'); localStorage.setItem(storageKey, JSON.stringify(session)); }, { storageKey, session });
     await context.route(`${cloudUrl}/**`, async route => {
       const url = route.request().url();
-      if (url.includes('/storage/v1/object/sign/') && route.request().method() === 'GET') { await route.fulfill({ status: 200, contentType: 'image/png', body: icon }); return; }
+      if (url.includes('/storage/v1/object/') && route.request().method() === 'GET') { await route.fulfill({ status: 200, contentType: 'image/png', body: icon }); return; }
       let body = {};
       if (url.includes('/auth/v1/user')) body = user;
       else if (url.includes('/rest/v1/rpc/get_my_couple')) body = await h.state(users[0]);
@@ -54,12 +54,11 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     const pending = new Set(); page.on('request', request => pending.add(request.url())); page.on('requestfinished', request => pending.delete(request.url()));
     const networkErrors = []; page.on('requestfailed', request => { pending.delete(request.url()); networkErrors.push(`${new URL(request.url()).hostname}: ${request.failure()?.errorText}`); });
     await page.goto(`${base}/check-in-map`);
-    await page.getByText('Thêm kỷ niệm đầu tiên', { exact: false }).waitFor({ timeout: 45000 }).catch(async error => { console.log('UI', await page.locator('body').innerText(), 'ERRORS', errors); throw error; });
-    await page.getByRole('button', { name: 'Thêm kỷ niệm đầu tiên', exact: false }).click();
-    await page.getByRole('button', { name: 'Dùng vị trí hiện tại', exact: false }).click();
-    await page.getByText('11.94000, 108.44000', { exact: false }).waitFor();
-    await page.getByLabel('Tên địa điểm *', { exact: true }).fill('Đà Lạt của hai đứa');
-    await page.getByLabel('Lời nhắn', { exact: true }).fill('Một ngày thật vui ♡');
+    await page.getByRole('button', { name: 'Thêm check-in', exact: true }).waitFor({ timeout: 45000 }).catch(async error => { console.log('UI', await page.locator('body').innerText(), 'ERRORS', errors); throw error; });
+    assert.equal(await page.getByRole('button', { name: 'Thêm check-in', exact: true }).count(), 1);
+    await page.getByRole('button', { name: 'Thêm check-in', exact: true }).click();
+    assert.equal(await page.getByLabel('Tên địa điểm *', { exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Dùng ảnh này · Tiếp tục', exact: true }).isEnabled(), false);
     const chooserPromise = page.waitForEvent('filechooser');
     await page.getByRole('button', { name: 'Chọn ảnh check-in', exact: true }).click();
     await (await chooserPromise).setFiles(path.resolve(__dirname, '../assets/icon.png'));
@@ -97,6 +96,15 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     await page.screenshot({ path: 'tmp/screenshots/check-in-crop.png', fullPage: true });
     await page.getByRole('button', { name: 'Dùng vùng ảnh này', exact: true }).click();
     await page.getByText('Chọn vùng ảnh', { exact: true }).waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: 'Dùng ảnh này · Tiếp tục', exact: true }).click();
+    await page.getByRole('button', { name: 'Dùng vị trí hiện tại', exact: false }).click();
+    await page.getByText('Đã chọn vị trí · kéo ghim để điều chỉnh', { exact: true }).waitFor();
+    assert.equal(await page.getByText('11.94000, 108.44000', { exact: false }).count(), 0);
+    await page.getByLabel('Tên địa điểm *', { exact: true }).fill('Đà Lạt của hai đứa');
+    await page.getByLabel('Lời nhắn', { exact: true }).fill('Một ngày thật vui ♡');
+    await page.getByRole('button', { name: 'Quay lại chọn ảnh', exact: true }).click();
+    await page.getByRole('button', { name: 'Dùng ảnh này · Tiếp tục', exact: true }).click();
+    assert.equal(await page.getByLabel('Lời nhắn', { exact: true }).inputValue(), 'Một ngày thật vui ♡');
     await page.getByRole('button', { name: 'Lưu kỷ niệm', exact: true }).click();
     await page.getByText('Đã lưu một dấu chân của hai đứa ♡', { exact: true }).waitFor();
     assert.equal((await h.state(users[1])).snapshot.checkIns.length, 1);
@@ -134,12 +142,13 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     await frame.getByRole('button', { name: 'Xem kỷ niệm Đà Lạt của hai đứa', exact: true }).click();
     await page.getByText('Một ngày thật vui ♡', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Sửa check-in', exact: true }).click();
+    await page.getByRole('button', { name: 'Dùng ảnh này · Tiếp tục', exact: true }).click();
     await page.getByLabel('Lời nhắn', { exact: true }).fill('Đã sửa lời nhắn');
     await page.getByRole('button', { name: 'Lưu kỷ niệm', exact: true }).click();
     await page.getByText('Đã sửa lời nhắn', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Xoá check-in', exact: true }).click();
     await page.getByRole('button', { name: 'Xoá check-in', exact: true }).last().click();
-    await page.getByText('Thêm kỷ niệm đầu tiên', { exact: false }).waitFor();
+    await page.getByRole('button', { name: 'Thêm check-in', exact: true }).waitFor();
     assert.equal((await h.state(users[1])).snapshot.checkIns.length, 0);
 
     // The shared header must stay outside scrolling content on every subpage.

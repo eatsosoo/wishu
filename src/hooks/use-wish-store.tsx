@@ -5,7 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
 import { partnerName, personalizePartnerText } from '../features/couple/selectors';
-import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
+import { clearPrivatePhotos, cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
 import type { CheckInInput, CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
 import { completeProfile, readProfile } from '../features/auth/profile';
 
@@ -77,11 +77,12 @@ function useStoreValue() {
     const listener = supabase?.auth.onAuthStateChange((_event, next) => {
       if (!active) return;
       if (sessionRef.current?.user.id !== next?.user.id) {
+        clearPrivatePhotos();
         generation.current++; setProfileUserId(null); setCloudCouple(null); apply(createEmptySnapshot());
       }
       sessionRef.current = next;
       setSession(next); setSignedIn(!!next);
-      if (!next) { generation.current++; setProfileUserId(null); setCloudCouple(null); apply(createEmptySnapshot()); }
+      if (!next) { clearPrivatePhotos(); generation.current++; setProfileUserId(null); setCloudCouple(null); apply(createEmptySnapshot()); }
     });
     return () => { active = false; listener?.data.subscription.unsubscribe(); };
   }, [apply, refresh]);
@@ -113,7 +114,7 @@ function useStoreValue() {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
       }
-      generation.current++; setSignedIn(false); setActor('minh'); setCloudCouple(null);
+      clearPrivatePhotos(); generation.current++; setSignedIn(false); setActor('minh'); setCloudCouple(null);
       apply(createEmptySnapshot());
     } catch { setStorageError('Chưa đăng xuất được. Bạn thử lại nhé.'); }
   }
@@ -128,7 +129,7 @@ function useStoreValue() {
       try { await supabase?.auth.signOut({ scope: 'local' }); }
       catch { /* Account deletion already succeeded; clear the in-memory session below. */ }
       finally {
-        generation.current++; sessionRef.current = null; setSession(null); setSignedIn(false); setActor('minh');
+        clearPrivatePhotos(); generation.current++; sessionRef.current = null; setSession(null); setSignedIn(false); setActor('minh');
         setCloudCouple(null); apply(createEmptySnapshot()); setStorageError('');
       }
       await AsyncStorage.removeItem('ourwish:push-token').catch(() => {});

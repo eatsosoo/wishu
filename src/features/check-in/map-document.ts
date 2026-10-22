@@ -7,7 +7,8 @@ export function mapDocument() {
 <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js" onerror="document.getElementById('status').textContent='Chưa tải được bản đồ. Kiểm tra kết nối rồi mở lại nhé.'"></script>
 <script>
 const send=data=>{const message=JSON.stringify(data);if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(message);else window.parent.postMessage(message,'*')};
-let map,config,ready=false,selection,markers={},initial=true,lastFocus='';
+let map,config,ready=false,selection,markers={},requested={},initial=true,lastFocus='';
+const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144"><rect width="144" height="144" rx="24" fill="#f5e3e8"/><text x="72" y="88" text-anchor="middle" font-size="64" fill="#a04b64">♡</text></svg>');
 const status=document.getElementById('status');
 const fail=()=>{status.replaceChildren();const wrap=document.createElement('div');wrap.textContent='Chưa tải được bản đồ. Kiểm tra kết nối rồi thử lại nhé.';const retry=document.createElement('button');retry.textContent='Thử lại';retry.style.cssText='display:block;margin:16px auto;padding:10px 20px;border-radius:18px;border:0;background:#fff';retry.onclick=()=>location.reload();wrap.appendChild(retry);status.appendChild(wrap);status.hidden=false};
 setTimeout(()=>{if(!ready)fail()},25000);
@@ -20,17 +21,17 @@ if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color',c.muted);ma
 }catch{}}
 }
 function pins(){if(!ready||!map.isSourceLoaded('checkins'))return;const next={};const used=new Set();const positions={};
-for(const f of map.querySourceFeatures('checkins')){const p=f.properties;const key=p.cluster?'cluster-'+p.cluster_id:p.id;if(used.has(key))continue;used.add(key);
+for(const f of map.querySourceFeatures('checkins')){if(!map.getBounds().contains(f.geometry.coordinates))continue;const p=f.properties;const key=p.cluster?'cluster-'+p.cluster_id:p.id;if(used.has(key))continue;used.add(key);if(!p.cluster&&!p.uri&&(!requested[p.id]||Date.now()-requested[p.id]>10000)){requested[p.id]=Date.now();send({type:'photo',id:p.id})}
 let marker=markers[key];if(!marker){const el=document.createElement('button');el.type='button';el.className=p.cluster?'cluster':'pin';
 if(p.cluster){el.textContent=p.point_count;el.setAttribute('aria-label',p.point_count+' kỷ niệm, chạm để phóng to');el.onclick=()=>map.getSource('checkins').getClusterExpansionZoom(p.cluster_id).then(zoom=>map.easeTo({center:f.geometry.coordinates,zoom}));}
-else{el.setAttribute('aria-label','Xem kỷ niệm '+p.title);const img=document.createElement('img');img.alt=p.title;img.src=p.uri;img.onerror=()=>{img.alt='Ảnh kỷ niệm';};el.appendChild(img);el.onclick=e=>{e.stopPropagation();send({type:'open',id:p.id})}}
+else{el.setAttribute('aria-label','Xem kỷ niệm '+p.title);const img=document.createElement('img');img.alt=p.title;img.src=p.uri||placeholder;img.onerror=()=>{img.alt='Ảnh kỷ niệm';};el.appendChild(img);el.onclick=e=>{e.stopPropagation();send({type:'open',id:p.id})}}
 marker=new maplibregl.Marker({element:el,anchor:p.cluster?'center':'bottom'}).setLngLat(f.geometry.coordinates).addTo(map)}
-if(!p.cluster){const pos=f.geometry.coordinates.join(',');const count=positions[pos]||0;positions[pos]=count+1;marker.setOffset([count?Math.ceil(count/2)*60*(count%2?1:-1):0,0]);const img=marker.getElement().querySelector('img');if(img&&img.getAttribute('src')!==p.uri)img.src=p.uri;}
+if(!p.cluster){const pos=f.geometry.coordinates.join(',');const count=positions[pos]||0;positions[pos]=count+1;marker.setOffset([count?Math.ceil(count/2)*60*(count%2?1:-1):0,0]);const img=marker.getElement().querySelector('img');if(img&&img.getAttribute('src')!==(p.uri||placeholder))img.src=p.uri||placeholder;}
 marker.setLngLat(f.geometry.coordinates);if(p.cluster){marker.getElement().textContent=p.point_count;marker.getElement().setAttribute('aria-label',p.point_count+' kỷ niệm, chạm để phóng to');marker.getElement().onclick=()=>map.getSource('checkins').getClusterExpansionZoom(p.cluster_id).then(zoom=>map.easeTo({center:f.geometry.coordinates,zoom}));}else marker.getElement().setAttribute('aria-label','Xem kỷ niệm '+p.title);
 next[key]=marker;}
 for(const key in markers)if(!next[key])markers[key].remove();markers=next;
 }
-function data(){map.getSource('checkins').setData({type:'FeatureCollection',features:config.items.filter(i=>i.uri).map(i=>({type:'Feature',geometry:{type:'Point',coordinates:[i.longitude,i.latitude]},properties:{id:i.id,title:i.title,uri:i.uri}}))});}
+function data(){map.getSource('checkins').setData({type:'FeatureCollection',features:config.items.map(i=>({type:'Feature',geometry:{type:'Point',coordinates:[i.longitude,i.latitude]},properties:{id:i.id,title:i.title,uri:i.uri}}))});}
 function update(){if(!ready)return;theme();data();if(selection)selection.remove();if(config.selected){selection=new maplibregl.Marker({color:config.colors.primary,draggable:true}).setLngLat([config.selected.longitude,config.selected.latitude]).addTo(map);selection.on('dragend',()=>{const p=selection.getLngLat();send({type:'pick',latitude:p.lat,longitude:p.lng})});}
 if(config.focus&&config.focus.key!==lastFocus){lastFocus=config.focus.key;map.easeTo({center:[config.focus.longitude,config.focus.latitude],zoom:15})}
 if(initial){initial=false;if(config.viewport)map.jumpTo(config.viewport);else if(config.items.length){const bounds=new maplibregl.LngLatBounds();config.items.forEach(i=>bounds.extend([i.longitude,i.latitude]));map.fitBounds(bounds,{padding:70,maxZoom:13,duration:0})}}

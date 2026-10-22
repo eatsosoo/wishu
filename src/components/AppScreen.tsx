@@ -9,7 +9,7 @@ import { router, usePathname } from 'expo-router';
 import { Heading, IconButton } from './ui';
 import { NotificationBell } from './NotificationBell';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { useNavigationHighlight } from '../hooks/use-navigation-highlight';
+import { useNavigationExpansion, useNavigationHighlight } from '../hooks/use-navigation-highlight';
 import { spacing } from '../constants/theme';
 
 const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon: LucideIcon }[] = [
@@ -20,6 +20,8 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
   const s = useThemeStyles(baseStyles);
   const { colors } = useAppTheme();
   const position = useNavigationHighlight();
+  const { expansion, expand } = useNavigationExpansion();
+  const sizeStyle = useAnimatedStyle(() => ({ transform: [{ scale: 0.8 + expansion.value * 0.2 }] }));
   const [rowWidth, setRowWidth] = useState(0);
   const slotWidth = rowWidth / 5;
   const highlightStyle = useAnimatedStyle(() => ({
@@ -31,22 +33,22 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
   function item(index: number) {
     const { path, label, icon: Icon } = items[index];
     const selected = pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
-    return <View key={path} style={s.navSlot}><Pressable onPress={() => { if (!selected) router.replace(path); }} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected }} style={s.navItem}>
+    return <View key={path} style={s.navSlot}><Pressable hitSlop={6} onPress={() => { expand(); if (!selected) router.replace(path); }} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected }} style={s.navItem}>
       <Icon size={27} strokeWidth={1.9} color={selected ? '#FFFFFF' : colors.burgundy} fill={selected && path === '/' ? '#FFFFFF' : 'transparent'} />
     </Pressable></View>;
   }
-  return <View style={[s.nav, { bottom: Math.max(insets.bottom, 0) + 16 }]}>
+  return <Animated.View testID="bottom-navigation" style={[s.nav, { bottom: Math.max(insets.bottom, 0) + 16 }, sizeStyle]}>
     <View style={s.navGlass}>
       <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
       <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.navRow} onLayout={event => setRowWidth(event.nativeEvent.layout.width)}>
       {rowWidth > 0 && <Animated.View pointerEvents="none" style={[s.navHighlight, { width: slotWidth, backgroundColor: colors.primary }, highlightStyle]} />}
       {item(0)}{item(1)}
-      <View style={s.navSlot}><Pressable accessibilityRole="button" accessibilityLabel="Thêm điều ước" onPress={() => router.push('/wish/new')} style={s.navItem}><Plus color={colors.burgundy} size={30} strokeWidth={2} /></Pressable></View>
+      <View style={s.navSlot}><Pressable hitSlop={6} accessibilityRole="button" accessibilityLabel="Thêm điều ước" onPress={() => { expand(); router.push('/wish/new'); }} style={s.navItem}><Plus color={colors.burgundy} size={30} strokeWidth={2} /></Pressable></View>
       {item(2)}{item(3)}
       </View>
     </View>
-  </View>;
+  </Animated.View>;
 }
 export interface AppHeaderProps { title: string; back?: boolean; onBack?: () => void; backLabel?: string; right?: ReactNode }
 
@@ -58,12 +60,26 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
   const insets = useSafeAreaInsets();
 
   const blurTarget = useRef<View | null>(null);
+  const { expand } = useNavigationExpansion();
+  const scrollY = useRef(0);
+  const downwardTravel = useRef(0);
+  const touchY = useRef<number | null>(null);
   return <View style={{ flex: 1, backgroundColor: colors.background }}>
     <BlurTargetView ref={blurTarget} style={{ flex: 1 }}>
     <LinearGradient colors={home ? [t('#FCE5DC'), t('#F9E6DE'), t('#FBF1EE')] : [t('#FCF5F2'), t('#F9ECEB'), t('#FBF1EE')]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       {header ? <AppHeader {...header} /> : null}
-      <ScrollView testID="screen-scroll" style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, header && { paddingTop: 12 }, contentStyle, navigation && { paddingBottom: 110 }]}>{children}</ScrollView>
+      <ScrollView testID="screen-scroll" style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={32}
+        onTouchStart={navigation ? event => { touchY.current = event.nativeEvent.pageY; } : undefined}
+        onTouchEnd={navigation ? event => { if (touchY.current !== null && event.nativeEvent.pageY - touchY.current > 35) expand(); touchY.current = null; } : undefined}
+        onScroll={navigation ? event => {
+          const nextY = event.nativeEvent.contentOffset.y;
+          downwardTravel.current = nextY < scrollY.current ? downwardTravel.current + scrollY.current - nextY : 0;
+          if (downwardTravel.current > 24) { expand(); downwardTravel.current = 0; }
+          scrollY.current = nextY;
+        } : undefined}
+        contentContainerStyle={[s.content, header && { paddingTop: 12 }, contentStyle, navigation && { paddingBottom: 110 }]}>{children}</ScrollView>
     </SafeAreaView>
     </BlurTargetView>
     {navigation && <BottomNavigation blurTarget={blurTarget} />}

@@ -15,7 +15,8 @@ begin
   if not found then return; end if;
   input := jsonb_build_object('id',key,'title','Check-in verification','latitude',11.94,'longitude',108.44,
     'visitedAt',current_date::text,'companion','','note','Verification only',
-    'photo',jsonb_build_object('uri','https://example.com/verification.jpg'));
+    'photo',jsonb_build_object('uri','storage://' || member.couple_id::text || '/' || member.user_id::text || '/verification.jpg',
+      'storagePath',member.couple_id::text || '/' || member.user_id::text || '/verification.jpg'));
   perform public.apply_wish_command(member.user_id,jsonb_build_object('kind','checkIn','input',input));
   perform public.apply_wish_command(member.user_id,jsonb_build_object('kind','checkIn','input',input || jsonb_build_object('note','Updated')));
   if (select count(*) from public.check_ins where couple_id = member.couple_id and id = key) <> 1 then

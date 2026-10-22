@@ -40,3 +40,18 @@ test('new private wishes and their uploaded covers stay private until activated'
   await h.command(users[1], { kind: 'wishActive', id: wish.id, active: false });
   assert.equal((await h.asUser(users[0], () => h.db.query('select * from storage.objects'))).rows.length, 0);
 });
+
+test('calendar thumbnails of hidden wish covers stay private until shared', async t => {
+  const h = await database(); t.after(() => h.db.close());
+  const path = `${coupleId}/${users[1]}/calendar-private.jpg`;
+  await h.db.query("insert into storage.objects(bucket_id,name) values('wish-photos',$1),('wish-photos',$2)", [path, `${path}.thumb-144.jpg`]);
+  const wish = { ...h.snapshot.wishes[0], id: 'thumbnail-private', active: false, cover: { uri: `storage://${path}`, storagePath: path } };
+  await h.command(users[1], { kind: 'add', input: wish });
+  const id = (await h.state(users[1])).snapshot.wishes.find(item => item.cover.storagePath === path).id;
+  const visible = () => h.asUser(users[0], () => h.db.query('select name from storage.objects'));
+  assert.equal((await visible()).rows.length, 0);
+  await h.command(users[1], { kind: 'wishActive', id, active: true });
+  assert.equal((await visible()).rows.length, 2);
+  await h.command(users[1], { kind: 'wishActive', id, active: false });
+  assert.equal((await visible()).rows.length, 0);
+});

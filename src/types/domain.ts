@@ -6,7 +6,7 @@ export type Gender = 'male' | 'female' | 'other';
 export interface PersonalProfileInput { birthDate: string | null; gender: Gender | null }
 export const artNames = ['home', 'couple', 'jar', 'jarOpen', 'gift', 'openGift', 'camera', 'bear', 'bearPortrait', 'bearReference', 'travel', 'travelMemory', 'photobooth', 'concert', 'photoMemory', 'memoryOne', 'memoryTwo', 'memoryThree', 'categoryGift', 'categoryTravel', 'categoryDining', 'categoryExperience', 'categoryMoments'] as const;
 export type ArtName = typeof artNames[number];
-export type Photo = { art: ArtName } | { uri: string; storagePath?: string };
+export type Photo = { art: ArtName } | { uri: string; storagePath?: string; private?: boolean };
 export interface Wish {
   id: string;
   createdBy: PersonId;
