@@ -38,7 +38,7 @@ export function HolidayDecoration({ events, radius = 12 }: { events: CalendarHol
   const { colors } = useAppTheme();
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: 'absolute', inset: 0, borderRadius: radius, borderWidth: 2.2, borderColor: colors.burgundy }}>
     <View style={{ position: 'absolute', top: 0, right: 0, maxWidth: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-      {events.map(event => <View key={event.id ?? event.name} style={{ minWidth: 12, minHeight: 13, alignItems: 'center', justifyContent: 'center' }}>{event.icon === 'milestone' ? <Body style={{ fontSize: 8, lineHeight: 11, fontFamily: fonts.bold, color: colors.burgundy }}>{event.marker}</Body> : <HolidayIcon icon={event.icon} />}</View>)}
+      {events.map(event => <View key={event.id ?? event.name} style={{ minWidth: 12, minHeight: 13, alignItems: 'center', justifyContent: 'center' }}>{event.icon === 'milestone' ? <Body style={{ fontSize: 8, lineHeight: 11, fontFamily: fonts.bold, color: colors.burgundy, backgroundColor: colors.rose, borderRadius: 4, paddingHorizontal: 2 }}>{event.marker}</Body> : <HolidayIcon icon={event.icon} />}</View>)}
     </View>
   </View>;
 }

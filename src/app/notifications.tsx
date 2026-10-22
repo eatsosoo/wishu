@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { Gift, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { AppHeader, AppScreen } from '../components/AppScreen';
+import { AppScreen } from '../components/AppScreen';
 import { Body, EmptyState, Heading, SecondaryButton } from '../components/ui';
 import { useWishStore } from '../hooks/use-wish-store';
 import { useAppTheme } from '../hooks/use-app-theme';
@@ -37,8 +37,7 @@ export default function NotificationsScreen() {
     catch (error) { setMessage(error instanceof Error ? error.message : 'Chưa bật được thông báo.'); }
     finally { setBusy(false); }
   }
-  return <AppScreen>
-    <AppHeader back title="Thông báo" />
+  return <AppScreen header={{ title: 'Thông báo' }}>
     <Heading>Một chút bất ngờ ♡</Heading>
     <Body style={{ color: colors.muted, marginTop: 8, marginBottom: 24 }}>Những điều {store.partnerName} đã dành riêng cho bạn.</Body>
     {store.cloudEnabled ? <WebPushControls /> : null}

@@ -6,7 +6,7 @@ import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
 import { partnerName, personalizePartnerText } from '../features/couple/selectors';
 import { cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
-import type { CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
+import type { CheckInInput, CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
 import { completeProfile, readProfile } from '../features/auth/profile';
 
 function useStoreValue() {
@@ -174,6 +174,9 @@ function useStoreValue() {
   }
   return {
     ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount,
+    checkIns: snapshot.checkIns ?? [],
+    saveCheckIn: (input: CheckInInput) => dispatch({ kind: 'checkIn', input }),
+    deleteCheckIn: (id: string) => dispatch({ kind: 'deleteCheckIn', id }),
     partnerName: partner,
     personalProfile, profileComplete: completeProfile(personalProfile), saveInitialProfile,
     accountReady: !session || profileUserId === session.user.id,

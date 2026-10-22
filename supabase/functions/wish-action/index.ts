@@ -15,6 +15,13 @@ function validate(command: WishCommand, coupleId: string) {
   const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max;
   if (!command || typeof command !== 'object') throw new Error('Yêu cầu không hợp lệ.');
   switch (command.kind) {
+    case 'checkIn': {
+      const input = command.input;
+      if (!input || !text(input.id, 100) || !input.id || !text(input.title, 100) || !input.title.trim() || !date(input.visitedAt) || !text(input.note, 2000) || !text(input.companion, 100) || !Number.isFinite(input.latitude) || Math.abs(input.latitude) > 90 || !Number.isFinite(input.longitude) || Math.abs(input.longitude) > 180 || !photo(input.photo) || 'art' in input.photo) throw new Error('Thông tin check-in chưa hợp lệ.');
+      break;
+    }
+    case 'deleteCheckIn':
+      if (!text(command.id, 100) || !command.id) throw new Error('Check-in không hợp lệ.'); break;
     case 'personalProfile':
       if (!command.input || (command.input.birthDate !== null && !date(command.input.birthDate)) || (command.input.gender !== null && !['male', 'female', 'other'].includes(command.input.gender))) throw new Error('Thông tin cá nhân chưa hợp lệ.');
       break;

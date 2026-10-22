@@ -2,7 +2,7 @@ import { PopupMessage } from '../components/PopupMessage';
 import { themes, useAppTheme, useThemeStyles, type ThemeId } from '../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { CalendarDays, Check, ChevronRight, Copy, Gift, Settings, ShoppingBag, UsersRound, type LucideIcon } from 'lucide-react-native';
+import { CalendarDays, Check, ChevronRight, Copy, Gift, Settings, ShoppingBag, Smile, UsersRound, type LucideIcon } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { AppScreen, ScreenTitle } from '../components/AppScreen';
@@ -55,6 +55,7 @@ export default function CoupleProfile() {
     <View style={{ marginTop: 14, marginBottom: 17 }}><CoupleAvatar /></View>
     {store.cloudCouple?.inviteCode ? <View style={{ padding: 18, borderRadius: 22, backgroundColor: colors.surface, gap: 8, marginTop: 14, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Mời {store.partnerName} vào không gian của mình ♡</Body><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><Body selectable style={{ flex: 1, fontSize: 16, letterSpacing: 2, fontFamily: fonts.bold }}>{store.cloudCouple.inviteCode.toUpperCase()}</Body><Pressable accessibilityRole="button" accessibilityLabel={copied ? 'Đã sao chép mã mời' : 'Sao chép mã mời'} onPress={() => void copyInviteCode()} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: colors.rose }}>{copied ? <Check size={18} color={colors.primary} /> : <Copy size={18} color={colors.primary} />}</Pressable></View><Body style={{ color: colors.muted, fontSize: 12 }}>{store.partnerName === 'người ấy' ? 'Người ấy' : store.partnerName} đăng nhập trên điện thoại của mình rồi nhập mã này để ghép đôi.</Body></View> : null}
     <View style={s.settings}>
+      <SettingRow icon={Smile} label="Tùy chỉnh avatar" onPress={() => router.push('/avatar')} />
       <SettingRow icon={UsersRound} label="Thông tin cặp đôi" onPress={() => open('profile')} />
       <SettingRow icon={CalendarDays} label="Ngày kỷ niệm" right={<Body style={{ fontSize: 12, color: colors.muted }}>{formatDate(store.couple.anniversaryDate)}</Body>} onPress={() => open('anniversary')} />
       <SettingRow icon={ShoppingBag} label="Giao diện" right={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Body style={{ color: colors.muted, fontSize: 12 }}>{themes[themeId].name}</Body><View style={[s.swatch, { backgroundColor: colors.primary }]} /></View>} onPress={() => open('theme')} />

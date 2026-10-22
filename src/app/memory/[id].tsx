@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { AppHeader, AppScreen } from '../../components/AppScreen';
+import { AppScreen } from '../../components/AppScreen';
 import { Body, EmptyState } from '../../components/ui';
 import { MemoryCarousel } from '../../components/MemoryCarousel';
 import { useAppTheme } from '../../hooks/use-app-theme';
@@ -13,6 +13,6 @@ export default function MemoryDetail() {
   const { colors } = useAppTheme();
   const memory = store.memories.find(item => item.id === id);
   const memories = useMemo(() => memory ? [memory] : [], [memory]);
-  if (!memory) return <AppScreen><EmptyState title="Kỷ niệm chưa có ở đây" description="Mình về xem những khoảnh khắc khác nhé." action="Về kỷ niệm" onAction={() => router.replace('/memories')} /></AppScreen>;
-  return <AppScreen><AppHeader back title="Kỷ niệm của hai đứa" /><Body style={{ textAlign: 'center', color: colors.muted, marginBottom: 19 }}>{formatDate(memory.completedAt)} ♡</Body><MemoryCarousel memories={memories} /></AppScreen>;
+  if (!memory) return <AppScreen header={{ title: 'Kỷ niệm của hai đứa' }}><EmptyState title="Kỷ niệm chưa có ở đây" description="Mình về xem những khoảnh khắc khác nhé." action="Về kỷ niệm" onAction={() => router.replace('/memories')} /></AppScreen>;
+  return <AppScreen header={{ title: 'Kỷ niệm của hai đứa' }}><Body style={{ textAlign: 'center', color: colors.muted, marginBottom: 19 }}>{formatDate(memory.completedAt)} ♡</Body><MemoryCarousel memories={memories} /></AppScreen>;
 }

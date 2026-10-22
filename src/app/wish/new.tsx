@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Camera, ChevronDown, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { AppHeader, AppScreen } from '../../components/AppScreen';
+import { AppScreen } from '../../components/AppScreen';
 import { PhotoView, prefetchCategoryArtwork } from '../../components/Artwork';
 import { WishAddedAnimation } from '../../components/WishAddedAnimation';
 import { WishVisibility } from '../../components/WishVisibility';
@@ -69,7 +69,7 @@ export default function AddWish() {
     setBusy(false);
     if (success) setSaved(true);
   }
-  if (saved || isPreview) return <AppScreen contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+  if (saved || isPreview) return <AppScreen header={{ title: 'Thêm điều ước mới', onBack: () => router.replace({ pathname: '/wishes', params: { owner: store.actor } }) }} contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
     <View style={s.success}>
       <Body style={{ color: colors.primary }}>{isPreview ? 'XEM THỬ THẢ SAO VÀO HŨ' : 'ĐIỀU ƯỚC ĐÃ ĐƯỢC GHI LẠI'}</Body>
       <WishAddedAnimation />
@@ -79,8 +79,7 @@ export default function AddWish() {
       </View>
     </View>
   </AppScreen>;
-  return <AppScreen>
-    <AppHeader back title="Thêm điều ước mới" />
+  return <AppScreen header={{ title: 'Thêm điều ước mới' }}>
     <View style={s.image}><PhotoView photo={cover ?? defaultWishCover(category)} height={180} fit={cover ? 'cover' : 'contain'} label={`Ảnh điều ước ${category}`} /><View style={s.addPhoto}><IconButton icon={Plus} label="Chọn ảnh điều ước" onPress={chooseImage} /></View></View>
     <Body accessibilityLiveRegion="polite" style={{ fontSize: 12, color: colors.muted, marginTop: 8 }}>{processingPhoto ? 'Đang tối ưu ảnh…' : 'Ảnh tối đa 20 MB · tự tối ưu còn tối đa 2 MB'}</Body>
     <View style={{ gap: 13, marginTop: 18 }}>

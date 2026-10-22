@@ -2,8 +2,7 @@ import { PopupMessage } from '../../../components/PopupMessage';
 import { useAppTheme, useThemeStyles } from '../../../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, ExternalLink, Heart, MoreHorizontal } from 'lucide-react-native';
+import { ExternalLink, Heart, MoreHorizontal } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { AppScreen } from '../../../components/AppScreen';
@@ -16,7 +15,6 @@ import { useWishStore } from '../../../hooks/use-wish-store';
 
 export default function WishDetail() {
   const { colors, t } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const s = useThemeStyles(baseStyles);
 
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,7 +25,7 @@ export default function WishDetail() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  if (!wish) return <AppScreen><EmptyState title="Điều ước chưa có ở đây" description="Mình trở lại hũ và chọn một điều ước khác nhé." action="Về hũ điều ước" onAction={() => router.replace('/wishes')} /></AppScreen>;
+  if (!wish) return <AppScreen header={{ title: 'Chi tiết điều ước', onBack: () => router.dismissTo('/wishes') }}><EmptyState title="Điều ước chưa có ở đây" description="Mình trở lại hũ và chọn một điều ước khác nhé." action="Về hũ điều ước" onAction={() => router.replace('/wishes')} /></AppScreen>;
   const ownWish = wish.createdBy === store.actor;
   const completed = store.memories.some(memory => memory.wishId === wish.id);
   async function changeVisibility(active: boolean) {
@@ -56,8 +54,7 @@ export default function WishDetail() {
     if (success) { setConfirm(false); router.push('/preparing'); }
     else setError('Chưa bắt đầu chuẩn bị được. Bạn thử lại nhé.');
   }
-  return <View style={{ flex: 1 }}>
-    <AppScreen contentStyle={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 118 }} bottomAction={!ownWish && !completed ? <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton> : undefined}>
+  return <AppScreen header={{ title: 'Chi tiết điều ước', backLabel: 'Quay lại hũ', onBack: () => router.canGoBack() ? router.back() : router.replace('/wishes'), right: <IconButton icon={MoreHorizontal} label="Thêm lựa chọn" onPress={() => setMenu(true)} /> }} contentStyle={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 118 }} bottomAction={!ownWish && !completed ? <PrimaryButton onPress={() => setConfirm(true)}>Biến điều ước thành hiện thực 🎁</PrimaryButton> : undefined}>
     <View>{'art' in wish.cover && wish.cover.art === 'bear' ? <BearHero height={350} /> : <PhotoView photo={wish.cover} height={350} label={wish.title} />}</View>
     <View style={s.detail}>
       <View className="flex-row items-center justify-between" style={{ gap: 7 }}><Heading style={{ flex: 1, color: t('#261D24'), fontFamily: fonts.headingBold }}>{wish.title}</Heading><Pressable onPress={() => store.toggleWishFavorite(wish.id)} accessibilityRole="button" accessibilityLabel={wish.favorite ? 'Bỏ yêu thích' : 'Yêu thích'} style={s.favorite}><Heart size={23} strokeWidth={1.6} color={t("#EF718D")} fill={wish.favorite ? t('#EF718D') : 'transparent'} /></Pressable></View>
@@ -76,12 +73,9 @@ export default function WishDetail() {
     <BottomSheet visible={confirm} onClose={() => setConfirm(false)} title={`Một bất ngờ dành cho ${store.partnerName}`}><Body style={{ color: colors.muted, marginBottom: 22 }}>Điều ước này sẽ nằm trong danh sách riêng của bạn. {store.partnerName === 'người ấy' ? 'Người ấy' : store.partnerName} chỉ biết khi bất ngờ trở thành hiện thực ♡</Body><PrimaryButton disabled={busy} onPress={() => void prepare()}>{busy ? 'Đang lưu…' : 'Bắt đầu chuẩn bị 🎁'}</PrimaryButton></BottomSheet>
     <BottomSheet visible={menu} onClose={() => setMenu(false)} title="Điều ước nhỏ"><View style={{ gap: 12 }}><SecondaryButton onPress={() => { setMenu(false); router.push('/preparing'); }}>Những điều mình đang chuẩn bị</SecondaryButton><SecondaryButton onPress={() => { setMenu(false); router.replace('/wishes'); }}>Về hũ điều ước</SecondaryButton>{ownWish && <Pressable accessibilityRole="button" onPress={() => { setMenu(false); setError(''); setConfirmDelete(true); }} style={{ minHeight: 46, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: colors.primary }}>Xoá điều ước</Body></Pressable>}</View></BottomSheet>
     <BottomSheet visible={confirmDelete} onClose={() => { if (!busy) setConfirmDelete(false); }} title="Xoá điều ước?"><Body style={{ color: colors.muted, marginBottom: 20 }}>Điều ước sẽ được xoá khỏi hũ. Các kỷ niệm đã lưu vẫn được giữ lại. Bạn không thể hoàn tác thao tác này.</Body>{!!error && <PopupMessage message={error} />}<View style={{ gap: 12 }}><PrimaryButton disabled={busy} onPress={() => void removeWish()}>{busy ? 'Đang xoá…' : 'Xoá điều ước'}</PrimaryButton><SecondaryButton onPress={() => { if (!busy) setConfirmDelete(false); }}>Giữ lại</SecondaryButton></View></BottomSheet>
-    </AppScreen>
-    <View pointerEvents="box-none" style={[s.topActions, { top: insets.top + 10 }]}><IconButton icon={ChevronLeft} label="Quay lại hũ" onPress={() => router.canGoBack() ? router.back() : router.replace('/wishes')} /><IconButton icon={MoreHorizontal} label="Thêm lựa chọn" onPress={() => setMenu(true)} /></View>
-  </View>;
+    </AppScreen>;
 }
 const baseStyles = StyleSheet.create({
-  topActions: { position: 'absolute', left: spacing.lg, right: spacing.lg, flexDirection: 'row', justifyContent: 'space-between' },
   detail: { backgroundColor: '#FFF8F5', borderTopLeftRadius: 34, borderTopRightRadius: 34, marginTop: -13, padding: spacing.lg, paddingBottom: 18 },
   favorite: { width: 40, height: 40, borderRadius: 999, backgroundColor: '#FCE5E5', alignItems: 'center', justifyContent: 'center' },
   label: { marginTop: 23, marginBottom: 9, color: '#8B5969', fontSize: 14 },

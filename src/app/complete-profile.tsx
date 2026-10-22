@@ -15,7 +15,7 @@ export default function CompleteProfile() {
   const { colors } = useAppTheme();
   const show = usePopup();
   const [birthDate, setBirthDate] = useState(() => store.personalProfile?.birthDate ? formatDate(store.personalProfile.birthDate) : '');
-  const [gender, setGender] = useState<Gender | null>(() => store.personalProfile?.gender ?? null);
+  const [gender, setGender] = useState<Gender | null>(() => store.personalProfile?.gender === 'other' ? null : store.personalProfile?.gender ?? null);
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   async function save() {
@@ -37,7 +37,7 @@ export default function CompleteProfile() {
     <View pointerEvents={busy ? 'none' : 'auto'} style={{ gap: 16, opacity: busy ? 0.6 : 1 }}>
       <Body>Giới tính</Body>
       <View accessibilityRole="radiogroup" accessibilityLabel="Giới tính" style={{ flexDirection: 'row', gap: 8 }}>
-        {([['male', 'Nam'], ['female', 'Nữ'], ['other', 'Khác']] as const).map(([value, label]) => <Pressable key={value} disabled={busy} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: gender === value, disabled: busy }} onPress={() => setGender(value)} style={{ flex: 1, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: gender === value ? colors.primary : colors.line, backgroundColor: gender === value ? colors.rose : colors.surface, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: gender === value ? colors.primary : colors.ink }}>{label}</Body></Pressable>)}
+        {([['male', 'Nam'], ['female', 'Nữ']] as const).map(([value, label]) => <Pressable key={value} disabled={busy} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: gender === value, disabled: busy }} onPress={() => setGender(value)} style={{ flex: 1, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: gender === value ? colors.primary : colors.line, backgroundColor: gender === value ? colors.rose : colors.surface, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: gender === value ? colors.primary : colors.ink }}>{label}</Body></Pressable>)}
       </View>
       <DateField label="Ngày sinh" value={birthDate} onChange={setBirthDate} />
     </View>

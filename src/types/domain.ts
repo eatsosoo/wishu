@@ -40,6 +40,18 @@ export interface Memory {
   photos: Photo[];
   favorite: boolean;
 }
+export interface CheckIn {
+  id: string;
+  createdBy: PersonId;
+  title: string;
+  latitude: number;
+  longitude: number;
+  visitedAt: string;
+  companion: string;
+  note: string;
+  photo: Photo;
+}
+export type CheckInInput = Omit<CheckIn, 'createdBy'>;
 export interface Couple {
   name: string;
   anniversaryDate: string;
@@ -57,6 +69,7 @@ export interface GiftNotification {
 }
 // API view assembled from relational tables; also used by local test fixtures.
 export interface WishSnapshot {
+  checkIns?: CheckIn[];
   wishes: Wish[];
   preparations: Preparation[];
   memories: Memory[];
@@ -66,6 +79,8 @@ export interface WishSnapshot {
 export type WishInput = Omit<Wish, 'id' | 'favorite'>;
 export interface CompletionInput { wishId: string; completedAt: string; note: string; photos: Photo[] }
 export type WishCommand =
+  | { kind: 'checkIn'; input: CheckInInput }
+  | { kind: 'deleteCheckIn'; id: string }
   | { kind: 'add'; input: WishInput }
   | { kind: 'wishActive'; id: string; active: boolean }
   | { kind: 'personalProfile'; input: PersonalProfileInput }
