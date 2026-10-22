@@ -46,7 +46,7 @@ function SessionNavigator() {
     <Stack.Protected guard={onboarded && signedIn && !profileComplete}><Stack.Screen name="complete-profile" /></Stack.Protected>
     <Stack.Protected guard={onboarded && signedIn && profileComplete && !paired}><Stack.Screen name="pair" /></Stack.Protected>
     <Stack.Protected guard={onboarded && signedIn && profileComplete && paired}>
-      <Stack.Screen name="notifications" /><Stack.Screen name="gift/[id]" />
+      <Stack.Screen name="notifications" /><Stack.Screen name="gift/[id]" /><Stack.Screen name="avatar" />
       <Stack.Screen name="index" /><Stack.Screen name="wishes" /><Stack.Screen name="wish/new" /><Stack.Screen name="wish/[id]/index" /><Stack.Screen name="wish/[id]/complete" /><Stack.Screen name="preparing" /><Stack.Screen name="memories" /><Stack.Screen name="memory/[id]" /><Stack.Screen name="memory-day/[date]" /><Stack.Screen name="us" /><Stack.Screen name="+not-found" />
     </Stack.Protected>
   </Stack></>;

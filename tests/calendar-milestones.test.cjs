@@ -17,20 +17,49 @@ test('day milestones cross leap years and appear exactly once at 100, 300 and 10
   }
 });
 
-test('annual markers show the number of years and do not hide overlapping holidays or birthdays', () => {
+test('annual markers show total months and do not hide overlapping holidays or birthdays', () => {
   const events = getCalendarEvents(2, 14, [{ name: 'Linh', birthDate: '2000-02-14' }], { year: 2025, anniversaryDate: '2024-02-14' });
   assert.deepEqual(events.map(event => event.icon), ['heart', 'birthday', 'milestone']);
-  assert.equal(events[2].marker, '1');
+  assert.equal(events[2].marker, '12');
   assert.equal(events[2].name, 'Kỷ niệm 1 năm bên nhau');
-  assert.equal(milestones(2034, 2, 14)[0].marker, '10');
+  assert.equal(milestones(2034, 2, 14)[0].marker, '120');
   assert.deepEqual(milestones(2024, 2, 14), []);
   assert.deepEqual(milestones(2023, 2, 14), []);
 });
 
 test('February 29 anniversaries use February 28 only in non-leap years', () => {
-  assert.equal(milestones(2025, 2, 28, '2024-02-29')[0].marker, '1');
+  assert.equal(milestones(2025, 2, 28, '2024-02-29')[0].marker, '12');
   assert.deepEqual(milestones(2028, 2, 28, '2024-02-29'), []);
-  assert.equal(milestones(2028, 2, 29, '2024-02-29')[0].marker, '4');
+  assert.equal(milestones(2028, 2, 29, '2024-02-29')[0].marker, '48');
+});
+
+test('monthly anniversaries count across years and only appear on the matching day after the start', () => {
+  for (const [year, month, count] of [[2024, 3, 1], [2024, 12, 10], [2025, 1, 11], [2025, 3, 13]]) {
+    const events = milestones(year, month, 14);
+    assert.equal(events.length, 1);
+    assert.equal(events[0].marker, String(count));
+    assert.equal(events[0].name, `Kỷ niệm ${count} tháng bên nhau`);
+    assert.deepEqual(milestones(year, month, 13), []);
+    assert.deepEqual(milestones(year, month, 15), []);
+  }
+  assert.deepEqual(milestones(2024, 1, 14), []);
+  assert.deepEqual(milestones(2024, 2, 14), []);
+});
+
+test('month-end anniversaries clamp to shorter months and return to the original day', () => {
+  for (const [year, month, day, count] of [[2024, 2, 29, 1], [2024, 3, 31, 2], [2024, 4, 30, 3], [2025, 2, 28, 13]]) {
+    const events = milestones(year, month, day, '2024-01-31');
+    assert.equal(events.length, 1);
+    assert.equal(events[0].marker, String(count));
+    assert.deepEqual(milestones(year, month, day - 1, '2024-01-31'), []);
+  }
+  assert.deepEqual(milestones(2024, 3, 29, '2024-01-31'), []);
+});
+
+test('monthly anniversaries keep overlapping holidays and birthdays visible', () => {
+  const events = getCalendarEvents(3, 14, [{ name: 'Linh', birthDate: '2000-03-14' }], { year: 2024, anniversaryDate: '2024-02-14' });
+  assert.deepEqual(events.map(event => event.icon), ['whiteHeart', 'birthday', 'milestone']);
+  assert.equal(events[2].marker, '1');
 });
 
 test('missing and impossible anniversary dates add no milestone', () => {

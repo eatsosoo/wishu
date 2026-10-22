@@ -1,0 +1,424 @@
+{
+  "canvas": [
+    512,
+    700
+  ],
+  "parts": {
+    "face-peach": {
+      "source": "clay-atlas.png",
+      "crop": [
+        0.0,
+        0,
+        313.5,
+        280
+      ],
+      "box": [
+        100,
+        80,
+        312,
+        279
+      ],
+      "bytes": 32932
+    },
+    "body-rose-peach": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        0.0,
+        0,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 44498
+    },
+    "body-sage-peach": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        0.0,
+        418,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 50994
+    },
+    "body-lavender-peach": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        0.0,
+        836,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 50410
+    },
+    "face-warm": {
+      "source": "clay-atlas.png",
+      "crop": [
+        313.5,
+        0,
+        313.5,
+        280
+      ],
+      "box": [
+        100,
+        80,
+        312,
+        279
+      ],
+      "bytes": 31230
+    },
+    "body-rose-warm": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        313.5,
+        0,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 45730
+    },
+    "body-sage-warm": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        313.5,
+        418,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 52898
+    },
+    "body-lavender-warm": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        313.5,
+        836,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 52840
+    },
+    "face-tan": {
+      "source": "clay-atlas.png",
+      "crop": [
+        627.0,
+        0,
+        313.5,
+        280
+      ],
+      "box": [
+        100,
+        80,
+        312,
+        279
+      ],
+      "bytes": 23944
+    },
+    "body-rose-tan": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        627.0,
+        0,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 41720
+    },
+    "body-sage-tan": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        627.0,
+        418,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 48048
+    },
+    "body-lavender-tan": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        627.0,
+        836,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 51332
+    },
+    "face-deep": {
+      "source": "clay-atlas.png",
+      "crop": [
+        940.5,
+        0,
+        313.5,
+        280
+      ],
+      "box": [
+        100,
+        80,
+        312,
+        279
+      ],
+      "bytes": 17708
+    },
+    "body-rose-deep": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        940.5,
+        0,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 36294
+    },
+    "body-sage-deep": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        940.5,
+        418,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 41864
+    },
+    "body-lavender-deep": {
+      "source": "body-atlas-v2.png",
+      "crop": [
+        940.5,
+        836,
+        313.5,
+        418
+      ],
+      "box": [
+        115,
+        290,
+        282,
+        376
+      ],
+      "bytes": 46148
+    },
+    "hair-short": {
+      "source": "hair-atlas-v2.png",
+      "crop": [
+        0,
+        0,
+        730,
+        535
+      ],
+      "box": [
+        80,
+        40,
+        352,
+        258
+      ],
+      "bytes": 24276
+    },
+    "hair-bob": {
+      "source": "hair-atlas-v2.png",
+      "crop": [
+        724,
+        0,
+        770,
+        724
+      ],
+      "box": [
+        66,
+        65,
+        380,
+        357
+      ],
+      "bytes": 33408
+    },
+    "hair-bun": {
+      "source": "hair-atlas-v2.png",
+      "crop": [
+        1530,
+        0,
+        642,
+        724
+      ],
+      "box": [
+        98,
+        0,
+        316,
+        356
+      ],
+      "bytes": 28548
+    },
+    "hair-curtains": {
+      "source": "hair-atlas-v3.png",
+      "crop": [
+        0,
+        0,
+        640,
+        580
+      ],
+      "box": [
+        43,
+        0,
+        390,
+        354
+      ],
+      "bytes": 35540
+    },
+    "hair-curls": {
+      "source": "hair-atlas-v3.png",
+      "crop": [
+        640,
+        0,
+        614,
+        580
+      ],
+      "box": [
+        72,
+        10,
+        368,
+        348
+      ],
+      "bytes": 32790
+    },
+    "hair-chinBob": {
+      "source": "hair-atlas-v3.png",
+      "crop": [
+        0,
+        627,
+        627,
+        627
+      ],
+      "box": [
+        65,
+        60,
+        382,
+        382
+      ],
+      "bytes": 36754
+    },
+    "hair-spaceBuns": {
+      "source": "hair-atlas-v3.png",
+      "crop": [
+        627,
+        627,
+        627,
+        627
+      ],
+      "box": [
+        45,
+        40,
+        422,
+        422
+      ],
+      "bytes": 43502
+    },
+    "eyes-round": {
+      "source": "clay-atlas.png",
+      "crop": [
+        0.0,
+        730,
+        313.5,
+        170
+      ],
+      "box": [
+        145,
+        181,
+        222,
+        120
+      ],
+      "bytes": 10050
+    },
+    "eyes-smile": {
+      "source": "clay-atlas.png",
+      "crop": [
+        313.5,
+        730,
+        313.5,
+        170
+      ],
+      "box": [
+        145,
+        181,
+        222,
+        120
+      ],
+      "bytes": 6818
+    },
+    "glasses-round": {
+      "source": "clay-atlas.png",
+      "crop": [
+        960,
+        495,
+        280,
+        125
+      ],
+      "box": [
+        141,
+        214,
+        230,
+        103
+      ],
+      "bytes": 10042
+    }
+  }
+}

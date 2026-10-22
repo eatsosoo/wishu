@@ -40,12 +40,14 @@ export function getCalendarEvents(month: number, day: number, members: readonly 
       quote: elapsed === 100 ? 'Trăm ngày thương, vạn điều mong cùng nhau.' : elapsed === 300 ? 'Thương nhau, ngày thường cũng thành ngày nhớ.' : 'Nghìn ngày qua, vẫn muốn nắm tay người.',
     });
     const anchor = new Date(start);
-    const years = context.year - anchor.getUTCFullYear();
-    // Celebrate a February 29 anniversary on February 28 in non-leap years.
-    const anniversaryDay = Math.min(anchor.getUTCDate(), new Date(Date.UTC(context.year, anchor.getUTCMonth() + 1, 0)).getUTCDate());
-    if (years > 0 && month === anchor.getUTCMonth() + 1 && day === anniversaryDay) events.push({
-      name: `Kỷ niệm ${years} năm bên nhau`, icon: 'milestone', marker: String(years),
-      quote: 'Thuận vợ thuận chồng, tát biển Đông cũng cạn.',
+    const months = (context.year - anchor.getUTCFullYear()) * 12 + month - anchor.getUTCMonth() - 1;
+    // Shorter months celebrate on their last day; always use the original day next month.
+    const anniversaryDay = Math.min(anchor.getUTCDate(), new Date(Date.UTC(context.year, month, 0)).getUTCDate());
+    if (months > 0 && day === anniversaryDay) events.push({
+      id: 'monthly-anniversary',
+      name: months % 12 === 0 ? `Kỷ niệm ${months / 12} năm bên nhau` : `Kỷ niệm ${months} tháng bên nhau`,
+      icon: 'milestone', marker: String(months),
+      quote: months % 12 === 0 ? 'Thuận vợ thuận chồng, tát biển Đông cũng cạn.' : 'Thêm một tháng bên nhau, thêm những điều thương nhớ.',
     });
   }
   return events;
