@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { AppHeader, AppScreen } from '../../components/AppScreen';
+import { AppScreen } from '../../components/AppScreen';
 import { GiftReveal } from '../../components/GiftReveal';
 import { Body, EmptyState, Heading, LoadingState, PrimaryButton } from '../../components/ui';
 import { useWishStore } from '../../hooks/use-wish-store';
@@ -27,11 +27,10 @@ export default function GiftScreen() {
   useEffect(() => {
     if (giftId && !readAt) markRead(giftId);
   }, [giftId, readAt]);
-  if (!gift && !isPreview) return loadedId !== id ? <LoadingState /> : <AppScreen><AppHeader back /><EmptyState title="Chưa tìm thấy hộp quà" description="Hộp quà chỉ dành cho tài khoản người nhận. Bạn có thể làm mới hộp thư để thử lại." action="Về thông báo" onAction={() => router.replace('/notifications')} /></AppScreen>;
+  if (!gift && !isPreview) return <AppScreen header={{ title: 'Hộp quà' }}>{loadedId !== id ? <LoadingState /> : <EmptyState title="Chưa tìm thấy hộp quà" description="Hộp quà chỉ dành cho tài khoản người nhận. Bạn có thể làm mới hộp thư để thử lại." action="Về thông báo" onAction={() => router.replace('/notifications')} />}</AppScreen>;
   const sender = (isPreview ? store.partnerName : store.couple.members.find(member => member.id === gift?.sender)?.name.trim()) || store.partnerName;
   const memory = store.memories.find(item => item.id === gift?.memoryId);
-  return <AppScreen>
-    <AppHeader back title={`Quà từ ${sender} ♡`} />
+  return <AppScreen header={{ title: `Quà từ ${sender} ♡` }}>
     <GiftReveal key={isPreview ? 'test-preview' : gift?.id} />
     <View style={{ padding: 16, borderRadius: 24, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, marginTop: 4 }}>
       <Heading style={{ textAlign: 'center', fontSize: 21 }}>{isPreview ? 'Một buổi hẹn chỉ dành cho hai đứa' : gift?.title}</Heading>

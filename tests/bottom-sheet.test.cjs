@@ -46,6 +46,7 @@ function harness() {
       if (name === '../hooks/use-app-theme') return { useThemeStyles: styles => styles };
       if (name === '../hooks/use-reduced-motion') return { useReducedMotion: () => reduced };
       if (name === '../constants/theme') return { colors: {}, fonts: {} };
+      if (name === './PopupMessage') return { PopupLayer: 'PopupLayer' };
       if (name === 'lucide-react-native' || name === 'expo-linear-gradient') return {};
       throw new Error(`Unexpected import: ${name}`);
     },
@@ -73,7 +74,7 @@ test('overlay only fades; only the sheet translates and the native modal has no 
   const h = harness();
   const tree = h.render(true);
   assert.equal(tree.props.animationType, 'none');
-  const [overlay, sheet] = tree.props.children.props.children;
+  const [overlay, sheet] = tree.props.children.props.children.props.children;
   assert.ok(overlay.props.style[1].opacity);
   assert.equal(overlay.props.style[1].transform, undefined);
   assert.ok(sheet.props.style[1].transform[0].translateY);

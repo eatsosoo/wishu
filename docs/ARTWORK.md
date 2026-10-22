@@ -1,6 +1,6 @@
 # Standalone artwork
 
-Runtime assets live in `assets/artwork/`. The app renders individual images directly. It never renders `reference-design.png` or `reference-design-enhanced.png` or offsets a larger image to find a subregion.
+Runtime assets live in `assets/artwork/`. The app renders individual images directly. `reference-design.png` is retained as design reference; the unused enhanced copy has been removed. The app does not render the reference screenshot or offset it to find a subregion.
 
 Tool: built-in ImageGen. Source reference: the user's eight-screen design, `assets/reference-design.png`. Each call produced one standalone image, not a sprite sheet. Clay images use transparency; sample photographs use opaque backgrounds. The original screenshot is retained as design reference.
 

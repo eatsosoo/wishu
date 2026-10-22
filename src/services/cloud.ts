@@ -32,14 +32,14 @@ export async function loadCloudCouple(): Promise<CloudCouple | null> {
 }
 async function hydratePhotos(couple: CloudCouple): Promise<CloudCouple> {
   const paths = new Set<string>();
-  const allPhotos = [...couple.snapshot.wishes.map(wish => wish.cover), ...couple.snapshot.memories.flatMap(memory => memory.photos)];
+  const allPhotos = [...couple.snapshot.wishes.map(wish => wish.cover), ...couple.snapshot.memories.flatMap(memory => memory.photos), ...(couple.snapshot.checkIns ?? []).map(item => item.photo)];
   allPhotos.forEach(photo => { if ('uri' in photo && photo.storagePath) paths.add(photo.storagePath); });
   if (!paths.size || !supabase) return couple;
   const { data, error } = await supabase.storage.from('wish-photos').createSignedUrls([...paths], 3600);
   if (error) throw error;
   const urls = new Map(data.map(item => [item.path, item.signedUrl]));
   const hydrate = (photo: Photo): Photo => 'uri' in photo && photo.storagePath ? { ...photo, uri: urls.get(photo.storagePath) || photo.uri } : photo;
-  return { ...couple, snapshot: { ...couple.snapshot, wishes: couple.snapshot.wishes.map(wish => ({ ...wish, cover: hydrate(wish.cover) })), memories: couple.snapshot.memories.map(memory => ({ ...memory, photos: memory.photos.map(hydrate) })) } };
+  return { ...couple, snapshot: { ...couple.snapshot, checkIns: (couple.snapshot.checkIns ?? []).map(item => ({ ...item, photo: hydrate(item.photo) })), wishes: couple.snapshot.wishes.map(wish => ({ ...wish, cover: hydrate(wish.cover) })), memories: couple.snapshot.memories.map(memory => ({ ...memory, photos: memory.photos.map(hydrate) })) } };
 }
 async function uploadPhoto(photo: Photo): Promise<Photo> {
   if (!supabase || 'art' in photo) return photo;
@@ -58,6 +58,7 @@ async function uploadPhoto(photo: Photo): Promise<Photo> {
 }
 export async function cloudCommand(command: WishCommand): Promise<CloudCouple> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
+  if (command.kind === 'checkIn') command = { ...command, input: { ...command.input, photo: await uploadPhoto(command.input.photo) } };
   if (command.kind === 'add') command = { ...command, input: { ...command.input, cover: await uploadPhoto(command.input.cover) } };
   if (command.kind === 'complete') {
     if (command.input.photos.length > PHOTO_LIMITS.memoryCount) throw new Error(`Mỗi kỷ niệm có tối đa ${PHOTO_LIMITS.memoryCount} ảnh.`);

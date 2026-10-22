@@ -26,7 +26,7 @@ export function AccountSettings({ visible, onClose }: { visible: boolean; onClos
   function editProfile() {
     const member = store.personalProfile;
     setBirthDate(member?.birthDate ? formatDate(member.birthDate) : '');
-    setGender(member?.gender ?? null); setError(''); setEditing(true);
+    setGender(member?.gender === 'other' ? null : member?.gender ?? null); setError(''); setEditing(true);
   }
   async function saveProfile() {
     if (submitting.current) return;
@@ -63,7 +63,7 @@ export function AccountSettings({ visible, onClose }: { visible: boolean; onClos
         <DateField label="Ngày sinh" value={birthDate} onChange={setBirthDate} />
         <Body>Giới tính</Body>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          {([['male', 'Nam'], ['female', 'Nữ'], ['other', 'Khác']] as const).map(([value, label]) => <Pressable key={value} disabled={busy} accessibilityRole="radio" accessibilityState={{ checked: gender === value, disabled: busy }} onPress={() => setGender(value)} style={{ flex: 1, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: gender === value ? colors.primary : colors.line, backgroundColor: gender === value ? colors.rose : colors.surface, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: gender === value ? colors.primary : colors.ink }}>{label}</Body></Pressable>)}
+          {([['male', 'Nam'], ['female', 'Nữ']] as const).map(([value, label]) => <Pressable key={value} disabled={busy} accessibilityRole="radio" accessibilityState={{ checked: gender === value, disabled: busy }} onPress={() => setGender(value)} style={{ flex: 1, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: gender === value ? colors.primary : colors.line, backgroundColor: gender === value ? colors.rose : colors.surface, alignItems: 'center', justifyContent: 'center' }}><Body style={{ color: gender === value ? colors.primary : colors.ink }}>{label}</Body></Pressable>)}
         </View>
         {!!error && <PopupMessage message={error} />}
         <PrimaryButton disabled={busy} onPress={() => void saveProfile()}>{busy ? 'Đang lưu…' : 'Lưu thông tin ♡'}</PrimaryButton>

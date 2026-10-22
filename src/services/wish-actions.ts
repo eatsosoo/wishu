@@ -48,6 +48,15 @@ export function deleteWish(snapshot: WishSnapshot, id: string, actor: PersonId):
 
 export function applyWishCommand(snapshot: WishSnapshot, command: WishCommand, actor: PersonId): WishSnapshot {
   switch (command.kind) {
+    case 'checkIn': {
+      const existing = snapshot.checkIns?.find(item => item.id === command.input.id);
+      if (existing && existing.createdBy !== actor) throw new Error('Bạn chỉ có thể sửa check-in của mình.');
+      return { ...snapshot, checkIns: [{ ...command.input, createdBy: actor }, ...(snapshot.checkIns ?? []).filter(item => item.id !== command.input.id)] };
+    }
+    case 'deleteCheckIn': {
+      if (snapshot.checkIns?.some(item => item.id === command.id && item.createdBy !== actor)) throw new Error('Bạn chỉ có thể xoá check-in của mình.');
+      return { ...snapshot, checkIns: (snapshot.checkIns ?? []).filter(item => item.id !== command.id) };
+    }
     case 'personalProfile': return { ...snapshot, couple: { ...snapshot.couple, members: snapshot.couple.members.map(member => member.id === actor ? { ...member, birthDate: command.input.birthDate ?? undefined, gender: command.input.gender ?? undefined } : member) } };
     case 'add': return addWish(snapshot, { ...command.input, createdBy: actor });
     case 'prepare': return prepareWish(snapshot, command.id, actor);

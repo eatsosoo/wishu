@@ -6,7 +6,7 @@ import { Eye, EyeOff, Heart, X, type LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../constants/theme';
 import type { Category, CategoryFilter } from '../types/domain';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
-import { PopupHost } from './PopupMessage';
+import { PopupLayer } from './PopupMessage';
 
 export function Body({ style, ...props }: TextProps) {
   const { colors } = useAppTheme();
@@ -114,6 +114,7 @@ export function BottomSheet({ visible, onClose, title, children }: { visible: bo
   }, [visible, presented, progress, reducedMotion]);
 
   return <Modal transparent visible={visible || presented} animationType="none" onRequestClose={onClose}>
+    <PopupLayer modal active={visible || presented}>
     <View style={s.overlay}>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(73,37,47,0.25)', opacity: progress }]}>
         <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Đóng" onPress={onClose} disabled={!visible} />
@@ -123,8 +124,8 @@ export function BottomSheet({ visible, onClose, title, children }: { visible: bo
         <View className="flex-row items-center justify-between" style={{ marginBottom: 18, gap: 12 }}><Heading style={{ flex: 1, minWidth: 0, fontSize: 24, lineHeight: 38 }}>{title}</Heading><IconButton icon={X} label="Đóng" onPress={onClose} /></View>
         {children}
       </Animated.View>
-      <PopupHost modal active={visible || presented} />
     </View>
+    </PopupLayer>
   </Modal>;
 }
 export const ConfirmDialog = BottomSheet;

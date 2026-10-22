@@ -1,12 +1,11 @@
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { AppScreen } from '../components/AppScreen';
 import { ClayObject } from '../components/Artwork';
-import { Body, EmptyState, Heading, IconButton } from '../components/ui';
+import { Body, EmptyState } from '../components/ui';
 import { MemoryCard, WishCard } from '../components/Cards';
 import { useWishStore } from '../hooks/use-wish-store';
 
@@ -42,9 +41,9 @@ export default function Preparing() {
   }
 
   const preparing = store.preparations.filter(item => item.status === 'preparing');
-  return <AppScreen>
-    <View><ClayObject name="gift" width={260} height={153} style={{ alignSelf: 'center' }} /><View style={{ position: 'absolute', top: 0, left: 0 }}><IconButton icon={ChevronLeft} label="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/wishes')} /></View></View>
-    <Heading style={{ textAlign: 'center', marginTop: 18 }}>Đang chuẩn bị</Heading><Body style={{ textAlign: 'center', color: t('#915365'), marginTop: 8 }}>Những điều bất ngờ đang được{ '\n' }chuẩn bị cho {store.partnerName} ♡</Body>
+  return <AppScreen header={{ title: 'Đang chuẩn bị', onBack: () => router.canGoBack() ? router.back() : router.replace('/wishes') }}>
+    <ClayObject name="gift" width={260} height={153} style={{ alignSelf: 'center' }} />
+    <Body style={{ textAlign: 'center', color: t('#915365'), marginTop: 8 }}>Những điều bất ngờ đang được{ '\n' }chuẩn bị cho {store.partnerName} ♡</Body>
     <View onLayout={event => setTabsWidth(event.nativeEvent.layout.width)} style={{ flexDirection: 'row', marginTop: 25, marginBottom: 17, backgroundColor: t('#F0DCDA'), borderRadius: 999, padding: 2 }}>
       {tabsWidth > 0 && <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 2, bottom: 2, left: 2, width: tabWidth, borderRadius: 999, backgroundColor: colors.primary }, highlightStyle]} />}
       {([['preparing', `Đang chuẩn bị (${preparing.length})`], ['completed', `Đã hoàn thành (${store.memories.length})`]] as const).map(([value, title]) => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => selectTab(value)} style={{ flex: 1, borderRadius: 999, paddingVertical: 11, alignItems: 'center' }}><Body style={{ fontSize: 13, color: tab === value ? t('#fff') : t('#9B6371') }}>{title}</Body></Pressable>)}

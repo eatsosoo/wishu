@@ -43,3 +43,7 @@ yarn-error.*
 
 # Local screenshots and review helpers
 .preview/
+/tmp/check-in-web/
+/tmp/check-in-android/
+/tmp/screenshots/check-in-*.png
+/tmp/screenshots/map-probe.png

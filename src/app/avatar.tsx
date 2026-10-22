@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { AppHeader, AppScreen } from '../components/AppScreen';
+import { AppScreen } from '../components/AppScreen';
 import { AvatarStudio } from '../features/avatar/AvatarStudio';
 import { useWishStore } from '../hooks/use-wish-store';
 
@@ -11,8 +11,7 @@ export default function AvatarScreen() {
     else router.replace('/us');
   }
 
-  return <AppScreen>
-    <AppHeader title="Tùy chỉnh avatar" back onBack={goBack} />
+  return <AppScreen header={{ title: 'Tùy chỉnh avatar', onBack: goBack }}>
     <AvatarStudio key={`${userId}:${store.personalProfile.gender}`} userId={userId} gender={store.personalProfile.gender} onCancel={goBack} />
   </AppScreen>;
 }

@@ -1,4 +1,6 @@
-> Current runtime uses independent WebP parts. See [parts/README.md](parts/README.md). The atlas description below records the original prototype.
+> Current runtime uses rig v2 and independent WebP parts. See [parts/README.md](parts/README.md)
+> for the registration standard and export workflow. `rig.json` is shared by the exporter
+> and renderer. The atlas description below records the original prototype.
 
 # Clay avatar prototype
 

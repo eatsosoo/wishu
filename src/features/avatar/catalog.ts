@@ -6,7 +6,7 @@ export const avatarOptions = {
   hairColor: [{ id: 'cocoa', label: 'Nâu cacao', color: '#584038' }, { id: 'black', label: 'Đen', color: '#302B36' }, { id: 'caramel', label: 'Caramel', color: '#AA7044' }],
   eyes: [{ id: 'round', label: 'Tròn xoe' }, { id: 'smile', label: 'Mắt cười' }],
   glasses: [{ id: 'none', label: 'Không kính' }, { id: 'round', label: 'Kính tròn' }],
-  outfit: [{ id: 'rose', label: 'Áo hồng', color: '#CD8698' }, { id: 'sage', label: 'Áo xanh', color: '#8FA991' }, { id: 'lavender', label: 'Áo tím', color: '#A39AC6' }],
+  outfit: [{ id: 'rose', label: 'Áo hồng', color: '#CD8698' }, { id: 'sage', label: 'Áo xanh', color: '#8FA991' }, { id: 'lavender', label: 'Áo tím', color: '#A39AC6' }, { id: 'dressRose', label: 'Váy hồng', color: '#D9919E' }],
 } as const;
 export type AvatarCategory = keyof typeof avatarOptions;
 export type AvatarConfig = { version: 1 } & { [K in AvatarCategory]: (typeof avatarOptions)[K][number]['id'] };
@@ -14,7 +14,7 @@ export const defaultAvatar: AvatarConfig = { version: 1, skin: 'peach', hair: 'b
 /** Only used when no saved customization exists; never infer gender from a name. */
 export function defaultAvatarForGender(gender: Gender | null): AvatarConfig {
   if (gender === 'male') return { ...defaultAvatar, hair: 'short', outfit: 'sage' };
-  if (gender === 'female') return { ...defaultAvatar, hair: 'bob', outfit: 'rose' };
+  if (gender === 'female') return { ...defaultAvatar, hair: 'bob', outfit: 'dressRose' };
   return { ...defaultAvatar, hair: 'short', outfit: 'lavender' };
 }
 export const categoryLabels: Record<AvatarCategory, string> = { skin: 'Màu da', hair: 'Kiểu tóc', hairColor: 'Màu tóc', eyes: 'Đôi mắt', glasses: 'Kính', outfit: 'Trang phục' };
@@ -24,6 +24,7 @@ export const avatarCategories = Object.keys(avatarOptions) as AvatarCategory[];
 type ItemAudience = { [K in AvatarCategory]?: Partial<Record<AvatarConfig[K], readonly Gender[]>> };
 const itemAudience: ItemAudience = {
   hair: { short: ['male'], bob: ['female'], bun: ['female'], curtains: ['male'], curls: ['male'], chinBob: ['female'], spaceBuns: ['female'] },
+  outfit: { rose: ['male'], sage: ['male'], lavender: ['male'], dressRose: ['female'] },
 };
 export function optionsForGender<K extends AvatarCategory>(category: K, gender: Gender | null) {
   return avatarOptions[category].filter(option => {

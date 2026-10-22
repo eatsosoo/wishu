@@ -12,7 +12,7 @@ import { WishStoreProvider, useWishStore } from '../hooks/use-wish-store';
 import { LoadingState } from '../components/ui';
 import { NotificationBridge } from '../components/NotificationBridge';
 import { NavigationHighlightProvider } from '../hooks/use-navigation-highlight';
-import { PopupHost, PopupMessage, PopupProvider } from '../components/PopupMessage';
+import { PopupLayer, PopupMessage, PopupProvider } from '../components/PopupMessage';
 
 export default function RootLayout() {
   return <AppThemeProvider><RootContent /></AppThemeProvider>;
@@ -30,9 +30,9 @@ function RootContent() {
   const framed = Platform.OS === 'web' && width > 600;
   if (!loaded && !error) return <LoadingState />;
   return <SafeAreaProvider><PopupProvider><WishStoreProvider><View style={s.outer}><StatusBar style="dark" /><View style={[s.app, framed && s.framed]}>
-    <NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
+    <PopupLayer><NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
     <NotificationBridge />
-    <PopupHost />
+    </PopupLayer>
   </View></View></WishStoreProvider></PopupProvider></SafeAreaProvider>;
 }
 function SessionNavigator() {
@@ -47,6 +47,7 @@ function SessionNavigator() {
     <Stack.Protected guard={onboarded && signedIn && profileComplete && !paired}><Stack.Screen name="pair" /></Stack.Protected>
     <Stack.Protected guard={onboarded && signedIn && profileComplete && paired}>
       <Stack.Screen name="notifications" /><Stack.Screen name="gift/[id]" /><Stack.Screen name="avatar" />
+      <Stack.Screen name="check-in-map" /><Stack.Screen name="check-in/new" /><Stack.Screen name="check-in/[id]" />
       <Stack.Screen name="index" /><Stack.Screen name="wishes" /><Stack.Screen name="wish/new" /><Stack.Screen name="wish/[id]/index" /><Stack.Screen name="wish/[id]/complete" /><Stack.Screen name="preparing" /><Stack.Screen name="memories" /><Stack.Screen name="memory/[id]" /><Stack.Screen name="memory-day/[date]" /><Stack.Screen name="us" /><Stack.Screen name="+not-found" />
     </Stack.Protected>
   </Stack></>;

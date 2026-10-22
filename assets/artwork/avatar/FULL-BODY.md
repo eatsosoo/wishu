@@ -1,8 +1,8 @@
 # Full-body avatar update
 
-Generated using built-in ImageGen with the existing home male/female characters as style references. `body-atlas-v2.png` contains 4 skin tones × 3 outfits; each body includes its neck, collar, arms, hands, trousers and shoes. `hair-atlas-v2.png` contains skin-free short, long and bun styles. `clay-atlas.png` supplies faces, eyes and glasses. Measured registration is in Avatar.tsx on a 512 × 700 canvas. The legacy `bob` ID now maps to long hair to preserve saved configurations.
+Generated using built-in ImageGen with the existing home male/female characters as style references. `body-atlas-v2.png` contains 4 skin tones × 3 outfits; each body includes its neck, collar, arms, hands, trousers and shoes. The original v2 hair atlas has been superseded and removed; current hair sources are registered in `rig.json`. `clay-atlas.png` supplies faces, eyes and glasses. Measured registration uses a 512 × 700 canvas. The legacy `bob` ID maps to long hair to preserve saved configurations.
 
-Defaults come from profile gender only when no saved avatar exists: male short/sage, female long/rose, other or unspecified short/lavender. Existing local configurations take priority. Home characters and cloud sync are not changed in this step.
+Current defaults: male short/sage, female long/dressRose, other or unspecified short/lavender. Female sweater outfits normalize to the dress; other saved customizations are retained. See `DRESS-V1.md` for the dress source.
 
 ## Body prompt
 

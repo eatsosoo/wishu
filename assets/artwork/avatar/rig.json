@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "canvas": { "width": 512, "height": 700 },
+  "anchors": {
+    "centerX": 256,
+    "scalpTop": 130,
+    "eyeLine": 259,
+    "chin": 360,
+    "neckTop": 344,
+    "collar": 378,
+    "feet": 644
+  },
+  "bounds": {
+    "face": [118, 130, 276, 230],
+    "body": [136, 344, 240, 300]
+  },
+  "outfits": {
+    "dressRose": {
+      "source": "dress-atlas-v1.png",
+      "crops": {
+        "peach": [240, 30, 460, 510],
+        "warm": [740, 30, 460, 510],
+        "tan": [240, 550, 460, 510],
+        "deep": [740, 550, 460, 510]
+      }
+    }
+  },
+  "hair": {
+    "source": "hair-atlas-v4.png",
+    "ids": ["short", "bob", "bun", "curtains", "curls", "chinBob", "spaceBuns"],
+    "eyeClearance": [170, 236, 174, 48],
+    "headFit": { "temples": [170, 344], "hairline": 236, "sideScale": 0.65 },
+    "registrations": {
+      "short": { "source": "hair-short-v2.png", "crop": [0, 0, 1072, 1467], "box": [116, 90, 280, 174] },
+      "bob": { "crop": [448, 60, 450, 412], "width": 460, "top": 75, "fittedTop": 95, "minHeight": 300 },
+      "bun": { "crop": [934, 20, 352, 442], "width": 350, "top": 12, "fittedTop": 35, "sideScale": 0.72 },
+      "curtains": { "crop": [1344, 88, 412, 326], "width": 420, "top": 65, "fittedTop": 95 },
+      "curls": { "crop": [18, 490, 432, 342], "width": 380, "top": 55, "fittedTop": 90 },
+      "chinBob": { "crop": [456, 498, 416, 342], "width": 420, "top": 75, "fittedTop": 95 },
+      "spaceBuns": { "crop": [876, 468, 462, 410], "width": 420, "top": 30, "fittedTop": 55, "sideScale": 0.76 }
+    }
+  },
+  "layerOrder": ["body", "face", "eyes", "hair", "glasses"]
+}

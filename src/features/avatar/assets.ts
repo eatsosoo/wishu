@@ -39,5 +39,11 @@ export const bodies: Record<AvatarConfig['outfit'], Record<AvatarConfig['skin'],
     tan: require('../../../assets/artwork/avatar/parts/body-lavender-tan.webp'),
     deep: require('../../../assets/artwork/avatar/parts/body-lavender-deep.webp'),
   },
+  dressRose: {
+    peach: require('../../../assets/artwork/avatar/parts/body-dressRose-peach.webp'),
+    warm: require('../../../assets/artwork/avatar/parts/body-dressRose-warm.webp'),
+    tan: require('../../../assets/artwork/avatar/parts/body-dressRose-tan.webp'),
+    deep: require('../../../assets/artwork/avatar/parts/body-dressRose-deep.webp'),
+  },
 };
 export const glasses = require('../../../assets/artwork/avatar/parts/glasses-round.webp');

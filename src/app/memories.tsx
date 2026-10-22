@@ -50,6 +50,7 @@ export default function Memories() {
   return <AppScreen navigation>
     {giftCreated === 'yes' ? <View accessibilityRole="alert" style={{ padding: 16, backgroundColor: colors.rose, borderRadius: 18, marginBottom: 18 }}><Body style={{ color: colors.primary }}>Một khoảnh khắc đã thành kỷ niệm, một lời thương gửi đến {store.partnerName} 🎁</Body></View> : null}
     <ScreenTitle title="Kỷ niệm" />
+    <View style={{ marginBottom: 18, gap: 8 }}><SecondaryButton onPress={() => router.push('/check-in-map')}>📍 Bản đồ kỷ niệm · {store.checkIns.length} nơi đã đến</SecondaryButton><Body style={{ color: colors.muted, textAlign: 'center', fontSize: 12 }}>Ghim ảnh và lời thương ở những nơi của hai đứa</Body></View>
     <FilterChips value={filter} onChange={value => { setFilter(value); setSelectedDay(null); }} options={['Tất cả', 'Quà tặng', 'Du lịch', 'Trải nghiệm', 'Khoảnh khắc']} />
     <View style={{ marginTop: 20, borderRadius: 28, padding: 13, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>

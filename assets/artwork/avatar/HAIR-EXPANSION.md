@@ -1,8 +1,9 @@
 # Four additional clay hairstyles
 
-Generated with built-in ImageGen using `hair-atlas-v2.png` as material/style reference. Asset: `hair-atlas-v3.png` (1254 × 1254, transparent). Top row: curtains and short curls (male). Bottom row: chin-length bob and twin buns (female). Other/unspecified profiles can access all styles. All styles support the existing color overlay; old saved hairstyle IDs remain valid.
+Historical generation notes for the v3 hair atlas, using v2 as its material/style reference. Both obsolete atlases have been removed; `hair-atlas-v4.png` now supplies these styles. Top row: curtains and short curls (male). Bottom row: chin-length bob and twin buns (female). Other/unspecified profiles can access all styles. All styles support the existing color overlay; old saved hairstyle IDs remain valid.
 
-Measured crop and placement coordinates are in `src/features/avatar/Avatar.tsx`. Visually checked all four compositions in a browser; native device rendering remains to be checked.
+Current crop and placement coordinates are in `rig.json`. Generated review images
+are written to `.preview/avatar/`, outside the production asset directory.
 
 ## Prompt
 

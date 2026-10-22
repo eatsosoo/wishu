@@ -49,6 +49,6 @@ Production data is stored in relational `wishes`, `preparations`, `memories` and
 
 `src/app/` contains routes. `src/components/` contains shared UI. `src/constants/` owns design tokens. `src/hooks/` owns the mock store. `src/services/` defines the repository contract, fixture data and domain actions. `src/types/` defines the data model.
 
-Illustrations and sample photos are standalone images under `assets/artwork/`, rendered directly with `contain` (3D objects) or `cover` (photos). No screen crops or coordinate offsets are used at runtime. The original screenshot and earlier enhancement remain reference material only. High-resolution assets were reconstructed using ImageGen to match the source; small details can differ from the screenshot. Original exported assets can replace individual files without changing the UI. See [artwork notes](docs/ARTWORK.md).
+Illustrations and sample photos are standalone images under `assets/artwork/`, rendered directly with `contain` (3D objects) or `cover` (photos). No screen crops or coordinate offsets are used at runtime. The original screenshot remains design reference material; obsolete previews and the enhanced copy have been removed. High-resolution assets were reconstructed using ImageGen to match the source; small details can differ from the screenshot. Original exported assets can replace individual files without changing the UI. See [artwork notes](docs/ARTWORK.md).
 
 See [phase tracking](docs/PHASES.md) for the original roadmap and [push setup](docs/PUSH_SETUP.md) for the implemented cloud notification flow.

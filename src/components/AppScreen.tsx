@@ -48,8 +48,10 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
     </View>
   </View>;
 }
-export function AppScreen({ children, navigation = false, contentStyle, home = false, bottomAction }: {
-  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean; bottomAction?: ReactNode;
+export interface AppHeaderProps { title: string; back?: boolean; onBack?: () => void; backLabel?: string; right?: ReactNode }
+
+export function AppScreen({ children, navigation = false, contentStyle, home = false, bottomAction, header }: {
+  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean; bottomAction?: ReactNode; header?: AppHeaderProps;
 }) {
   const { colors, t } = useAppTheme();
   const s = useThemeStyles(baseStyles);
@@ -60,7 +62,8 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     <BlurTargetView ref={blurTarget} style={{ flex: 1 }}>
     <LinearGradient colors={home ? [t('#FCE5DC'), t('#F9E6DE'), t('#FBF1EE')] : [t('#FCF5F2'), t('#F9ECEB'), t('#FBF1EE')]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, contentStyle, navigation && { paddingBottom: 110 }]}>{children}</ScrollView>
+      {header ? <AppHeader {...header} /> : null}
+      <ScrollView testID="screen-scroll" style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, header && { paddingTop: 12 }, contentStyle, navigation && { paddingBottom: 110 }]}>{children}</ScrollView>
     </SafeAreaView>
     </BlurTargetView>
     {navigation && <BottomNavigation blurTarget={blurTarget} />}
@@ -73,12 +76,12 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     </View>}
   </View>;
 }
-export function AppHeader({ title, back = false, onBack, right }: { title?: string; back?: boolean; onBack?: () => void; right?: ReactNode }) {
+export function AppHeader({ title, back = true, onBack, backLabel = 'Quay lại', right }: AppHeaderProps) {
   const s = useThemeStyles(baseStyles);
 
-  return <View style={s.header}>
-    <View style={s.headerAction}>{back && <IconButton icon={ChevronLeft} label="Quay lại" onPress={onBack ?? (() => router.canGoBack() ? router.back() : router.replace('/'))} />}</View>
-    {!!title && <Heading style={s.headerTitle}>{title}</Heading>}
+  return <View testID="subpage-header" style={s.header}>
+    <View style={s.headerAction}>{back && <IconButton icon={ChevronLeft} label={backLabel} onPress={onBack ?? (() => router.canGoBack() ? router.back() : router.replace('/'))} />}</View>
+    <Heading numberOfLines={1} ellipsizeMode="tail" style={s.headerTitle}>{title}</Heading>
     <View style={s.headerAction}>{right}</View>
   </View>;
 }
@@ -90,10 +93,11 @@ export function ScreenTitle({ title, right }: { title: string; right?: ReactNode
 }
 const baseStyles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: 18, paddingBottom: spacing.lg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17, minHeight: 44, gap: 6 },
-  headerAction: { minWidth: 44, minHeight: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+  // All subpage headers share these metrics and sit outside the ScrollView.
+  header: { height: 64, flexShrink: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, gap: 8, backgroundColor: '#FBF1EE', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0E0DD' },
+  headerAction: { width: 44, minHeight: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
   headerTitle: {
-    flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34, paddingVertical: 0,
+    flex: 1, minWidth: 0, fontSize: 20, lineHeight: 34, paddingVertical: 0, paddingHorizontal: 0, textAlign: 'center',
     includeFontPadding: false, textAlignVertical: 'center',
     // Pacifico's iOS glyph baseline sits below the visual center of the line box.
     ...Platform.select({ ios: { transform: [{ translateY: -4 }] }, default: {} }),
