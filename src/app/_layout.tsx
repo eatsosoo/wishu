@@ -18,6 +18,7 @@ export default function RootLayout() {
   return <AppThemeProvider><RootContent /></AppThemeProvider>;
 }
 function RootContent() {
+  const { id } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
   const { width } = useWindowDimensions();
@@ -29,7 +30,7 @@ function RootContent() {
   });
   const framed = Platform.OS === 'web' && width > 600;
   if (!loaded && !error) return <LoadingState />;
-  return <SafeAreaProvider><PopupProvider><WishStoreProvider><View style={s.outer}><StatusBar style="dark" /><View style={[s.app, framed && s.framed]}>
+  return <SafeAreaProvider><PopupProvider><WishStoreProvider><View style={s.outer}><StatusBar style={id === 'monochrome' ? 'light' : 'dark'} /><View style={[s.app, framed && s.framed]}>
     <PopupLayer><NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
     <NotificationBridge />
     </PopupLayer>

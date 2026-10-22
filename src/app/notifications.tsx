@@ -16,7 +16,7 @@ import { prefetchRevealArtwork } from '../components/reveal-artwork';
 
 export default function NotificationsScreen() {
   const store = useWishStore();
-  const { colors } = useAppTheme();
+  const { colors, id } = useAppTheme();
   const glassTarget = useRef<View | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const notifications = [...store.notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -56,13 +56,13 @@ export default function NotificationsScreen() {
         <View style={{ position: 'absolute', top: 240, left: -70, width: 200, height: 200, borderRadius: 100, backgroundColor: colors.lavender, opacity: 0.65 }} />
       </BlurTargetView>
       <View style={{ alignItems: 'center', paddingTop: 16, paddingBottom: 8, gap: 9 }}>
-        <View style={{ width: 64, height: 64, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center', marginBottom: 3 }}><Bell size={27} strokeWidth={1.5} color={colors.primary} /><View style={{ position: 'absolute', right: 8, top: 8 }}><Sparkles size={13} color={colors.primary} /></View></View>
+        <View style={{ width: 64, height: 64, borderRadius: 24, backgroundColor: id === 'monochrome' ? colors.surface : 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: id === 'monochrome' ? colors.line : 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center', marginBottom: 3 }}><Bell size={27} strokeWidth={1.5} color={colors.primary} /><View style={{ position: 'absolute', right: 8, top: 8 }}><Sparkles size={13} color={colors.primary} /></View></View>
         <Heading style={{ fontSize: 27 }}>Lời thương ghé đến</Heading>
         <Body style={{ color: colors.muted, textAlign: 'center', maxWidth: 280 }}>Những bất ngờ nho nhỏ {store.partnerName} dành riêng cho bạn.</Body>
         {unread > 0 && <View style={{ paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, backgroundColor: colors.rose }}><Body style={{ color: colors.primary, fontSize: 12 }}>{unread} món quà chưa mở ♡</Body></View>}
       </View>
-      {notifications.length === 0 ? <View style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.28)', padding: 26, alignItems: 'center', gap: 12 }}>
-        <BlurView pointerEvents="none" blurTarget={glassTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={24} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
+      {notifications.length === 0 ? <View style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: id === 'monochrome' ? colors.line : 'rgba(255,255,255,0.85)', backgroundColor: id === 'monochrome' ? colors.surface : 'rgba(255,255,255,0.28)', padding: 26, alignItems: 'center', gap: 12 }}>
+        <BlurView pointerEvents="none" blurTarget={glassTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={24} tint={id === 'monochrome' ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} style={StyleSheet.absoluteFill} />
         <View><Gift size={34} strokeWidth={1.3} color={colors.primary} /></View>
         <Heading style={{ fontSize: 22, textAlign: 'center' }}>Bất ngờ đang trên đường đến</Heading>
         <Body style={{ color: colors.muted, textAlign: 'center' }}>Khi {store.partnerName} hoàn thành điều ước của bạn, món quà sẽ nằm ở đây, chờ bạn mở.</Body>
@@ -85,13 +85,13 @@ export default function NotificationsScreen() {
 }
 
 function NotificationCard({ gift, sender, blurTarget }: { gift: GiftNotification; sender: string; blurTarget: RefObject<View | null> }) {
-  const { colors } = useAppTheme();
-  return <Pressable accessibilityRole="button" accessibilityLabel={`${gift.readAt ? 'Đã đọc' : 'Chưa đọc'}. ${sender} đã hoàn thành ${gift.title}. Mở hộp quà`} onPress={() => router.push({ pathname: '/gift/[id]', params: { id: gift.id } })} style={({ pressed }) => ({ borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.24)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', boxShadow: '0px 5px 18px rgba(112,65,73,0.06)', opacity: pressed ? 0.78 : 1 })}>
+  const { colors, id } = useAppTheme();
+  return <Pressable accessibilityRole="button" accessibilityLabel={`${gift.readAt ? 'Đã đọc' : 'Chưa đọc'}. ${sender} đã hoàn thành ${gift.title}. Mở hộp quà`} onPress={() => router.push({ pathname: '/gift/[id]', params: { id: gift.id } })} style={({ pressed }) => ({ borderRadius: 26, backgroundColor: id === 'monochrome' ? colors.surface : 'rgba(255,255,255,0.24)', borderWidth: 1, borderColor: id === 'monochrome' ? colors.line : 'rgba(255,255,255,0.85)', boxShadow: '0px 5px 18px rgba(112,65,73,0.06)', opacity: pressed ? 0.78 : 1 })}>
     <View style={{ borderRadius: 25, overflow: 'hidden' }}>
-      <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={30} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
-      <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.58)', 'rgba(255,255,255,0.14)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={30} tint={id === 'monochrome' ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} style={StyleSheet.absoluteFill} />
+      <LinearGradient pointerEvents="none" colors={id === 'monochrome' ? ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0)'] : ['rgba(255,255,255,0.58)', 'rgba(255,255,255,0.14)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={{ padding: 18, flexDirection: 'row', alignItems: 'flex-start', gap: 13 }}>
-        <View style={{ width: 46, height: 46, borderRadius: 17, backgroundColor: gift.readAt ? 'rgba(255,255,255,0.55)' : colors.rose, borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', alignItems: 'center', justifyContent: 'center' }}><Gift size={22} strokeWidth={1.6} color={colors.primary} /></View>
+        <View style={{ width: 46, height: 46, borderRadius: 17, backgroundColor: gift.readAt ? (id === 'monochrome' ? colors.surface : 'rgba(255,255,255,0.55)') : colors.rose, borderWidth: 1, borderColor: id === 'monochrome' ? colors.line : 'rgba(255,255,255,0.8)', alignItems: 'center', justifyContent: 'center' }}><Gift size={22} strokeWidth={1.6} color={colors.primary} /></View>
         <View style={{ flex: 1, gap: 5 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Body style={{ flex: 1, fontSize: 12, color: colors.muted }}>Từ {sender}</Body>{!gift.readAt && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary }} />}</View>
           <Body style={{ fontWeight: '600', color: colors.burgundy }}>{sender} đã hoàn thành một điều ước</Body>

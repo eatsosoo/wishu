@@ -11,7 +11,7 @@ export function NotificationBell() {
   const unread = notifications.filter(item => !item.readAt).length;
   return <Pressable accessibilityRole="button" accessibilityLabel={`Thông báo, ${unread} chưa đọc`} onPress={() => router.push('/notifications')} style={[styles.button, { backgroundColor: colors.surface }]}>
     <Bell size={21} color={colors.burgundy} strokeWidth={1.7} />
-    {unread > 0 ? <View style={[styles.badge, { backgroundColor: colors.primary }]}><Body style={styles.count}>{unread > 9 ? '9+' : unread}</Body></View> : null}
+    {unread > 0 ? <View style={[styles.badge, { backgroundColor: colors.primary }]}><Body style={[styles.count, { color: colors.onPrimary }]}>{unread > 9 ? '9+' : unread}</Body></View> : null}
   </Pressable>;
 }
 const styles = StyleSheet.create({

@@ -69,7 +69,7 @@ function PopupHost({ modal, active, blurTarget }: { modal: boolean; active: bool
 }
 
 function PopupCard({ notice, dismiss, reduced, blurTarget }: { notice: Notice; dismiss: (id: number) => void; reduced: boolean; blurTarget: RefObject<View | null> }) {
-  const { colors } = useAppTheme();
+  const { colors, id } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [progress] = useState(() => new Animated.Value(0));
   const closing = useRef(false);
@@ -94,11 +94,11 @@ function PopupCard({ notice, dismiss, reduced, blurTarget }: { notice: Notice; d
   return <View pointerEvents="box-none" style={[styles.position, { top: Math.max(insets.top, 12) + 8 }]}>
     <Animated.View style={[styles.card, { opacity: progress,
       transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [-240, 0] }) }] }]}>
-      <View style={styles.glass}>
-        <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={40} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
-        <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.52)', 'rgba(255,255,255,0.18)']} start={{ x: 0, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={[styles.glass, id === 'monochrome' && { backgroundColor: colors.surface, borderColor: colors.line, borderBottomColor: colors.line }]}>
+        <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={40} tint={id === 'monochrome' ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} style={StyleSheet.absoluteFill} />
+        <LinearGradient pointerEvents="none" colors={id === 'monochrome' ? ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0)'] : ['rgba(255,255,255,0.52)', 'rgba(255,255,255,0.18)']} start={{ x: 0, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={styles.content}>
-          <View style={styles.icon}><CircleAlert size={21} color={colors.primary} strokeWidth={1.7} /></View>
+          <View style={[styles.icon, id === 'monochrome' && { backgroundColor: colors.rose, borderColor: colors.line }]}><CircleAlert size={21} color={colors.primary} strokeWidth={1.7} /></View>
           <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={[styles.message, { color: colors.ink }]}>{notice.message}</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Đóng thông báo" onPress={close} style={({ pressed }) => [styles.close, pressed && styles.closePressed]}>
             <X size={18} color={colors.burgundy} strokeWidth={1.7} />

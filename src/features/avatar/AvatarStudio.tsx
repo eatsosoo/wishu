@@ -50,7 +50,7 @@ export function AvatarStudio({ userId, gender, onCancel }: { userId: string; gen
     {!ready ? <ActivityIndicator color={colors.primary} /> : <>
       <View style={{ alignItems: 'center' }}><Avatar config={draft} size={260} /></View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {avatarCategories.map(key => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: category === key }} onPress={() => setCategory(key)} style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 22, backgroundColor: category === key ? colors.primary : colors.rose }}><Body style={{ color: category === key ? '#FFFFFF' : colors.ink }}>{categoryLabels[key]}</Body></Pressable>)}
+        {avatarCategories.map(key => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: category === key }} onPress={() => setCategory(key)} style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 22, backgroundColor: category === key ? colors.primary : colors.rose }}><Body style={{ color: category === key ? colors.onPrimary : colors.ink }}>{categoryLabels[key]}</Body></Pressable>)}
       </ScrollView>
       <Body style={{ fontFamily: fonts.bold }}>{categoryLabels[category]}</Body>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

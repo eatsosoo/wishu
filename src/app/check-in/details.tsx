@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { AppScreen } from '../../components/AppScreen';
 import { PhotoView } from '../../components/Artwork';
@@ -20,7 +20,7 @@ type Place = Coordinate & { name: string };
 export default function CheckInDetails() {
   const { draft } = useCheckInDraft();
   useEffect(() => { if (!draft?.photo) router.replace('/check-in/new'); }, [draft?.photo]);
-  return draft?.photo ? <DetailsEditor draft={draft} /> : null;
+  return draft?.photo ? <DetailsEditor key={draft.id} draft={draft} /> : null;
 }
 function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   const store = useWishStore();
@@ -28,7 +28,7 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   const { setDraft } = useCheckInDraft();
   const { id, edit, title, note, companion, date, photo, point } = draft;
   const existing = store.checkIns.find(item => item.id === edit);
-  function update<K extends keyof CheckInDraft>(key: K, value: CheckInDraft[K]) { setDraft(current => current ? { ...current, [key]: value } : current); }
+  function update<K extends keyof CheckInDraft>(key: K, value: CheckInDraft[K]) { setDraft(current => current?.id === id ? { ...current, [key]: value } : current); }
   const setTitle = (value: string) => update('title', value);
   const setNote = (value: string) => update('note', value);
   const setCompanion = (value: string) => update('companion', value);
@@ -42,21 +42,40 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   const [searching, setSearching] = useState(false);
   const searchController = useRef<AbortController | null>(null);
   const saveLock = useRef(false);
+  const locationRequest = useRef<symbol | null>(null);
   useEffect(() => () => { searchController.current?.abort(); }, []);
   const config = useMemo(() => ({ colors, items: [], picking: !busy, selected: point, focus }), [colors, busy, point, focus]);
-  function choose(next: Coordinate) { update('point', next); setError(''); }
-  async function locate() {
-    if (locating || busy) return;
+  function choose(next: Coordinate) {
+    // A manual pin takes priority over an unfinished GPS request.
+    locationRequest.current = null;
+    setLocating(false);
+    update('point', next); setError('');
+  }
+  const locate = useCallback(async () => {
+    if (locationRequest.current || saveLock.current) return;
+    const request = Symbol('location');
+    locationRequest.current = request;
     setLocating(true); setError('');
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
+      if (locationRequest.current !== request) return;
       if (permission.status !== 'granted') throw new Error('Chưa được cấp quyền vị trí. Bạn vẫn có thể chạm bản đồ để chọn nơi đã đến.');
       const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      if (locationRequest.current !== request) return;
       const next = { latitude: location.coords.latitude, longitude: location.coords.longitude };
-      choose(next); setFocus({ ...next, key: String(Date.now()) });
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Chưa lấy được vị trí. Bạn chạm bản đồ để chọn nhé.'); }
-    finally { setLocating(false); }
-  }
+      setDraft(current => current?.id === id ? { ...current, point: next } : current);
+      setFocus({ ...next, key: String(Date.now()) });
+    } catch (cause) {
+      if (locationRequest.current === request) setError(cause instanceof Error ? cause.message : 'Chưa lấy được vị trí. Bạn chạm bản đồ để chọn nhé.');
+    } finally {
+      if (locationRequest.current === request) { locationRequest.current = null; setLocating(false); }
+    }
+  }, [id, setDraft]);
+  useFocusEffect(useCallback(() => {
+    // Keep saved or manually chosen coordinates when editing or changing the photo.
+    if (!edit && !point) void locate();
+    return () => { locationRequest.current = null; setLocating(false); };
+  }, [edit, point, locate]));
   async function search() {
     if (!geocodingKey || query.trim().length < 2 || busy) return;
     searchController.current?.abort();
@@ -88,7 +107,6 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   if (edit && (!existing || existing.createdBy !== store.actor)) return <AppScreen header={{ title: 'Check-in' }}><Body>Bạn chỉ có thể sửa check-in của mình.</Body></AppScreen>;
   return <AppScreen header={{ title: existing ? 'Sửa kỷ niệm' : 'Câu chuyện của tấm ảnh' }}>
     <View style={{ gap: 16 }}>
-      <Body style={{ color: colors.primary, fontSize: 12 }}>BƯỚC 2 / 2 · NƠI MÌNH ĐÃ ĐẾN</Body>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 22, backgroundColor: colors.surface }}>
         {photo && <PhotoView variant="thumbnail" photo={photo} width={76} height={76} style={{ borderRadius: 16 }} />}
         <View style={{ flex: 1, gap: 4 }}><Body>Đã chọn ảnh kỷ niệm ♡</Body><Pressable accessibilityRole="button" accessibilityLabel="Quay lại chọn ảnh" disabled={busy} onPress={() => router.back()} style={{ minHeight: 44, justifyContent: 'center' }}><Body style={{ color: colors.primary }}>Đổi ảnh</Body></Pressable></View>

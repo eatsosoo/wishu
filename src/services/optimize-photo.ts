@@ -5,13 +5,13 @@ import { PHOTO_LIMITS, photoResize, validatePhotoSource } from '../features/phot
 import { photoSize } from './photo-bytes';
 import { squareCrop, type SquareCropSelection } from '../features/photos/square-crop';
 
-export async function optimizePickedPhoto(asset: ImagePickerAsset, cropSelection?: SquareCropSelection): Promise<Photo> {
+export async function optimizePickedPhoto(asset: ImagePickerAsset, cropSelection?: SquareCropSelection, aspectRatio = 1): Promise<Extract<Photo, { uri: string }>> {
   const size = asset.file?.size ?? asset.fileSize ?? await photoSize(asset.uri);
   if (asset.mimeType && !/^image\/(jpeg|jpg|png|webp|heic|heif)$/i.test(asset.mimeType)) throw new Error('Chọn ảnh JPEG, PNG, WebP hoặc HEIC.');
   validatePhotoSource(asset.width, asset.height, size);
   const context = ImageManipulator.manipulate(asset.uri);
   try {
-    const crop = cropSelection ? squareCrop(asset.width, asset.height, cropSelection) : null;
+    const crop = cropSelection ? squareCrop(asset.width, asset.height, cropSelection, aspectRatio) : null;
     if (crop) context.crop(crop);
     const resize = photoResize(crop?.width ?? asset.width, crop?.height ?? asset.height);
     if (resize) context.resize(resize);

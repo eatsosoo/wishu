@@ -18,7 +18,7 @@ const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon:
 ];
 export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View | null> }) {
   const s = useThemeStyles(baseStyles);
-  const { colors } = useAppTheme();
+  const { colors, id } = useAppTheme();
   const position = useNavigationHighlight();
   const { expansion, expand } = useNavigationExpansion();
   const sizeStyle = useAnimatedStyle(() => ({ transform: [{ scale: 0.8 + expansion.value * 0.2 }] }));
@@ -34,13 +34,13 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
     const { path, label, icon: Icon } = items[index];
     const selected = pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
     return <View key={path} style={s.navSlot}><Pressable hitSlop={6} onPress={() => { expand(); if (!selected) router.replace(path); }} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected }} style={s.navItem}>
-      <Icon size={27} strokeWidth={1.9} color={selected ? '#FFFFFF' : colors.burgundy} fill={selected && path === '/' ? '#FFFFFF' : 'transparent'} />
+      <Icon size={27} strokeWidth={1.9} color={selected ? colors.onPrimary : colors.burgundy} fill={selected && path === '/' ? colors.onPrimary : 'transparent'} />
     </Pressable></View>;
   }
   return <Animated.View testID="bottom-navigation" style={[s.nav, { bottom: Math.max(insets.bottom, 0) + 16 }, sizeStyle]}>
-    <View style={s.navGlass}>
-      <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
-      <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+    <View style={[s.navGlass, id === 'monochrome' && { backgroundColor: 'rgba(22,22,22,0.92)', borderColor: colors.line }]}>
+      <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint={id === 'monochrome' ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} style={StyleSheet.absoluteFill} />
+      <LinearGradient pointerEvents="none" colors={id === 'monochrome' ? ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'] : ['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.navRow} onLayout={event => setRowWidth(event.nativeEvent.layout.width)}>
       {rowWidth > 0 && <Animated.View pointerEvents="none" style={[s.navHighlight, { width: slotWidth, backgroundColor: colors.primary }, highlightStyle]} />}
       {item(0)}{item(1)}
@@ -52,10 +52,10 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View |
 }
 export interface AppHeaderProps { title: string; back?: boolean; onBack?: () => void; backLabel?: string; right?: ReactNode }
 
-export function AppScreen({ children, navigation = false, contentStyle, home = false, bottomAction, header }: {
-  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean; bottomAction?: ReactNode; header?: AppHeaderProps;
+export function AppScreen({ children, navigation = false, contentStyle, home = false, bottomAction, header, scrollEnabled = true }: {
+  children: ReactNode; navigation?: boolean; contentStyle?: StyleProp<ViewStyle>; home?: boolean; bottomAction?: ReactNode; header?: AppHeaderProps; scrollEnabled?: boolean;
 }) {
-  const { colors, t } = useAppTheme();
+  const { colors, t, id } = useAppTheme();
   const s = useThemeStyles(baseStyles);
   const insets = useSafeAreaInsets();
 
@@ -69,7 +69,7 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     <LinearGradient colors={home ? [t('#FCE5DC'), t('#F9E6DE'), t('#FBF1EE')] : [t('#FCF5F2'), t('#F9ECEB'), t('#FBF1EE')]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       {header ? <AppHeader {...header} /> : null}
-      <ScrollView testID="screen-scroll" style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
+      <ScrollView scrollEnabled={scrollEnabled} testID="screen-scroll" style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
         scrollEventThrottle={32}
         onTouchStart={navigation ? event => { touchY.current = event.nativeEvent.pageY; } : undefined}
         onTouchEnd={navigation ? event => { if (touchY.current !== null && event.nativeEvent.pageY - touchY.current > 35) expand(); touchY.current = null; } : undefined}
@@ -84,9 +84,9 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
     </BlurTargetView>
     {navigation && <BottomNavigation blurTarget={blurTarget} />}
     {bottomAction && <View style={[s.actionBar, { bottom: Math.max(insets.bottom, 0) + 16 }]}>
-      <View style={[s.navGlass, s.actionGlass]}>
-        <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint="systemUltraThinMaterialLight" style={StyleSheet.absoluteFill} />
-        <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={[s.navGlass, s.actionGlass, id === 'monochrome' && { backgroundColor: 'rgba(22,22,22,0.92)' }]}>
+        <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" intensity={45} tint={id === 'monochrome' ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} style={StyleSheet.absoluteFill} />
+        <LinearGradient pointerEvents="none" colors={id === 'monochrome' ? ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'] : ['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={{ gap: 8 }}>{bottomAction}</View>
       </View>
     </View>}

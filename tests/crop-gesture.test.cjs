@@ -35,3 +35,19 @@ test('lifting a finger and rebasing does not jump before the next drag', () => {
   assert.deepEqual(moveCropGesture(4000, 3000, 300, start, remaining), selection);
   assert.equal(cropTouchKey([point(2, 1, 1), point(1, 2, 2)]), cropTouchKey([point(1, 2, 2), point(2, 1, 1)]));
 });
+
+test('rectangular template crops pan to the edges without exposing empty space', () => {
+  for (const aspectRatio of [2, 0.5]) {
+    const width = 1200, height = 1600, previewWidth = 300;
+    const selection = { centerX: 0.5, centerY: 0.5, zoom: 1 };
+    const touch = [{ id: 1, x: 150, y: previewWidth / aspectRatio / 2 }];
+    const start = startCropGesture(width, height, previewWidth, selection, touch, aspectRatio);
+    const moved = moveCropGesture(width, height, previewWidth, start, [{ id: 1, x: 2000, y: 2000 }], aspectRatio);
+    const { squareCrop } = require('../src/features/photos/square-crop.ts');
+    const crop = squareCrop(width, height, moved, aspectRatio);
+    assert.equal(crop.width / crop.height, aspectRatio);
+    assert.equal(crop.originX, 0);
+    assert.equal(crop.originY, 0);
+    assert.ok(crop.width <= width && crop.height <= height);
+  }
+});

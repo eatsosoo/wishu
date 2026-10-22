@@ -46,7 +46,7 @@ export default function Preparing() {
     <Body style={{ textAlign: 'center', color: t('#915365'), marginTop: 8 }}>Những điều bất ngờ đang được{ '\n' }chuẩn bị cho {store.partnerName} ♡</Body>
     <View onLayout={event => setTabsWidth(event.nativeEvent.layout.width)} style={{ flexDirection: 'row', marginTop: 25, marginBottom: 17, backgroundColor: t('#F0DCDA'), borderRadius: 999, padding: 2 }}>
       {tabsWidth > 0 && <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 2, bottom: 2, left: 2, width: tabWidth, borderRadius: 999, backgroundColor: colors.primary }, highlightStyle]} />}
-      {([['preparing', `Đang chuẩn bị (${preparing.length})`], ['completed', `Đã hoàn thành (${store.memories.length})`]] as const).map(([value, title]) => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => selectTab(value)} style={{ flex: 1, borderRadius: 999, paddingVertical: 11, alignItems: 'center' }}><Body style={{ fontSize: 13, color: tab === value ? t('#fff') : t('#9B6371') }}>{title}</Body></Pressable>)}
+      {([['preparing', `Đang chuẩn bị (${preparing.length})`], ['completed', `Đã hoàn thành (${store.memories.length})`]] as const).map(([value, title]) => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => selectTab(value)} style={{ flex: 1, borderRadius: 999, paddingVertical: 11, alignItems: 'center' }}><Body style={{ fontSize: 13, color: tab === value ? colors.onPrimary : t('#9B6371') }}>{title}</Body></Pressable>)}
     </View>
     <Animated.View style={contentStyle}>
     {tab === 'preparing' ? preparing.map(preparation => {

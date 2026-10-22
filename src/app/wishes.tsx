@@ -28,13 +28,13 @@ export default function WishesScreen() {
     <ScreenTitle title={`Hũ điều ước của ${name} ♡`} />
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={{ gap: 8, paddingVertical: 4 }} accessibilityRole="tablist">
-        {(['pending', 'completed'] as const).map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => setTab(value)} style={{ borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: tab === value ? colors.primary : t('#F5E7E7') }}><Body style={{ fontSize: 13, color: tab === value ? t('#fff') : t('#9A626F') }}>{value === 'pending' ? 'Đang mong chờ' : 'Đã hoàn thành'} · {visibleWishes.filter(wish => completedWishIds.has(wish.id) === (value === 'completed')).length}</Body></Pressable>)}
+        {(['pending', 'completed'] as const).map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => setTab(value)} style={{ borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: tab === value ? colors.primary : t('#F5E7E7') }}><Body style={{ fontSize: 13, color: tab === value ? colors.onPrimary : t('#9A626F') }}>{value === 'pending' ? 'Mong chờ' : 'Hoàn thành'} · {visibleWishes.filter(wish => completedWishIds.has(wish.id) === (value === 'completed')).length}</Body></Pressable>)}
       </ScrollView>
       <Pressable accessibilityRole="button" accessibilityLabel={`Đổi hũ điều ước, đang xem hũ của ${name}`} accessibilityState={{ expanded: chooseJar }} onPress={() => setChooseJar(true)} style={({ pressed }) => ({ width: 44, height: 44, flexShrink: 0, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.rose, opacity: pressed ? 0.7 : 1 })}>
         <JarPairIcon />
       </Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={`Lọc danh mục: ${filter}`} accessibilityState={{ expanded: chooseCategory }} onPress={() => setChooseCategory(true)} style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: filter === 'Tất cả' ? t('#F5E7E7') : colors.primary }}>
-        <SlidersHorizontal size={20} color={filter === 'Tất cả' ? t('#9A626F') : t('#fff')} />
+        <SlidersHorizontal size={20} color={filter === 'Tất cả' ? t('#9A626F') : colors.onPrimary} />
       </Pressable>
     </View>
     {filter !== 'Tất cả' && <Body style={{ color: colors.muted, fontSize: 12, marginBottom: 12 }}>Danh mục: {filter}</Body>}

@@ -13,7 +13,8 @@ import { cropTouchKey, moveCropGesture, startCropGesture, type CropGesture } fro
 
 const gestureStyle: ViewStyle & { touchAction?: 'none' } = Platform.OS === 'web' ? { touchAction: 'none' } : {};
 
-export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply }: {
+export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply, aspectRatio = 1 }: {
+  aspectRatio?: number;
   source: ImagePickerAsset;
   initialSelection: SquareCropSelection;
   onCancel: () => void;
@@ -36,7 +37,7 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
     }
     function rebase(event: GestureResponderEvent) {
       const points = touches(event);
-      drag.current = points.length && previewSize > 0 ? startCropGesture(source.width, source.height, previewSize, current.current, points) : null;
+      drag.current = points.length && previewSize > 0 ? startCropGesture(source.width, source.height, previewSize, current.current, points, aspectRatio) : null;
     }
     setPan(PanResponder.create({
     onStartShouldSetPanResponder: () => !working.current,
@@ -57,7 +58,7 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
       if (!points.length || previewSize <= 0) return;
       const start = drag.current;
       if (!start || start.key !== cropTouchKey(points)) { rebase(event); return; }
-      const next = moveCropGesture(source.width, source.height, previewSize, start, points);
+      const next = moveCropGesture(source.width, source.height, previewSize, start, points, aspectRatio);
       current.current = next;
       setSelection(next);
     },
@@ -65,11 +66,11 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
     onPanResponderTerminate: () => { drag.current = null; },
     onPanResponderTerminationRequest: () => false,
     onShouldBlockNativeResponder: () => true,
-  })); }, [previewSize, source.width, source.height]);
+  })); }, [previewSize, source.width, source.height, aspectRatio]);
 
   function change(next: SquareCropSelection) {
     if (working.current) return;
-    const bounded = clampSquareSelection(source.width, source.height, next);
+    const bounded = clampSquareSelection(source.width, source.height, next, aspectRatio);
     current.current = bounded;
     setSelection(bounded);
   }
@@ -80,9 +81,10 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
     catch (error) { setError(error instanceof Error ? error.message : 'Chưa cắt được ảnh. Bạn thử lại nhé.'); }
     finally { working.current = false; setBusy(false); }
   }
-  const crop = squareCrop(source.width, source.height, selection);
+  const crop = squareCrop(source.width, source.height, selection, aspectRatio);
   const scale = previewSize / crop.width;
-  const baseScale = previewSize / Math.min(source.width, source.height);
+  const baseScale = previewSize / Math.min(source.width, source.height * aspectRatio);
+  const previewHeight = previewSize / aspectRatio;
   const cancel = () => { if (!working.current) onCancel(); };
 
   return <Modal visible presentationStyle="fullScreen" animationType="slide" onRequestClose={cancel}>
@@ -93,9 +95,9 @@ export function SquarePhotoCropper({ source, initialSelection, onCancel, onApply
         <AppHeader title="Chọn vùng ảnh" back={false} right={<IconButton icon={X} label="Đóng chỉnh ảnh" onPress={cancel} />} />
         <View style={{ flex: 1, width: '100%', maxWidth: 478, alignSelf: 'center', padding: 24, gap: 14 }}>
           <Body style={{ color: colors.muted }}>Kéo để di chuyển ảnh. Chụm hoặc tách hai ngón tay để thu nhỏ, phóng to.</Body>
-          <View style={{ flex: 1, minHeight: 100, alignItems: 'center', justifyContent: 'center' }} onLayout={({ nativeEvent: { layout } }) => setPreviewSize(Math.max(0, Math.min(layout.width, layout.height)))}>
-          <View {...pan?.panHandlers} accessibilityLabel="Vùng cắt ảnh hình vuông" style={[{ width: previewSize, height: previewSize, overflow: 'hidden', borderRadius: 18, backgroundColor: colors.rose }, gestureStyle]}>
-            <Image source={{ uri: source.uri }} pointerEvents="none" contentFit="fill" cachePolicy="memory" style={{ position: 'absolute', width: source.width * baseScale, height: source.height * baseScale, left: (previewSize - source.width * baseScale) / 2, top: (previewSize - source.height * baseScale) / 2, transform: [{ translateX: (source.width / 2 - crop.originX - crop.width / 2) * scale }, { translateY: (source.height / 2 - crop.originY - crop.height / 2) * scale }, { scale: Math.min(source.width, source.height) / crop.width }] }} />
+          <View style={{ flex: 1, minHeight: 100, alignItems: 'center', justifyContent: 'center' }} onLayout={({ nativeEvent: { layout } }) => setPreviewSize(Math.max(0, Math.min(layout.width, layout.height * aspectRatio)))}>
+          <View {...pan?.panHandlers} accessibilityLabel={aspectRatio === 1 ? "Vùng cắt ảnh hình vuông" : "Vùng cắt ảnh theo template"} style={[{ width: previewSize, height: previewHeight, overflow: 'hidden', borderRadius: 18, backgroundColor: colors.rose }, gestureStyle]}>
+            <Image source={{ uri: source.uri }} pointerEvents="none" contentFit="fill" cachePolicy="memory" style={{ position: 'absolute', width: source.width * baseScale, height: source.height * baseScale, left: (previewSize - source.width * baseScale) / 2, top: (previewHeight - source.height * baseScale) / 2, transform: [{ translateX: (source.width / 2 - crop.originX - crop.width / 2) * scale }, { translateY: (source.height / 2 - crop.originY - crop.height / 2) * scale }, { scale: Math.min(source.width, source.height * aspectRatio) / crop.width }] }} />
             <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderWidth: 1, borderColor: '#FFFFFFAA', borderRadius: 18 }]}>
               {[1, 2].map(line => <View key={`v${line}`} style={{ position: 'absolute', left: `${line * 100 / 3}%`, top: 0, bottom: 0, width: 1, backgroundColor: '#FFFFFF80' }} />)}
               {[1, 2].map(line => <View key={`h${line}`} style={{ position: 'absolute', top: `${line * 100 / 3}%`, left: 0, right: 0, height: 1, backgroundColor: '#FFFFFF80' }} />)}

@@ -19,12 +19,12 @@ export function Heading({ style, ...props }: TextProps) {
   return <Text {...props} accessibilityRole="header" style={[{ fontFamily: fonts.heading, color: colors.burgundy, fontSize: 27, lineHeight: 44, paddingVertical: 4, paddingHorizontal: 3 }, style]} />;
 }
 export function PrimaryButton({ children, onPress, disabled }: { children: ReactNode; onPress: () => void; disabled?: boolean }) {
-  const { t } = useAppTheme();
+  const { t, colors } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} onPress={onPress} disabled={disabled} style={({ pressed }) => ({ opacity: disabled ? 0.45 : pressed ? 0.8 : 1 })}>
     <LinearGradient colors={[t('#BB607D'), t('#A04B64')]} start={{ x: 0, y: 0 }} end={{ x: 0.85, y: 1 }} style={s.primary}>
-      <Body style={{ color: t('#fff'), fontFamily: fonts.body, fontSize: 16 }}>{children}</Body>
+      <Body style={{ color: colors.onPrimary, fontFamily: fonts.body, fontSize: 16 }}>{children}</Body>
     </LinearGradient>
   </Pressable>;
 }
@@ -35,11 +35,13 @@ export function SecondaryButton({ children, onPress }: { children: ReactNode; on
   return <Pressable accessibilityRole="button" onPress={onPress} style={s.secondary}><Body style={{ color: colors.primary, fontFamily: fonts.medium }}>{children}</Body></Pressable>;
 }
 export function IconButton({ icon: Icon, onPress, label, filled = false, color, backgroundColor }: { icon: LucideIcon; onPress: () => void; label: string; filled?: boolean; color?: string; backgroundColor?: string }) {
-  const { colors, t } = useAppTheme();
+  const { colors } = useAppTheme();
   const s = useThemeStyles(baseStyles);
 
-  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={5} style={({ pressed }) => [s.icon, filled && { backgroundColor: colors.primary }, backgroundColor !== undefined && { backgroundColor }, { opacity: pressed ? 0.7 : 1 }]}>
-    <Icon size={22} color={color ?? (filled ? t('#fff') : colors.burgundy)} strokeWidth={1.7} />
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={5} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+    <View pointerEvents="none" style={[s.icon, filled && { backgroundColor: colors.primary }, backgroundColor !== undefined && { backgroundColor }]}>
+      <Icon size={22} color={color ?? (filled ? colors.onPrimary : colors.burgundy)} strokeWidth={1.7} />
+    </View>
   </Pressable>;
 }
 export function CategoryChip({ category }: { category: Category }) {
@@ -54,7 +56,7 @@ export function FilterChips({ value, onChange, options = ['Tất cả', 'Quà t�
 
   return <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
     {options.map(option => <Pressable key={option} accessibilityRole="button" accessibilityState={{ selected: value === option }} onPress={() => onChange(option)} style={[s.filter, value === option && { backgroundColor: colors.primary }]}>
-      <Body style={{ fontSize: 13, color: value === option ? t('#fff') : t('#9A626F') }}>{option}</Body>
+      <Body style={{ fontSize: 13, color: value === option ? colors.onPrimary : t('#9A626F') }}>{option}</Body>
     </Pressable>)}
   </ScrollView>;
 }
@@ -91,6 +93,7 @@ export function PrioritySelector({ value, onChange }: { value: number; onChange:
   </View>;
 }
 export function BottomSheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  const { id } = useAppTheme();
   const s = useThemeStyles(baseStyles);
   const reducedMotion = useReducedMotion();
   const { height } = useWindowDimensions();
@@ -116,7 +119,7 @@ export function BottomSheet({ visible, onClose, title, children }: { visible: bo
   return <Modal transparent visible={visible || presented} animationType="none" onRequestClose={onClose}>
     <PopupLayer modal active={visible || presented}>
     <View style={s.overlay}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(73,37,47,0.25)', opacity: progress }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: id === 'monochrome' ? 'rgba(0,0,0,0.55)' : 'rgba(73,37,47,0.25)', opacity: progress }]}>
         <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Đóng" onPress={onClose} disabled={!visible} />
       </Animated.View>
       <Animated.View accessibilityViewIsModal pointerEvents={visible ? 'auto' : 'none'} style={[s.sheet, { transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }) }] }]}>
