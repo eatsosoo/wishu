@@ -26,7 +26,12 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-location", { "locationWhenInUsePermission": "Cho phép Our Wish dùng vị trí để ghim nơi hai bạn đã đến." }],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Cho phép Our Wish dùng vị trí để ghim nơi hai bạn đã đến."
+        }
+      ],
       [
         "expo-camera",
         {
@@ -35,7 +40,14 @@
           "barcodeScannerEnabled": false
         }
       ],
-      ["expo-image-picker", { "cameraPermission": "Cho phép Our Wish dùng camera để chụp ảnh check-in của hai bạn.", "photosPermission": "Cho phép Our Wish chọn ảnh để lưu những kỷ niệm của hai bạn.", "microphonePermission": false }],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Cho phép Our Wish dùng camera để chụp ảnh check-in của hai bạn.",
+          "photosPermission": "Cho phép Our Wish chọn ảnh để lưu những kỷ niệm của hai bạn.",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-font",
         {
@@ -52,7 +64,8 @@
         }
       ],
       "expo-image",
-      "expo-asset"
+      "expo-asset",
+      "expo-status-bar"
     ]
   }
 }

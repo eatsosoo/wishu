@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View, type ViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CircleAlert, X } from 'lucide-react-native';
 import { BlurTargetView, BlurView } from 'expo-blur';
@@ -49,14 +49,14 @@ export function PopupMessage({ message }: { message: string }) {
 
 // Also mounted inside native modals so messages stay above an open sheet.
 export function PopupLayer({ children, modal = false, active = true }: { children: ReactNode; modal?: boolean; active?: boolean }) {
-  const blurTarget = useRef<View | null>(null);
+  const blurTarget = useRef<ViewInstance | null>(null);
   return <View style={styles.layer}>
     <BlurTargetView ref={blurTarget} style={styles.layer}>{children}</BlurTargetView>
     <PopupHost modal={modal} active={active} blurTarget={blurTarget} />
   </View>;
 }
 
-function PopupHost({ modal, active, blurTarget }: { modal: boolean; active: boolean; blurTarget: RefObject<View | null> }) {
+function PopupHost({ modal, active, blurTarget }: { modal: boolean; active: boolean; blurTarget: RefObject<ViewInstance | null> }) {
   const context = useContext(PopupContext);
   const id = useId();
   const register = context?.register;
@@ -68,7 +68,7 @@ function PopupHost({ modal, active, blurTarget }: { modal: boolean; active: bool
   return <PopupCard key={context.notice.id} notice={context.notice} dismiss={context.dismiss} reduced={context.reduced} blurTarget={blurTarget} />;
 }
 
-function PopupCard({ notice, dismiss, reduced, blurTarget }: { notice: Notice; dismiss: (id: number) => void; reduced: boolean; blurTarget: RefObject<View | null> }) {
+function PopupCard({ notice, dismiss, reduced, blurTarget }: { notice: Notice; dismiss: (id: number) => void; reduced: boolean; blurTarget: RefObject<ViewInstance | null> }) {
   const { colors, id } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [progress] = useState(() => new Animated.Value(0));

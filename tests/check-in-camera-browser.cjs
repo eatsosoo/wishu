@@ -89,11 +89,36 @@ const { database, users, coupleId } = require('./helpers/relational-db.cjs');
     await enabled(shutter());
     await page.waitForFunction(() => document.querySelector('video')?.readyState === 4);
     assert.equal(await page.locator('video').count(), 1);
+    await page.evaluate(() => { window.previewBefore = document.querySelector('video'); window.streamBefore = window.previewBefore.srcObject; });
+    for (const [label, ratio] of [['Trái / phải', 0.5], ['Bốn ảnh', 1], ['Một ảnh', 1], ['Trên / dưới', 2]]) {
+      await page.getByRole('button', { name: `Template ${label}`, exact: true }).click();
+      const preview = await page.locator('video').evaluate(video => {
+        const bounds = video.getBoundingClientRect();
+        const frame = video.parentElement.getBoundingClientRect();
+        return { sameVideo: video === window.previewBefore, sameStream: video.srcObject === window.streamBefore, ratio: bounds.width / bounds.height, fillsFrame: Math.abs(bounds.width - frame.width) < 1 && Math.abs(bounds.height - frame.height) < 1, fit: getComputedStyle(video).objectFit };
+      });
+      assert.ok(preview.sameVideo && preview.sameStream, 'Template changes must preserve the running camera');
+      assert.ok(preview.fillsFrame && Math.abs(preview.ratio - ratio) < 0.01, 'Preview must fill the new cell immediately');
+      assert.equal(preview.fit, 'cover');
+      assert.equal(await shutter().isEnabled(), true, 'Changing template must not restart camera readiness');
+    }
+    await page.getByRole('button', { name: 'Ô ảnh 2 · chưa có ảnh', exact: true }).click();
+    assert.equal(await page.locator('video').evaluate(video => video === window.previewBefore && video.srcObject === window.streamBefore), true, 'Empty cell changes preserve the stream');
+    await page.getByRole('button', { name: 'Ô ảnh 1 · chưa có ảnh', exact: true }).click();
+    for (let flip = 0; flip < 2; flip++) {
+      await page.getByRole('button', { name: 'Đổi camera trước sau', exact: true }).click();
+      await enabled(shutter());
+      await page.waitForFunction(() => document.querySelector('video')?.readyState >= 2);
+      assert.equal(await page.locator('video').count(), 1, 'Camera switching must leave only one preview');
+      assert.equal(await page.locator('video').evaluate(video => video === window.previewBefore), false, 'Facing changes reopen the camera');
+      await page.evaluate(() => { window.previewBefore = document.querySelector('video'); window.streamBefore = window.previewBefore.srcObject; });
+    }
     await shutter().click();
     await page.getByText('Chụp ảnh 2/2 · 1 ảnh đã chọn', { exact: true }).waitFor();
     assert.equal(await next().isEnabled(), false);
     await enabled(shutter());
     await page.waitForFunction(() => document.querySelector('video')?.readyState === 4);
+    assert.equal(await page.locator('video').evaluate(video => video === window.previewBefore && video.srcObject === window.streamBefore), true, 'Sequential capture preserves the stream');
     await shutter().click();
     await enabled(next());
     assert.equal(await page.locator('video').count(), 0);

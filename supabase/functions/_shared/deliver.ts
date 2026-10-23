@@ -23,10 +23,11 @@ export async function deliverGifts(notificationId?: string) {
         .eq('user_id', notification.sender_id).eq('couple_id', notification.couple_id).maybeSingle();
       if (senderError) throw senderError;
       const senderName = sender?.display_name?.trim() || 'Người ấy';
+      const checkIn = notification.payload.kind === 'checkIn';
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST', headers: expoHeaders,
-        body: JSON.stringify({ to: delivery.token, title: 'Một lời thương vừa ghé đến 🎁', body: `${senderName} đã hoàn thành “${notification.payload.title}”. Chạm để mở quà ♡`,
-          sound: 'default', channelId: 'gifts', priority: 'high', data: { giftId: delivery.notification_id } }),
+        body: JSON.stringify({ to: delivery.token, title: checkIn ? 'Một dấu chân mới của hai đứa 📍' : 'Một lời thương vừa ghé đến 🎁', body: checkIn ? `${senderName} vừa thêm một check-in. Chạm để xem trên bản đồ ♡` : `${senderName} đã hoàn thành “${notification.payload.title}”. Chạm để mở quà ♡`,
+          sound: 'default', channelId: 'gifts', priority: 'high', data: checkIn ? { checkInId: notification.payload.checkInId } : { giftId: delivery.notification_id } }),
         signal: AbortSignal.timeout(10000),
       });
       if (!response.ok) throw new Error(`ExpoHTTP${response.status}`);

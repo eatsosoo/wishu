@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AppState, Platform, Pressable, ScrollView, StyleSheet, View, type ViewInstance } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -45,7 +45,11 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
   const [pendingTemplate, setPendingTemplate] = useState<CheckInTemplate | null>(null);
   const [loaded, setLoaded] = useState<(string | undefined)[]>([]);
   const camera = useRef<CameraView>(null);
-  const collage = useRef<View>(null);
+  const attachCamera = useCallback((instance: CameraView | null) => {
+    camera.current = instance;
+    if (!instance) setReady(false);
+  }, []);
+  const collage = useRef<ViewInstance>(null);
   const lock = useRef(false);
   const pickerGeneration = useRef(0);
   const alive = useRef(true);
@@ -57,7 +61,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
   }, []));
   useEffect(() => {
     const listener = AppState.addEventListener('change', state => {
-      setForeground(state === 'active'); setReady(false);
+      setForeground(state === 'active');
       if (state === 'active') void refreshPermission().catch(() => {});
     });
     return () => listener.remove();
@@ -68,19 +72,19 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
   const showCamera = live && focused && foreground && permission?.granted && !cameraError;
   const allLoaded = template.cells.every((_, index) => !!shots[index] && loaded[index] === shots[index]!.uri);
   const count = template.cells.filter((_, index) => shots[index]).length;
+  const activeCell = template.cells[active];
 
   function changeTemplate(next: CheckInTemplate) {
     if (lock.current) return;
     pickerGeneration.current++;
     const kept = shots.slice(0, next.cells.length);
-    setTemplate(next); setShots(kept); setReady(false);
+    setTemplate(next); setShots(kept);
     setActive(Math.max(0, next.cells.findIndex((_, index) => !kept[index])));
     setPendingTemplate(null); setError('');
   }
   function selectSlot(index: number) {
     if (lock.current) return;
     pickerGeneration.current++;
-    if (index !== active) setReady(false);
     setActive(index); setError('');
   }
   function removeShot(index: number) {
@@ -88,7 +92,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
     pickerGeneration.current++;
     setShots(current => current.map((shot, slot) => slot === index ? undefined : shot));
     setLoaded(current => current.map((uri, slot) => slot === index ? undefined : uri));
-    setActive(index); setReady(false); setCameraError(''); setError('');
+    setActive(index); setCameraError(''); setError('');
   }
   function chooseTemplate(next: CheckInTemplate) {
     if (next.id === template.id || lock.current) return;
@@ -106,7 +110,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
     next[index]!.source.height = Math.max(1, Math.round(source.height * scale));
     next[index]!.source.file = undefined; next[index]!.source.fileSize = undefined;
     next[index]!.source.mimeType = 'image/jpeg';
-    setShots(next); setReady(false);
+    setShots(next);
     const missing = template.cells.findIndex((_, slot) => !next[slot]);
     if (missing >= 0) setActive(missing);
   }
@@ -173,8 +177,13 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
             onError={() => setError('Chưa tải được ảnh. Bạn xóa ô ảnh và chọn lại nhé.')} /> : null}
         </View>)}
       </View>
+      {/* Keep one camera mounted while moving/resizing its viewport. Reopening the
+          stream for each template/empty cell causes a delayed cover fit on web. */}
+      {showCamera ? <View pointerEvents="none" style={{ position: 'absolute', left: `${activeCell.x * 100}%`, top: `${activeCell.y * 100}%`, width: `${activeCell.width * 100}%`, height: `${activeCell.height * 100}%`, overflow: 'hidden', backgroundColor: colors.rose }}>
+        {!ready ? <View style={styles.placeholder}><Camera size={28} color={colors.primary} /><Body style={{ color: colors.primary, fontSize: 12 }}>Đang mở camera…</Body></View> : null}
+        <CameraView key={facing} ref={attachCamera} style={[StyleSheet.absoluteFill, { opacity: ready ? 1 : 0 }]} facing={facing} mirror={facing === 'front'} mode="picture" onCameraReady={() => setReady(true)} onMountError={() => { setReady(false); setCameraError('Không mở được camera. Kiểm tra quyền truy cập hoặc chọn ảnh từ thư viện.'); }} />
+      </View> : null}
       {template.cells.map((cell, index) => <View key={index} pointerEvents="box-none" style={{ position: 'absolute', left: `${cell.x * 100}%`, top: `${cell.y * 100}%`, width: `${cell.width * 100}%`, height: `${cell.height * 100}%`, overflow: 'hidden' }}>
-        {index === active && showCamera ? <CameraView key={`${facing}-${index}-${template.id}`} ref={camera} style={StyleSheet.absoluteFill} facing={facing} mirror={facing === 'front'} mode="picture" onCameraReady={() => setReady(true)} onMountError={() => { setReady(false); setCameraError('Không mở được camera. Kiểm tra quyền truy cập hoặc chọn ảnh từ thư viện.'); }} /> : null}
         {index === active && live && !showCamera ? <View style={[styles.placeholder, { backgroundColor: colors.rose }]}>
           <Camera size={28} color={colors.primary} />
           <Body style={{ color: colors.primary, textAlign: 'center', fontSize: 12 }}>{cameraError || (permission?.granted ? 'Đang mở camera…' : 'Cho phép camera để chụp ảnh')}</Body>
@@ -191,7 +200,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
     <View style={styles.controls}>
       <IconButton icon={ImagePlus} label="Chọn ảnh từ thư viện" onPress={() => { if (!busy) void pickPhoto(); }} />
       <Pressable accessibilityRole="button" accessibilityLabel="Chụp ảnh check-in" accessibilityState={{ disabled: busy || !ready || !showCamera }} disabled={busy || !ready || !showCamera} onPress={() => void capture()} style={[styles.shutter, { borderColor: colors.primary, opacity: busy || !ready || !showCamera ? 0.4 : 1 }]}><View style={{ flex: 1, borderRadius: 99, backgroundColor: colors.primary, margin: 5 }} /></Pressable>
-      <IconButton icon={RefreshCw} label="Đổi camera trước sau" onPress={() => { if (lock.current || !live) return; setReady(false); setCameraError(''); setFacing(current => current === 'back' ? 'front' : 'back'); }} />
+      <IconButton icon={RefreshCw} label="Đổi camera trước sau" onPress={() => { if (lock.current || !live || (showCamera && !ready)) return; setReady(false); setCameraError(''); setFacing(current => current === 'back' ? 'front' : 'back'); }} />
     </View>
     {live && (!permission?.granted || cameraError) ? <SecondaryButton onPress={() => void enableCamera()}>{cameraError ? 'Thử mở lại camera' : 'Cho phép camera'}</SecondaryButton> : null}
     {live && permission && !permission.granted && !permission.canAskAgain ? <Body style={{ color: colors.muted, fontSize: 12 }}>Bạn có thể cấp quyền camera trong cài đặt thiết bị hoặc trình duyệt.</Body> : null}

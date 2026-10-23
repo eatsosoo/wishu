@@ -1,6 +1,6 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
 import { useRef, useState, type ReactNode, type RefObject } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View, type ViewInstance, type StyleProp, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,7 +16,7 @@ const items: { path: '/' | '/wishes' | '/memories' | '/us'; label: string; icon:
   { path: '/', label: 'Trang chủ', icon: Home }, { path: '/wishes', label: 'Điều ước', icon: Heart },
   { path: '/memories', label: 'Kỷ niệm', icon: CalendarHeart }, { path: '/us', label: 'Của chúng ta', icon: UsersRound },
 ];
-export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<View | null> }) {
+export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<ViewInstance | null> }) {
   const s = useThemeStyles(baseStyles);
   const { colors, id } = useAppTheme();
   const position = useNavigationHighlight();
@@ -59,7 +59,7 @@ export function AppScreen({ children, navigation = false, contentStyle, home = f
   const s = useThemeStyles(baseStyles);
   const insets = useSafeAreaInsets();
 
-  const blurTarget = useRef<View | null>(null);
+  const blurTarget = useRef<ViewInstance | null>(null);
   const { expand } = useNavigationExpansion();
   const scrollY = useRef(0);
   const downwardTravel = useRef(0);

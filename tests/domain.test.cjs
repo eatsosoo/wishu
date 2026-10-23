@@ -7,6 +7,16 @@ const { togetherDays } = require('../src/features/couple/selectors.ts');
 const { applyWishCommand } = require('../src/services/wish-actions.ts');
 const { partnerName, personalizePartnerText } = require('../src/features/couple/selectors.ts');
 
+test('local check-ins notify the partner once and edits do not create notifications', () => {
+  const input = { id: 'checkin-test', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-23', companion: '', note: '', photo: { art: 'bear' } };
+  const next = applyWishCommand(createMockSnapshot(), { kind: 'checkIn', input }, 'minh');
+  assert.equal(next.notifications[0].kind, 'checkIn');
+  assert.equal(next.notifications[0].recipient, 'linh');
+  assert.equal(next.notifications[0].checkInId, input.id);
+  const edited = applyWishCommand(next, { kind: 'checkIn', input: { ...input, title: 'Updated' } }, 'minh');
+  assert.deepEqual(edited.notifications, next.notifications);
+});
+
 test('partner copy follows the other member and falls back while waiting for them', () => {
   const couple = { name: '', anniversaryDate: '', members: [{ id: 'minh', name: 'Minh' }] };
   assert.equal(partnerName(couple, 'minh'), 'người ấy');

@@ -21,11 +21,14 @@ export function NotificationBridge() {
         void Notifications.clearLastNotificationResponseAsync();
         return;
       }
-      const id = request.content.data?.giftId;
+      const checkInId = request.content.data?.checkInId;
+      const isCheckIn = typeof checkInId === 'string';
+      const id = isCheckIn ? checkInId : request.content.data?.giftId;
       if (typeof id !== 'string' || !/^[a-zA-Z0-9-]{1,100}$/.test(id)) return;
       lastId.current = request.identifier;
       void refresh();
-      router.push({ pathname: '/gift/[id]', params: { id } });
+      if (isCheckIn) router.push({ pathname: '/check-in-map', params: { focus: id } });
+      else router.push({ pathname: '/gift/[id]', params: { id } });
       void Notifications.clearLastNotificationResponseAsync();
     }
     if (cloudEnabled && Constants.appOwnership !== 'expo') void registerPush(false).catch(() => {});

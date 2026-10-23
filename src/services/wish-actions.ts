@@ -51,7 +51,9 @@ export function applyWishCommand(snapshot: WishSnapshot, command: WishCommand, a
     case 'checkIn': {
       const existing = snapshot.checkIns?.find(item => item.id === command.input.id);
       if (existing && existing.createdBy !== actor) throw new Error('Bạn chỉ có thể sửa check-in của mình.');
-      return { ...snapshot, checkIns: [{ ...command.input, createdBy: actor }, ...(snapshot.checkIns ?? []).filter(item => item.id !== command.input.id)] };
+      const partner = snapshot.couple.members.find(member => member.id !== actor && member.joined !== false);
+      return { ...snapshot, checkIns: [{ ...command.input, createdBy: actor }, ...(snapshot.checkIns ?? []).filter(item => item.id !== command.input.id)],
+        notifications: !existing && partner ? [{ id: makeId('checkin-notification'), kind: 'checkIn', checkInId: command.input.id, sender: actor, recipient: partner.id, title: command.input.title, createdAt: new Date().toISOString() }, ...snapshot.notifications] : snapshot.notifications };
     }
     case 'deleteCheckIn': {
       if (snapshot.checkIns?.some(item => item.id === command.id && item.createdBy !== actor)) throw new Error('Bạn chỉ có thể xoá check-in của mình.');

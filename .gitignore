@@ -44,6 +44,8 @@ yarn-error.*
 # Local screenshots and review helpers
 .preview/
 /tmp/check-in-web/
+/tmp/check-in-camera-web/
+/tmp/check-in-notification-web/
 /tmp/check-in-android/
 /tmp/screenshots/check-in-*.png
 /tmp/screenshots/map-probe.png

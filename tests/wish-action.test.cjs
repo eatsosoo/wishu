@@ -6,7 +6,7 @@ const ts = require('typescript');
 const domain = require('../src/types/domain.ts');
 const { PHOTO_LIMITS } = require('../src/features/photos/limits.ts');
 
-function harness({ error = null, giftId = null, signedIn = true } = {}) {
+function harness({ error = null, giftId = null, notificationId = null, signedIn = true } = {}) {
   const calls = [], deliveries = [], pending = [];
   const user = '11111111-1111-4111-8111-111111111111';
   const coupleId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -32,7 +32,7 @@ function harness({ error = null, giftId = null, signedIn = true } = {}) {
             const query = { select: () => query, eq: () => query, single: async () => ({ data: { actor: 'minh', couple_id: coupleId } }) };
             return query;
           },
-          rpc: async (name, args) => { calls.push({ name, args }); return { data: { giftId }, error }; },
+          rpc: async (name, args) => { calls.push({ name, args }); return { data: { giftId, notificationId }, error }; },
         },
       };
       if (name === '../_shared/deliver.ts') return { deliverGifts: async id => deliveries.push(['native', id]) };
@@ -75,6 +75,14 @@ test('validation and authentication reject requests before invoking the database
   const unauthorized = harness({ signedIn: false });
   assert.equal((await unauthorized.request({ kind: 'read', id: 'gift' })).status, 401);
   assert.equal(unauthorized.calls.length, 0);
+});
+
+test('new check-in notification IDs dispatch both committed outboxes', async () => {
+  const h = harness({ notificationId: 'checkin-new' });
+  const response = await h.request({ kind: 'checkIn', input: { id: 'checkin-test', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-22', companion: '', note: '', photo: { uri: `storage://aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/${h.user}/photo.jpg`, storagePath: `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/${h.user}/photo.jpg` } } });
+  assert.equal(response.status, 200);
+  await Promise.all(h.pending);
+  assert.deepEqual(h.deliveries, [['native', 'checkin-new'], ['web', 'checkin-new']]);
 });
 
 test('visibility commands require a boolean and are passed to the transaction', async () => {

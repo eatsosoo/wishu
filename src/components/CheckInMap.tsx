@@ -7,12 +7,12 @@ import { useMapFocus } from '../hooks/use-map-focus';
 
 export function CheckInMap(props: CheckInMapProps) {
   const focused = useMapFocus();
-  const ref = useRef<WebView>(null);
+  const ref = useRef<WebView<unknown>>(null);
   const [source] = useState(() => ({ html: mapDocument(), baseUrl: 'https://tiles.openfreemap.org' }));
   const latest = useRef(props);
   useEffect(() => { latest.current = props; ref.current?.injectJavaScript(`window.receiveMapConfig && window.receiveMapConfig(${JSON.stringify(props.config).replace(/</g, '\\u003c')}); true;`); }, [props]);
   const inject = () => ref.current?.injectJavaScript(`window.receiveMapConfig && window.receiveMapConfig(${JSON.stringify(latest.current.config).replace(/</g, '\\u003c')}); true;`);
-  return focused ? <WebView ref={ref} source={source} style={{ flex: 1 }} javaScriptEnabled scrollEnabled={false} originWhitelist={['*']} onMessage={event => {
+  return focused ? <WebView<unknown> ref={ref} source={source} style={{ flex: 1 }} javaScriptEnabled scrollEnabled={false} originWhitelist={['*']} onMessage={event => {
     try { if (JSON.parse(event.nativeEvent.data).type === 'ready') inject(); } catch { return; }
     handleMapMessage(event.nativeEvent.data, props);
   }} onShouldStartLoadWithRequest={request => {

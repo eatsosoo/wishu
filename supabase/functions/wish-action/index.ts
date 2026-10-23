@@ -65,8 +65,8 @@ Deno.serve(async request => {
       // P0001 contains deliberate, user-facing errors from our transactional RPC.
       throw new Error(commitError.code === 'P0001' ? commitError.message : 'Chưa lưu được thay đổi. Bạn thử lại nhé.');
     }
-    const giftId = result?.giftId;
-    // Outboxes are committed with the memory. A replay never enqueues another gift.
+    const giftId = result?.notificationId ?? result?.giftId;
+    // Outboxes are committed with the memory/check-in. Replays never enqueue again.
     if (typeof giftId === 'string') {
       EdgeRuntime.waitUntil(deliverGifts(giftId).catch(() => {}));
       EdgeRuntime.waitUntil(deliverWebGifts(giftId).catch(() => {}));

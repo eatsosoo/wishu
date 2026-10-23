@@ -57,16 +57,24 @@ export interface Couple {
   anniversaryDate: string;
   members: { id: PersonId; name: string; birthDate?: string; gender?: Gender; joined?: boolean }[];
 }
-export interface GiftNotification {
+interface NotificationBase {
   id: string;
-  wishId: string;
-  memoryId: string;
   sender: PersonId;
   recipient: PersonId;
   title: string;
   createdAt: string;
   readAt?: string;
 }
+export interface GiftNotification extends NotificationBase {
+  kind?: 'gift';
+  wishId: string;
+  memoryId: string;
+}
+export interface CheckInNotification extends NotificationBase {
+  kind: 'checkIn';
+  checkInId: string;
+}
+export type AppNotification = GiftNotification | CheckInNotification;
 // API view assembled from relational tables; also used by local test fixtures.
 export interface WishSnapshot {
   checkIns?: CheckIn[];
@@ -74,7 +82,7 @@ export interface WishSnapshot {
   preparations: Preparation[];
   memories: Memory[];
   couple: Couple;
-  notifications: GiftNotification[];
+  notifications: AppNotification[];
 }
 export type WishInput = Omit<Wish, 'id' | 'favorite'>;
 export interface CompletionInput { wishId: string; completedAt: string; note: string; photos: Photo[] }

@@ -3,6 +3,48 @@ const { test } = require('node:test');
 const { database, users, coupleId } = require('./helpers/relational-db.cjs');
 const input = { id: 'checkin-test', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-22', companion: 'Linh', note: 'Cùng nhau ♡', photo: { uri: `storage://${coupleId}/${users[0]}/checkin.jpg`, storagePath: `${coupleId}/${users[0]}/checkin.jpg` } };
 
+test('new check-in notifies only the partner and atomically queues both push channels once', async t => {
+  const h = await database(); t.after(() => h.db.close());
+  await h.db.query("insert into wish_push_tokens(token,user_id,platform) values('ExponentPushToken[partner]',$1,'android'),('ExponentPushToken[sender]',$2,'ios')", [users[1], users[0]]);
+  await h.db.query("insert into wish_web_push_subscriptions(user_id,endpoint,p256dh,auth) values($1,'https://fcm.googleapis.com/test','key','auth')", [users[1]]);
+  const result = await h.command(users[0], { kind: 'checkIn', input });
+  assert.ok(result.notificationId);
+  const notification = (await h.state(users[1])).snapshot.notifications[0];
+  assert.equal(notification.id, result.notificationId);
+  assert.equal(notification.kind, 'checkIn');
+  assert.equal(notification.checkInId, input.id);
+  assert.equal(notification.title, input.title);
+  assert.equal(notification.sender, 'minh');
+  assert.equal(notification.recipient, 'linh');
+  assert.equal((await h.state(users[0])).snapshot.notifications.length, 0);
+  assert.equal((await h.asUser(users[2], () => h.db.query('select * from gift_notifications'))).rows.length, 0);
+  assert.equal((await h.db.query('select token from gift_push_deliveries')).rows[0].token, 'ExponentPushToken[partner]');
+  assert.equal((await h.db.query('select * from gift_web_push_deliveries')).rows.length, 1);
+  assert.deepEqual(await h.command(users[0], { kind: 'checkIn', input }), {});
+  await h.command(users[0], { kind: 'checkIn', input: { ...input, title: 'Updated' } });
+  assert.equal((await h.db.query('select * from gift_notifications')).rows.length, 1);
+  assert.equal((await h.db.query('select * from gift_push_deliveries')).rows.length, 1);
+  assert.equal((await h.db.query('select * from gift_web_push_deliveries')).rows.length, 1);
+  await h.command(users[0], { kind: 'read', id: notification.id });
+  assert.equal((await h.state(users[1])).snapshot.notifications[0].readAt, undefined);
+  await h.command(users[1], { kind: 'read', id: notification.id });
+  assert.ok((await h.state(users[1])).snapshot.notifications[0].readAt);
+  await h.command(users[0], { kind: 'deleteCheckIn', id: input.id });
+  assert.equal((await h.db.query('select * from gift_notifications')).rows.length, 0);
+  assert.equal((await h.db.query('select * from gift_push_deliveries')).rows.length, 0);
+  assert.equal((await h.db.query('select * from gift_web_push_deliveries')).rows.length, 0);
+});
+
+test('check-in save survives an absent partner and invalid saves never notify', async t => {
+  const h = await database(); t.after(() => h.db.close());
+  await assert.rejects(h.command(users[0], { kind: 'checkIn', input: { ...input, latitude: 91 } }));
+  assert.equal((await h.db.query('select * from gift_notifications')).rows.length, 0);
+  await h.db.query('delete from wish_members where user_id=$1', [users[1]]);
+  assert.deepEqual(await h.command(users[0], { kind: 'checkIn', input }), {});
+  assert.equal((await h.state(users[0])).snapshot.checkIns.length, 1);
+  assert.equal((await h.db.query('select * from gift_notifications')).rows.length, 0);
+});
+
 test('check-ins persist, update idempotently, share with partner and isolate other couples', async t => {
   const h = await database(); t.after(() => h.db.close());
   await h.command(users[0], { kind: 'checkIn', input });

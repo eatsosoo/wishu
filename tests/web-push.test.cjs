@@ -89,14 +89,14 @@ test('notification click focuses an existing app window after navigating to the 
   assert.equal(h.opened.length, 0);
 });
 
-function deliveryHarness({ recipient = 'recipient', owner = 'recipient', endpoint = 'https://fcm.googleapis.com/push/token', failure, configured = true, senderName = 'Linh' } = {}) {
+function deliveryHarness({ recipient = 'recipient', owner = 'recipient', endpoint = 'https://fcm.googleapis.com/push/token', failure, configured = true, senderName = 'Linh', payload } = {}) {
   const sent = [], saved = [], disabled = [];
   const subscription = { user_id: owner, enabled: true, endpoint, p256dh: 'key', auth: 'secret', updated_at: 'now' };
   const delivery = { id: 'delivery', notification_id: 'gift-123', subscription_id: 'subscription', attempts: 1 };
   const admin = { rpc: async () => ({ data: [delivery] }), from: table => {
     const chain = {
       select: () => chain, eq: () => chain,
-      single: async () => ({ data: table === 'gift_notifications' ? { recipient_id: recipient, sender_id: 'sender', couple_id: 'couple' } : subscription }),
+      single: async () => ({ data: table === 'gift_notifications' ? { payload, recipient_id: recipient, sender_id: 'sender', couple_id: 'couple' } : subscription }),
       maybeSingle: async () => ({ data: senderName === null ? null : { display_name: senderName } }),
       update: values => { (table === 'gift_web_push_deliveries' ? saved : disabled).push(values); return chain; },
       then: resolve => resolve({ error: null }),
@@ -132,6 +132,22 @@ test('worker falls back when the sender no longer has a display name', async () 
   const h = deliveryHarness({ senderName: null });
   await h.run('gift-123');
   assert.equal(JSON.parse(h.sent[0][1]).senderName, 'Người ấy');
+});
+
+test('check-in web push keeps private location out of the lock screen and opens its map pin', async () => {
+  const delivery = deliveryHarness({ payload: { kind: 'checkIn', checkInId: 'checkin-123', title: 'Private location' } });
+  await delivery.run();
+  const payload = JSON.parse(delivery.sent[0][1]);
+  assert.deepEqual(payload, { checkInId: 'checkin-123', senderName: 'Linh' });
+  const h = workerHarness();
+  let done;
+  h.events.push({ data: { json: () => payload }, waitUntil: promise => { done = promise; } });
+  await done;
+  assert.equal(h.shown[0].body, 'Linh vừa thêm một check-in. Chạm để xem trên bản đồ ♡');
+  assert.equal(h.shown[0].data.url, '/check-in-map?focus=checkin-123');
+  h.events.notificationclick({ notification: { data: h.shown[0].data, close() {} }, waitUntil: promise => { done = promise; } });
+  await done;
+  assert.equal(h.opened[0], 'https://wish.example/check-in-map?focus=checkin-123');
 });
 
 test('worker refuses another account, untrusted endpoint, and unconfigured backend', async () => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Plus } from 'lucide-react-native';
@@ -14,8 +14,12 @@ export default function CheckInMapScreen() {
   // variable that could reveal the previous account's map center after logout.
   const [viewport, setViewport] = useState<MapViewport>();
   const { colors } = useAppTheme();
-  const { checkIns } = useWishStore();
+  const { checkIns, notifications, refresh, markGiftRead } = useWishStore();
   const { focus } = useLocalSearchParams<{ focus?: string }>();
+  const unreadId = notifications.find(item => item.kind === 'checkIn' && item.checkInId === focus && !item.readAt)?.id;
+  const markRead = useEffectEvent((id: string) => { void markGiftRead(id); });
+  useEffect(() => { if (focus) void refresh(); }, [focus, refresh]);
+  useEffect(() => { if (unreadId) markRead(unreadId); }, [unreadId]);
   const target = checkIns.find(item => item.id === focus);
   const config = useMemo(() => ({ colors, viewport, items: checkIns.map(item => ({ id: item.id, title: item.title, latitude: item.latitude, longitude: item.longitude, uri: 'uri' in item.photo ? item.photo.uri : '' })), focus: target ? { latitude: target.latitude, longitude: target.longitude, key: target.id } : undefined }), [colors, checkIns, target, viewport]);
   return <AppScreen contentStyle={{ flex: 1, paddingHorizontal: 16 }} header={{ title: 'Bản đồ kỷ niệm', right: <IconButton icon={Plus} label="Thêm check-in" filled onPress={() => router.push('/check-in/new')} /> }}>

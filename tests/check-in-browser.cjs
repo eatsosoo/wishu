@@ -1,5 +1,6 @@
 // Local browser integration: real app + real map renderer + isolated SQL database.
 // Usage: export web to tmp/check-in-web, then NODE_PATH=<playwright modules> node this-file.
+// CHECK_IN_NOTIFICATIONS_ONLY=1 runs the inbox/map flow without GPS or image editing.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -12,7 +13,7 @@ const { colors } = require('../src/constants/design-tokens.cjs');
 (async () => {
   const h = await database();
   await h.db.exec("update wish_members set birth_date='2000-01-01',gender='other'");
-  const output = path.resolve(__dirname, '../tmp/check-in-web');
+  const output = path.resolve(__dirname, process.env.CHECK_IN_WEB_OUTPUT || '../tmp/check-in-web');
   const icon = fs.readFileSync(path.resolve(__dirname, '../assets/icon.png'));
   const server = http.createServer((req, res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
@@ -53,6 +54,7 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     page.on('console', message => { if (message.type() === 'error' || message.text().startsWith('Map ')) console.log('Browser:', message.text().slice(0, 300)); });
     const pending = new Set(); page.on('request', request => pending.add(request.url())); page.on('requestfinished', request => pending.delete(request.url()));
     const networkErrors = []; page.on('requestfailed', request => { pending.delete(request.url()); networkErrors.push(`${new URL(request.url()).hostname}: ${request.failure()?.errorText}`); });
+    if (!process.env.CHECK_IN_NOTIFICATIONS_ONLY) {
     await page.goto(`${base}/check-in-map`);
     await page.getByRole('button', { name: 'Thêm check-in', exact: true }).waitFor({ timeout: 45000 }).catch(async error => { console.log('UI', await page.locator('body').innerText(), 'ERRORS', errors); throw error; });
     assert.equal(await page.getByRole('button', { name: 'Thêm check-in', exact: true }).count(), 1);
@@ -144,6 +146,29 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     await page.getByRole('button', { name: 'Xoá check-in', exact: true }).last().click();
     await page.getByRole('button', { name: 'Thêm check-in', exact: true }).waitFor();
     assert.equal((await h.state(users[1])).snapshot.checkIns.length, 0);
+    }
+
+    // The other member adds a check-in: inbox → focused map → read receipt.
+    await h.command(users[1], { kind: 'checkIn', input: { id: 'partner-checkin', title: 'Hồ Tây', latitude: 21.06, longitude: 105.82, visitedAt: '2026-10-23', companion: '', note: '', photo: { uri: `storage://${coupleId}/${users[1]}/checkin.jpg`, storagePath: `${coupleId}/${users[1]}/checkin.jpg` } } });
+    await page.goto(`${base}/notifications`);
+    await page.getByText('1 thông báo chưa đọc ♡', { exact: true }).waitFor();
+    const checkInNotice = page.getByRole('button', { name: /Chưa đọc\..*vừa thêm check-in Hồ Tây\. Xem trên bản đồ/ });
+    await checkInNotice.waitFor();
+    await page.screenshot({ path: 'tmp/screenshots/check-in-notification.png', fullPage: true });
+    const readReceipt = page.waitForResponse(response => response.url().includes('/functions/v1/wish-action') && response.request().postDataJSON()?.kind === 'read');
+    await checkInNotice.click();
+    await page.waitForURL('**/check-in-map?focus=partner-checkin');
+    await readReceipt;
+    assert.ok((await h.state(users[0])).snapshot.notifications[0].readAt);
+    await page.getByText('1 nơi đã đến · những dấu chân của hai đứa', { exact: true }).waitFor();
+    await page.goto(`${base}/notifications`);
+    await page.getByRole('button', { name: /Đã đọc\..*vừa thêm check-in Hồ Tây\. Xem trên bản đồ/ }).waitFor();
+    await h.command(users[1], { kind: 'deleteCheckIn', id: 'partner-checkin' });
+    if (process.env.CHECK_IN_NOTIFICATIONS_ONLY) {
+      assert.deepEqual(errors, []);
+      console.log('PASS: partner check-in notification, inbox, focused map navigation and persisted read receipt');
+      return;
+    }
 
     // The shared header must stay outside scrolling content on every subpage.
     const routes = ['/wish/new', '/wish/bear', '/preparing', '/wish/bear/complete', '/notifications', '/avatar', '/memory-day/2026-10-22', '/memory/missing', '/gift/missing', '/check-in/new', '/check-in-map'];

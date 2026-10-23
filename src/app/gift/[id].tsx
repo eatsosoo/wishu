@@ -6,6 +6,7 @@ import { GiftReveal } from '../../components/GiftReveal';
 import { Body, EmptyState, Heading, LoadingState, PrimaryButton } from '../../components/ui';
 import { useWishStore } from '../../hooks/use-wish-store';
 import { useAppTheme } from '../../hooks/use-app-theme';
+import type { GiftNotification } from '../../types/domain';
 
 export default function GiftScreen() {
   const { id, preview } = useLocalSearchParams<{ id: string; preview?: string }>();
@@ -13,7 +14,7 @@ export default function GiftScreen() {
   const store = useWishStore();
   const { refresh, markGiftRead } = store;
   const { colors } = useAppTheme();
-  const gift = store.notifications.find(item => item.id === id);
+  const gift = store.notifications.find((item): item is GiftNotification => item.kind !== 'checkIn' && item.id === id);
   const giftId = gift?.id;
   const readAt = gift?.readAt;
   const [loadedId, setLoadedId] = useState<string | null>(null);
