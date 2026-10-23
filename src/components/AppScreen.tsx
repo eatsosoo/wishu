@@ -101,8 +101,9 @@ export function AppHeader({ title, back = true, onBack, backLabel = 'Quay lại'
     <View style={s.headerAction}>{right}</View>
   </View>;
 }
-export function ScreenTitle({ title, right }: { title: string; right?: ReactNode }) {
+export function ScreenTitle({ title, right, icon }: { title: string; right?: ReactNode; icon?: ReactNode }) {
   return <View style={baseStyles.screenTitle}>
+    {icon ? <View pointerEvents="none" accessible={false} style={{ height: 52, flexShrink: 0, justifyContent: 'center' }}>{icon}</View> : null}
     <Heading style={{ flex: 1, minWidth: 0, fontSize: 27, lineHeight: 44 }}>{title}</Heading>
     <View style={baseStyles.titleActions}><NotificationBell />{right}</View>
   </View>;

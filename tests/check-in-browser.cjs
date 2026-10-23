@@ -54,6 +54,46 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     page.on('console', message => { if (message.type() === 'error' || message.text().startsWith('Map ')) console.log('Browser:', message.text().slice(0, 300)); });
     const pending = new Set(); page.on('request', request => pending.add(request.url())); page.on('requestfinished', request => pending.delete(request.url()));
     const networkErrors = []; page.on('requestfailed', request => { pending.delete(request.url()); networkErrors.push(`${new URL(request.url()).hostname}: ${request.failure()?.errorText}`); });
+    if (process.env.LOCATE_ICON_ONLY) {
+      await h.command(users[0], { kind: 'checkIn', input: { id: 'icon-checkin', title: 'Hồ Tây', latitude: 21.06, longitude: 105.82, visitedAt: '2026-10-23', companion: '', note: '', photo: { uri: `storage://${coupleId}/${users[0]}/checkin.jpg`, storagePath: `${coupleId}/${users[0]}/checkin.jpg` } } });
+      await page.addInitScript(() => {
+        window.locationRequests = 0;
+        navigator.geolocation.getCurrentPosition = success => {
+          window.locationRequests++;
+          window.finishLocation = () => success({ coords: { latitude: 11.94, longitude: 108.44, accuracy: 10 }, timestamp: Date.now() });
+        };
+      });
+      await page.goto(`${base}/check-in/new?edit=icon-checkin`);
+      await page.getByRole('button', { name: 'Dùng ảnh này · Tiếp tục', exact: true }).click();
+      const locate = page.getByRole('button', { name: 'Dùng vị trí hiện tại', exact: true });
+      await locate.waitFor();
+      const bounds = await locate.boundingBox(), mapBounds = await page.locator('iframe').boundingBox();
+      assert.ok(bounds.x >= mapBounds.x && bounds.x - mapBounds.x <= 16, 'Location button sits inside the left map edge');
+      assert.ok(bounds.y >= mapBounds.y && bounds.y - mapBounds.y <= 16, 'Location button sits inside the top map edge');
+      assert.ok(bounds.width >= 44 && bounds.height >= 44, 'Location button has a touch-sized target');
+      const hint = page.getByText('Đã chọn vị trí · kéo ghim để điều chỉnh', { exact: true });
+      const hintBounds = await hint.boundingBox();
+      assert.ok(hintBounds.y - (mapBounds.y + mapBounds.height) <= 20, 'Floating control must not add space below the map');
+      assert.equal(await locate.locator('svg').count(), 1);
+      await locate.click();
+      const pendingLocation = page.getByRole('button', { name: 'Đang lấy vị trí…', exact: true });
+      await pendingLocation.waitFor();
+      assert.equal(await pendingLocation.isEnabled(), false);
+      assert.deepEqual(await page.locator('iframe').boundingBox(), mapBounds, 'Loading must not resize or move the map');
+      assert.deepEqual(await hint.boundingBox(), hintBounds, 'Loading must not push content below the map');
+      await page.waitForFunction(() => window.finishLocation);
+      assert.equal(await page.evaluate(() => window.locationRequests), 1);
+      await page.evaluate(() => window.finishLocation());
+      await locate.waitFor();
+      assert.equal(await locate.isEnabled(), true);
+      await page.getByText('Đã chọn vị trí · kéo ghim để điều chỉnh', { exact: true }).waitFor();
+      const frame = await (await page.locator('iframe').elementHandle()).contentFrame();
+      await frame.waitForFunction(() => typeof ready !== 'undefined' && ready);
+      await page.screenshot({ path: 'tmp/screenshots/check-in-location-heart.png', fullPage: true });
+      assert.deepEqual(errors, []);
+      console.log('PASS: heart location icon, top-left overlay, accessible touch target, loading state and GPS completion');
+      return;
+    }
     if (process.env.CALENDAR_DAYS_ONLY) {
       await page.goto(`${base}/memories`);
       await page.getByRole('button', { name: /Ngày 19 tháng 10 năm 2024,/ }).click();

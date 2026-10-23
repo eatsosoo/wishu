@@ -6,6 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AppScreen, ScreenTitle } from '../components/AppScreen';
 import { Body, BottomSheet, EmptyState } from '../components/ui';
 import { JarPairIcon } from '../components/JarPairIcon';
+import { WishJarTitleIcon } from '../components/WishJarTitleIcon';
 import { WishCard } from '../components/Cards';
 import { useWishStore } from '../hooks/use-wish-store';
 import { categories, type CategoryFilter, type PersonId } from '../types/domain';
@@ -25,7 +26,7 @@ export default function WishesScreen() {
   const visibleWishes = store.wishes.filter(wish => wish.createdBy === owner && (wish.createdBy === store.actor || wish.active !== false));
   const wishes = visibleWishes.filter(wish => completedWishIds.has(wish.id) === (tab === 'completed') && (filter === 'Tất cả' || wish.category === filter));
   return <AppScreen navigation>
-    <ScreenTitle title={`Hũ điều ước của ${name} ♡`} />
+    <ScreenTitle title={`Hũ điều ước của ${name}`} icon={<WishJarTitleIcon />} />
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={{ gap: 8, paddingVertical: 4 }} accessibilityRole="tablist">
         {(['pending', 'completed'] as const).map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => setTab(value)} style={{ borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: tab === value ? colors.primary : t('#F5E7E7') }}><Body style={{ fontSize: 13, color: tab === value ? colors.onPrimary : t('#9A626F') }}>{value === 'pending' ? 'Mong chờ' : 'Hoàn thành'} · {visibleWishes.filter(wish => completedWishIds.has(wish.id) === (value === 'completed')).length}</Body></Pressable>)}

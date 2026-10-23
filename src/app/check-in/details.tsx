@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import * as Location from 'expo-location';
 import { router, useFocusEffect } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { AppScreen } from '../../components/AppScreen';
 import { PhotoView } from '../../components/Artwork';
-import { AppInput, AppTextarea, Body, IconButton, PrimaryButton, SecondaryButton } from '../../components/ui';
+import { AppInput, AppTextarea, Body, IconButton, PrimaryButton } from '../../components/ui';
 import { DateField } from '../../components/DateField';
 import { CheckInMap } from '../../components/CheckInMap';
+import { LocateHeartButton } from '../../components/LocateHeartButton';
 import { localToday, useCheckInDraft, type CheckInDraft } from '../../features/check-in/draft';
 import { useAppTheme } from '../../hooks/use-app-theme';
 import { useWishStore } from '../../hooks/use-wish-store';
@@ -112,8 +113,12 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
         <View style={{ flex: 1, gap: 4 }}><Body>Đã chọn ảnh kỷ niệm ♡</Body><Pressable accessibilityRole="button" accessibilityLabel="Quay lại chọn ảnh" disabled={busy} onPress={() => router.back()} style={{ minHeight: 44, justifyContent: 'center' }}><Body style={{ color: colors.primary }}>Đổi ảnh</Body></Pressable></View>
       </View>
       {geocodingKey ? <View style={{ gap: 8 }}><AppInput label="Tìm địa điểm" value={query} onChangeText={value => { searchController.current?.abort(); setQuery(value); setPlaces([]); }} onSubmitEditing={search} trailing={<IconButton icon={Search} label="Tìm địa điểm" onPress={search} />} />{searching ? <Body>Đang tìm địa điểm…</Body> : null}{places.map((place, index) => <Pressable key={`${place.latitude}-${place.longitude}-${index}`} accessibilityRole="button" disabled={busy} onPress={() => { choose(place); setFocus({ ...place, key: String(Date.now()) }); setTitle(place.name.slice(0, 100)); setPlaces([]); }} style={{ padding: 12, borderRadius: 14, backgroundColor: colors.surface }}><Body>{place.name}</Body></Pressable>)}<Body style={{ fontSize: 11, color: colors.muted }}>Tìm kiếm được cung cấp bởi Geoapify</Body></View> : null}
-      <SecondaryButton onPress={locate}>{locating ? 'Đang lấy vị trí…' : 'Dùng vị trí hiện tại'}</SecondaryButton>
-      <View style={{ height: 300, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: colors.line }}><CheckInMap config={config} onPick={choose} /></View>
+      <View style={{ position: 'relative', height: 300, flexShrink: 0, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: colors.line }}>
+        <View style={StyleSheet.absoluteFill}><CheckInMap config={config} onPick={choose} /></View>
+        <View pointerEvents="box-none" style={{ position: 'absolute', top: 12, left: 12, zIndex: 1 }}>
+          <LocateHeartButton onPress={() => void locate()} loading={locating} disabled={busy} />
+        </View>
+      </View>
       <Body style={{ fontSize: 12, color: colors.muted }}>{point ? 'Đã chọn vị trí · kéo ghim để điều chỉnh' : 'Chạm bản đồ để chọn nơi đã đến. Bạn có thể phóng to trước khi chọn.'}</Body>
       <AppInput label="Tên địa điểm *" placeholder="Ví dụ: Hồ Xuân Hương, Đà Lạt" maxLength={100} value={title} onChangeText={setTitle} editable={!busy} />
       <DateField label="Ngày đã đến" value={date} onChange={value => { if (!busy) setDate(value); }} />
