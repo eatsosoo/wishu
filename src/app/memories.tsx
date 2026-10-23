@@ -7,6 +7,7 @@ import { PhotoView } from '../components/Artwork';
 import { HolidayDecoration } from '../components/HolidayDecoration';
 import { CalendarSwipe } from '../components/CalendarSwipe';
 import { MemoryFilters } from '../components/MemoryFilters';
+import { LoveDayCount } from '../components/LoveDayCount';
 import { shiftCalendarMonth } from '../features/calendar/swipe';
 import { getCalendarEvents, getCalendarQuote } from '../features/calendar/holidays';
 import { Body, BottomSheet, Heading, IconButton, SecondaryButton } from '../components/ui';
@@ -89,6 +90,7 @@ export default function Memories() {
     </View>
     {selectedDay !== null ? <View accessibilityLiveRegion="polite" style={{ paddingVertical: 23, gap: 10 }}>
       <Body style={{ textAlign: 'center', color: colors.primary, fontFamily: fonts.bold }}>{selectedDay}/{monthIndex + 1}/{year}{selectedEvents.length ? ` · ${selectedEvents.map(event => event.name).join(' · ')}` : ''}</Body>
+      <LoveDayCount anniversaryDate={store.couple.anniversaryDate} date={selectedDate} />
       <Body style={{ textAlign: 'center', color: colors.burgundy, fontStyle: 'italic' }}>“{getCalendarQuote(selectedEvents)}”</Body>
       {byDate.has(selectedDate) ? <SecondaryButton onPress={() => router.push({ pathname: '/memory-day/[date]', params: { date: selectedDate, category: filter.join(',') } })}>Xem kỷ niệm ngày này ♡</SecondaryButton> : <Body style={{ textAlign: 'center', color: colors.muted, fontSize: 12 }}>Lưu một check-in hoặc hoàn thành điều ước để thêm kỷ niệm.</Body>}
     </View> : null}

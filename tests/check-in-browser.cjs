@@ -54,6 +54,34 @@ const { colors } = require('../src/constants/design-tokens.cjs');
     page.on('console', message => { if (message.type() === 'error' || message.text().startsWith('Map ')) console.log('Browser:', message.text().slice(0, 300)); });
     const pending = new Set(); page.on('request', request => pending.add(request.url())); page.on('requestfinished', request => pending.delete(request.url()));
     const networkErrors = []; page.on('requestfailed', request => { pending.delete(request.url()); networkErrors.push(`${new URL(request.url()).hostname}: ${request.failure()?.errorText}`); });
+    if (process.env.CALENDAR_DAYS_ONLY) {
+      await page.goto(`${base}/memories`);
+      await page.getByRole('button', { name: /Ngày 19 tháng 10 năm 2024,/ }).click();
+      await page.getByText('248 ngày đã yêu ♡', { exact: true }).waitFor();
+      await page.getByRole('button', { name: /Ngày 20 tháng 10 năm 2024,/ }).click();
+      await page.waitForURL('**/memory-day/2024-10-20**');
+      await page.getByText('249 ngày đã yêu ♡', { exact: true }).waitFor();
+      await page.getByText('4 ảnh kỷ niệm của hai đứa ♡', { exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Quay lại', exact: true }).click();
+      await page.getByRole('button', { name: 'Chọn tháng kỷ niệm', exact: true }).click();
+      await page.getByRole('button', { name: 'Tháng 2 năm 2024', exact: true }).click();
+      for (const day of [13, 14, 15, 29]) {
+        await page.getByRole('button', { name: new RegExp(`Ngày ${day} tháng 2 năm 2024,`) }).click();
+        await page.getByText(`${Math.max(0, day - 14)} ngày đã yêu ♡`, { exact: true }).waitFor();
+      }
+      await page.getByRole('button', { name: 'Tháng sau', exact: true }).click();
+      await page.getByRole('button', { name: /Ngày 1 tháng 3 năm 2024,/ }).click();
+      await page.getByText('16 ngày đã yêu ♡', { exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Chọn tháng kỷ niệm', exact: true }).click();
+      for (let year = 2024; year < 2028; year++) await page.getByRole('button', { name: 'Năm sau', exact: true }).click();
+      await page.getByRole('button', { name: 'Tháng 10 năm 2028', exact: true }).click();
+      await page.getByRole('button', { name: /Ngày 23 tháng 10 năm 2028,/ }).click();
+      await page.getByText('1.713 ngày đã yêu ♡', { exact: true }).waitFor();
+      await page.screenshot({ path: 'tmp/screenshots/check-in-calendar-love-days.png', fullPage: true });
+      assert.deepEqual(errors, []);
+      console.log('PASS: calendar love days for empty dates, photo dates, anniversary, earlier dates, leap day and future dates');
+      return;
+    }
     if (!process.env.CHECK_IN_NOTIFICATIONS_ONLY) {
     await page.goto(`${base}/check-in-map`);
     await page.getByRole('button', { name: 'Thêm check-in', exact: true }).waitFor({ timeout: 45000 }).catch(async error => { console.log('UI', await page.locator('body').innerText(), 'ERRORS', errors); throw error; });
