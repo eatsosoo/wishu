@@ -5,9 +5,11 @@ import type { Session } from '@supabase/supabase-js';
 import { createEmptySnapshot } from '../services/empty-snapshot';
 import { privatePreparations } from '../services/wish-actions';
 import { partnerName, personalizePartnerText } from '../features/couple/selectors';
-import { clearPrivatePhotos, cloudCommand, deleteCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
+import { clearPrivatePhotos, cloudCommand, deactivateCloudAccount, loadCloudCouple, supabase, type CloudCouple } from '../services/cloud';
 import type { CheckInInput, CompletionInput, WishSnapshot, PersonId, WishCommand, WishInput, PersonalProfileInput } from '../types/domain';
 import { completeProfile, readProfile } from '../features/auth/profile';
+import { accountCapabilities, normalAccess, type AccountAccess } from '../features/auth/access';
+import { loadAccountAccess } from '../services/cloud';
 
 function useStoreValue() {
   const [snapshot, setSnapshot] = useState(createEmptySnapshot);
@@ -19,17 +21,18 @@ function useStoreValue() {
   const [session, setSession] = useState<Session | null>(null);
   const sessionRef = useRef<Session | null>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [accessState, setAccessState] = useState<{ userId: string; access: AccountAccess } | null>(null);
   const [cloudCouple, setCloudCouple] = useState<CloudCouple | null>(null);
   const [storageError, setStorageError] = useState(supabase ? '' : 'Chưa cấu hình kết nối Supabase.');
   const commands = useRef(Promise.resolve(true));
   const generation = useRef(0);
-  const deletingAccount = useRef(false);
+  const deactivatingAccount = useRef(false);
   const apply = useCallback((next: WishSnapshot) => { snapshotRevision.current++; setSnapshot(next); }, []);
   const applyCloud = useCallback((next: CloudCouple) => {
     setCloudCouple(next); setActor(next.actor); apply(next.snapshot);
   }, [apply]);
   const refresh = useCallback(async () => {
-    if (deletingAccount.current) return;
+    if (deactivatingAccount.current) return;
     const revision = generation.current;
     const startedAt = snapshotRevision.current;
     let userId = sessionRef.current?.user.id ?? null;
@@ -37,8 +40,10 @@ function useStoreValue() {
       const current = await supabase?.auth.getSession();
       if (current?.error) throw current.error;
       userId = current?.data.session?.user.id ?? null;
-      let next = await loadCloudCouple();
+      const [loadedCouple, access] = await Promise.all([loadCloudCouple(), loadAccountAccess()]);
+      let next = loadedCouple;
       if (generation.current !== revision || snapshotRevision.current !== startedAt) return;
+      setAccessState(userId ? { userId, access } : null);
       if (next && supabase) {
         const loadedActor = next.actor;
         const member = next.snapshot.couple.members.find(item => item.id === loadedActor);
@@ -51,7 +56,7 @@ function useStoreValue() {
       if (generation.current !== revision || snapshotRevision.current !== startedAt) return;
       if (next) applyCloud(next);
       else { setCloudCouple(null); apply(createEmptySnapshot()); }
-    } catch { if (generation.current === revision) setStorageError('Chưa đồng bộ được với người ấy. Bạn kiểm tra kết nối nhé.'); }
+    } catch { if (generation.current === revision) { setAccessState(current => current?.access.status === 'inactive' ? current : null); setStorageError('Chưa đồng bộ được với người ấy. Bạn kiểm tra kết nối nhé.'); } }
     finally { if (generation.current === revision) setProfileUserId(userId); }
   }, [applyCloud, apply]);
 
@@ -118,25 +123,25 @@ function useStoreValue() {
       apply(createEmptySnapshot());
     } catch { setStorageError('Chưa đăng xuất được. Bạn thử lại nhé.'); }
   }
-  async function deleteAccount() {
-    if (deletingAccount.current) throw new Error('Tài khoản đang được xoá.');
-    deletingAccount.current = true;
+  async function deactivateAccount() {
+    if (deactivatingAccount.current) throw new Error('Tài khoản đang được vô hiệu hoá.');
+    deactivatingAccount.current = true;
     generation.current++;
     try {
       await commands.current;
-      await deleteCloudAccount();
-      // The user no longer exists: local cleanup must not depend on a remote logout.
+      await deactivateCloudAccount();
+      // Deactivation is committed; clear this device even if sign-out fails.
       try { await supabase?.auth.signOut({ scope: 'local' }); }
-      catch { /* Account deletion already succeeded; clear the in-memory session below. */ }
+      catch { /* Account deactivation already succeeded; clear the in-memory session below. */ }
       finally {
         clearPrivatePhotos(); generation.current++; sessionRef.current = null; setSession(null); setSignedIn(false); setActor('minh');
         setCloudCouple(null); apply(createEmptySnapshot()); setStorageError('');
       }
       await AsyncStorage.removeItem('ourwish:push-token').catch(() => {});
-    } finally { deletingAccount.current = false; }
+    } finally { deactivatingAccount.current = false; }
   }
   function dispatch(command: WishCommand): Promise<boolean> {
-    if (deletingAccount.current) return Promise.resolve(false);
+    if (deactivatingAccount.current) return Promise.resolve(false);
     const revision = generation.current;
     const result = commands.current.then(async () => {
       if (generation.current !== revision) return false;
@@ -155,6 +160,8 @@ function useStoreValue() {
     return result;
   }
   const partner = partnerName(snapshot.couple, actor);
+  const access = session && accessState?.userId === session.user.id ? accessState.access : normalAccess;
+  const capabilities = accountCapabilities(access);
   const personalProfile = readProfile(cloudCouple
     ? snapshot.couple.members.find(item => item.id === actor)
     : session?.user.user_metadata.initialProfile);
@@ -174,7 +181,10 @@ function useStoreValue() {
     } catch { setStorageError('Chưa lưu được thông tin cá nhân. Bạn thử lại nhé.'); return false; }
   }
   return {
-    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deleteAccount,
+    ...snapshot, actor, ready, onboarded, signedIn, finishOnboarding, logout, deactivateAccount,
+    accountInactive: access.status === 'inactive',
+    role: access.role, plan: capabilities.isPremium ? 'premium' as const : 'normal' as const,
+    premiumExpiresAt: access.premiumExpiresAt, ...capabilities,
     checkIns: snapshot.checkIns ?? [],
     saveCheckIn: (input: CheckInInput) => dispatch({ kind: 'checkIn', input }),
     deleteCheckIn: (id: string) => dispatch({ kind: 'deleteCheckIn', id }),

@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { fonts } from '../constants/theme';
 import type { ThemeColors } from '../features/theme/palette';
+import { useLoadingMotion } from '../hooks/use-loading-motion';
 import { WalkingDuck } from './WalkingDuck';
 
 interface SpinnerProps {
@@ -20,6 +21,7 @@ export interface WishLoadingProps {
   fontsReady?: boolean;
 }
 export function WishLoading({ colors, title = 'Yêu thương đang đến', message = 'Bạn chờ vịt một chút nhé…', fontsReady = false }: WishLoadingProps) {
+  const { progress, reducedMotion } = useLoadingMotion(1500);
   return <View style={[styles.screen, { backgroundColor: colors.background }]} accessible accessibilityRole="progressbar"
     accessibilityLabel={`${title}. ${message}`} accessibilityState={{ busy: true }} aria-busy>
     <View style={styles.content}>
@@ -30,7 +32,14 @@ export function WishLoading({ colors, title = 'Yêu thương đang đến', mess
         <Text style={[styles.message, { color: colors.muted, fontFamily: fontsReady ? fonts.body : undefined }]}>{message}</Text>
       </View>
       <View style={styles.dots} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-        {[0.3, 0.65, 0.3].map((opacity, index) => <View key={index} style={[styles.dot, { backgroundColor: colors.primary, opacity }]} />)}
+        {[0, 1, 2].map(index => <View key={index} style={styles.dot}>
+          <View style={[StyleSheet.absoluteFill, styles.dot, { backgroundColor: colors.primary, opacity: 0.3 }]} />
+          <Animated.View style={[StyleSheet.absoluteFill, styles.dot, { backgroundColor: '#FFFFFF', opacity: reducedMotion ? 0.6 : progress.interpolate({
+            inputRange: [index / 3, (index + 0.3) / 3, (index + 0.7) / 3, (index + 1) / 3],
+            outputRange: [0, 1, 1, 0],
+            extrapolate: 'clamp',
+          }) }]} />
+        </View>)}
       </View>
     </View>
   </View>;

@@ -8,7 +8,7 @@ const migrations = join(__dirname, '../../supabase/migrations');
 const users = ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', '33333333-3333-4333-8333-333333333333'];
 const coupleId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
-async function database({ migrate = true, snapshot = createMockSnapshot() } = {}) {
+async function database({ migrate = true, snapshot = createMockSnapshot(), throughMigration = null } = {}) {
   const db = new PGlite();
   await db.exec(`
     create role anon nologin;
@@ -40,7 +40,7 @@ async function database({ migrate = true, snapshot = createMockSnapshot() } = {}
   await db.query("insert into public.wish_members(user_id,couple_id,actor) values($1,$3,'minh'),($2,$3,'linh')", [users[0], users[1], coupleId]);
   await db.query('insert into public.wish_state(couple_id,snapshot) values($1,$2)', [coupleId, JSON.stringify(snapshot)]);
   if (migrate) {
-    for (const file of readdirSync(migrations).filter(name => name.endsWith('.sql') && name >= migrationName).sort()) {
+    for (const file of readdirSync(migrations).filter(name => name.endsWith('.sql') && name >= migrationName && (!throughMigration || name <= throughMigration)).sort()) {
       await db.exec(readFileSync(join(migrations, file), 'utf8'));
     }
   }

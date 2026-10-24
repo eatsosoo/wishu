@@ -39,14 +39,16 @@ function RootContent() {
 function SessionNavigator() {
   const { t } = useAppTheme();
 
-  const { ready, accountReady, onboarded, signedIn, paired, profileComplete, storageError } = useWishStore();
+  const { ready, accountReady, onboarded, signedIn, accountInactive, paired, profileComplete, storageError } = useWishStore();
+  const activeSession = signedIn && !accountInactive;
   if (!ready || !accountReady) return <LoadingState />;
   return <><PopupMessage message={storageError} /><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t('#FBF1EE') }, animation: 'fade', animationDuration: 180 }}>
     <Stack.Protected guard={!onboarded}><Stack.Screen name="onboarding" /></Stack.Protected>
     <Stack.Protected guard={onboarded && !signedIn}><Stack.Screen name="login" /></Stack.Protected>
-    <Stack.Protected guard={onboarded && signedIn && !profileComplete}><Stack.Screen name="complete-profile" /></Stack.Protected>
-    <Stack.Protected guard={onboarded && signedIn && profileComplete && !paired}><Stack.Screen name="pair" /></Stack.Protected>
-    <Stack.Protected guard={onboarded && signedIn && profileComplete && paired}>
+    <Stack.Protected guard={onboarded && signedIn && accountInactive}><Stack.Screen name="inactive" /></Stack.Protected>
+    <Stack.Protected guard={onboarded && activeSession && !profileComplete}><Stack.Screen name="complete-profile" /></Stack.Protected>
+    <Stack.Protected guard={onboarded && activeSession && profileComplete && !paired}><Stack.Screen name="pair" /></Stack.Protected>
+    <Stack.Protected guard={onboarded && activeSession && profileComplete && paired}>
       <Stack.Screen name="notifications" /><Stack.Screen name="gift/[id]" /><Stack.Screen name="avatar" />
       <Stack.Screen name="check-in-map" /><Stack.Screen name="check-in" />
       <Stack.Screen name="index" /><Stack.Screen name="wishes" /><Stack.Screen name="wish/new" /><Stack.Screen name="wish/[id]/index" /><Stack.Screen name="wish/[id]/complete" /><Stack.Screen name="preparing" /><Stack.Screen name="memories" /><Stack.Screen name="memory/[id]" /><Stack.Screen name="memory-day/[date]" /><Stack.Screen name="us" /><Stack.Screen name="+not-found" />

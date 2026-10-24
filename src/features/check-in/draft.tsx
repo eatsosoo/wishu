@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import type { Coordinate } from './map-types';
-import type { Photo } from '../../types/domain';
+import type { CheckIn, Photo } from '../../types/domain';
 
 export interface CheckInDraft {
   id: string;
   edit?: string;
   photo?: Photo;
+  templateId?: CheckIn['templateId'];
   point?: Coordinate;
   title: string;
   note: string;

@@ -8,7 +8,7 @@ import { CheckInCamera } from '../../components/CheckInCamera';
 import { localToday, useCheckInDraft } from '../../features/check-in/draft';
 import { useWishStore } from '../../hooks/use-wish-store';
 import { formatDate } from '../../features/wishes/format';
-import type { Photo } from '../../types/domain';
+import type { CheckIn, Photo } from '../../types/domain';
 
 export default function CheckInPhoto() {
   const store = useWishStore();
@@ -21,13 +21,13 @@ export default function CheckInPhoto() {
   const continueLock = useRef(false);
   const startedDraft = useRef(false);
 
-  function confirmPhoto(photo: Photo) {
+  function confirmPhoto(photo: Photo, templateId: CheckIn['templateId'] = 'single') {
     if (continueLock.current) return;
     continueLock.current = true;
     const returningToDraft = startedDraft.current;
     startedDraft.current = true;
-    setDraft(current => returningToDraft && current?.id === id ? { ...current, photo } : {
-      id, edit, photo, title: existing?.title ?? '', note: existing?.note ?? '',
+    setDraft(current => returningToDraft && current?.id === id ? { ...current, photo, templateId } : {
+      id, edit, photo, templateId, title: existing?.title ?? '', note: existing?.note ?? '',
       companion: existing?.companion ?? store.partnerName,
       date: formatDate(existing?.visitedAt ?? localToday()),
       point: existing ? { latitude: existing.latitude, longitude: existing.longitude } : undefined,
@@ -39,8 +39,8 @@ export default function CheckInPhoto() {
   return <AppScreen scrollEnabled={!editingPhoto} header={{ title: existing ? 'Chọn ảnh kỷ niệm' : 'Khoảnh khắc mới' }}>
     {existing && !replace ? <View style={{ gap: 16 }}>
       <PhotoView photo={existing.photo} style={{ width: '100%', aspectRatio: 1, borderRadius: 24 }} />
-      <SecondaryButton onPress={() => setReplace(true)}>Chụp / ghép ảnh mới</SecondaryButton>
-      <PrimaryButton onPress={() => confirmPhoto(existing.photo)}>Dùng ảnh này · Tiếp tục</PrimaryButton>
+      <SecondaryButton onPress={() => setReplace(true)}>{store.canUsePhotoTemplates ? 'Chụp / ghép ảnh mới' : 'Chụp / chọn ảnh mới'}</SecondaryButton>
+      <PrimaryButton onPress={() => confirmPhoto(existing.photo, existing.templateId)}>Dùng ảnh này · Tiếp tục</PrimaryButton>
     </View> : <CheckInCamera editingPhoto={editingPhoto} onConfirm={confirmPhoto} onPhotoInteractionChange={setEditingPhoto} />}
   </AppScreen>;
 }

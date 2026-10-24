@@ -7,6 +7,7 @@ const ts = require('typescript');
 test('hidden camera releases previews and flash, preserves shots and waits for redisplay on return', async () => {
   const slots = [];
   let cursor = 0, focus, appStateChange, stops = 0, permissionRefreshes = 0;
+  let canUsePhotoTemplates = false;
   const jsx = (type, props) => ({ type, props });
   const ui = Object.fromEntries(['Body', 'IconButton', 'PrimaryButton', 'SecondaryButton'].map(name => [name, name]));
   const react = {
@@ -37,6 +38,7 @@ test('hidden camera releases previews and flash, preserves shots and waits for r
     if (name === './ui') return ui;
     if (name === './TemplatePhoto') return { TemplatePhoto: 'TemplatePhoto' };
     if (name.endsWith('/use-app-theme')) return { useAppTheme: () => ({ colors: {} }) };
+    if (name.endsWith('/use-wish-store')) return { useWishStore: () => ({ canUsePhotoTemplates }) };
     if (name.endsWith('/use-button-state')) return { useButtonState: () => ({ inactive: {} }) };
     if (name.endsWith('/square-crop')) return { centeredSquare: {} };
     if (name.endsWith('/templates')) return { checkInTemplates: [{ id: 'single', cells: [{ x: 0, y: 0, width: 1, height: 1 }] }] };
@@ -44,7 +46,11 @@ test('hidden camera releases previews and flash, preserves shots and waits for r
     if (name.endsWith('/limits')) return { photoResize: () => null };
     return {};
   } });
-  const render = () => { cursor = 0; return module.exports.CheckInCamera({ editingPhoto: false, onConfirm() {}, onPhotoInteractionChange() {} }); };
+  const render = () => {
+    cursor = 0;
+    const editor = module.exports.CheckInCamera({ editingPhoto: false, onConfirm() {}, onPhotoInteractionChange() {} });
+    return editor.type(editor.props);
+  };
   function nodes(node, type) {
     if (!node || typeof node !== 'object') return [];
     if (Array.isArray(node)) return node.flatMap(child => nodes(child, type));
@@ -53,6 +59,7 @@ test('hidden camera releases previews and flash, preserves shots and waits for r
   render();
   const blur = focus();
   const tree = render();
+  assert.equal(nodes(tree, 'ScrollView').length, 0, 'Normal accounts do not see the template picker');
   assert.equal(nodes(tree, 'CameraView').length, 1);
   nodes(tree, 'IconButton').find(node => node.props.label === 'Chọn ảnh từ thư viện').props.onPress();
   await new Promise(resolve => setImmediate(resolve));
@@ -73,4 +80,6 @@ test('hidden camera releases previews and flash, preserves shots and waits for r
   assert.equal(nodes(returned, 'PrimaryButton')[0].props.disabled, true, 'Wait for the preview to load before recapturing');
   photo.props.onLoad();
   assert.equal(nodes(render(), 'PrimaryButton')[0].props.disabled, false);
+  canUsePhotoTemplates = true;
+  assert.equal(nodes(render(), 'ScrollView').length, 1, 'Premium accounts see the template picker');
 });

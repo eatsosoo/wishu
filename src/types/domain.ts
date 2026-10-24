@@ -50,8 +50,9 @@ export interface CheckIn {
   companion: string;
   note: string;
   photo: Photo;
+  templateId?: 'single' | 'halves' | 'columns' | 'grid';
 }
-export type CheckInInput = Omit<CheckIn, 'createdBy'>;
+export type CheckInInput = Omit<CheckIn, 'createdBy'> & { utcOffsetMinutes?: number };
 export interface Couple {
   name: string;
   anniversaryDate: string;

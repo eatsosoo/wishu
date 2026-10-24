@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { database, users, coupleId } = require('./helpers/relational-db.cjs');
-const input = { id: 'checkin-test', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-22', companion: 'Linh', note: 'Cùng nhau ♡', photo: { uri: `storage://${coupleId}/${users[0]}/checkin.jpg`, storagePath: `${coupleId}/${users[0]}/checkin.jpg` } };
+const input = { id: 'checkin-test', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: new Date(Date.now() + 420 * 60000).toISOString().slice(0, 10), companion: 'Linh', note: 'Cùng nhau ♡', photo: { uri: `storage://${coupleId}/${users[0]}/checkin.jpg`, storagePath: `${coupleId}/${users[0]}/checkin.jpg` } };
 
 test('new check-in notifies only the partner and atomically queues both push channels once', async t => {
   const h = await database(); t.after(() => h.db.close());
@@ -118,12 +118,12 @@ test('public image URLs, cross-space photos and partner drafts cannot become che
   assert.equal((await h.state(users[0])).snapshot.checkIns.length, 0);
 });
 
-test('a third member cannot join, and removed membership loses location and photo access', async t => {
+test('a third member cannot join, and inactive membership loses location and photo access', async t => {
   const h = await database(); t.after(() => h.db.close());
   await h.command(users[0], { kind: 'checkIn', input });
   await h.db.query("insert into storage.objects(bucket_id,name) values('wish-photos',$1)", [input.photo.storagePath]);
   await assert.rejects(h.asUser(users[2], () => h.db.query("select public.join_couple('ABCDE','Third')")), /đủ hai người/);
-  await h.db.query('delete from wish_members where user_id=$1', [users[1]]);
+  await h.db.query('select deactivate_account($1)', [users[1]]);
   assert.equal(await h.state(users[1]), null);
   assert.equal((await h.asUser(users[1], () => h.db.query('select * from check_ins'))).rows.length, 0);
   assert.equal((await h.asUser(users[1], () => h.db.query('select * from storage.objects'))).rows.length, 0);

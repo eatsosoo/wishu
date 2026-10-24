@@ -48,11 +48,14 @@ test('logout invalidates a pending private download and failures never become re
   assert.equal(await next(storagePath, async () => image), image);
 });
 
-function cloudHarness({ fail = false, inputPhoto = photo } = {}) {
+function cloudHarness({ fail = false, inputPhoto = photo, deactivationReply = { inactive: true } } = {}) {
   const calls = [];
   const couple = { id: space, actor: 'minh', snapshot: { wishes: [], memories: [], checkIns: [{ id: 'one', photo: inputPhoto }] } };
   const client = {
-    functions: { invoke: async (_name, { body }) => { couple.snapshot.checkIns = [{ id: body.input.id, photo: body.input.photo }]; return { data: couple }; } },
+    functions: { invoke: async (name, { body }) => {
+      if (name === 'delete-account') { calls.push(['deactivate', body.confirmation]); return { data: deactivationReply }; }
+      couple.snapshot.checkIns = [{ id: body.input.id, photo: body.input.photo }]; return { data: couple };
+    } },
     auth: { getUser: async () => ({ data: { user: { id: user } } }), getSession: async () => ({ data: { session: { user: { id: user } } } }) },
     rpc: async () => ({ data: couple }),
     storage: { from: () => ({
@@ -66,11 +69,12 @@ function cloudHarness({ fail = false, inputPhoto = photo } = {}) {
   }
   const output = ts.transpileModule(fs.readFileSync(require.resolve('../src/services/cloud.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(output, { module, exports: module.exports, FileReader: Reader, process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://test.invalid', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test' } }, require: name => {
+  vm.runInNewContext(output, { module, exports: module.exports, Response, FileReader: Reader, process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://test.invalid', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test' } }, require: name => {
     if (name === 'react-native-url-polyfill/auto') return {};
     if (name === '@react-native-async-storage/async-storage') return {};
     if (name === '@supabase/supabase-js') return { createClient: () => client };
     if (name === '../features/check-in/privacy') return { checkInThumbnailPath, privateCheckInPath, createPrivatePhotoCache };
+    if (name === '../features/auth/access') return require('../src/features/auth/access.ts');
     if (name === '../features/photos/limits') return { PHOTO_LIMITS: {} };
     if (name === '../features/input-validation') return require('../src/features/input-validation.ts');
     if (name === './photo-bytes') return { photoBytes: async () => ({ bytes: new Uint8Array([1,2,3]).buffer, type: 'image/jpeg' }) };
@@ -133,4 +137,12 @@ test('invalid check-in input fails before uploading any photo', async () => {
   const h = cloudHarness();
   await assert.rejects(h.cloud.cloudCommand({ kind: 'checkIn', input: { id: 'bad', photo: { uri: 'file:///local-photo.jpg' } } }));
   assert.equal(h.calls.length, 0);
+});
+
+test('deactivation sends the safe confirmation and requires explicit inactive acknowledgement', async () => {
+  const h = cloudHarness();
+  await h.cloud.deactivateCloudAccount();
+  assert.deepEqual(h.calls, [['deactivate', 'DEACTIVATE']]);
+  const legacy = cloudHarness({ deactivationReply: { deleted: true } });
+  await assert.rejects(legacy.cloud.deactivateCloudAccount(), /vô hiệu hoá/);
 });

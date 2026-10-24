@@ -1,5 +1,5 @@
 export interface PhotoCell { x: number; y: number; width: number; height: number }
-export interface CheckInTemplate { id: string; label: string; cells: readonly PhotoCell[] }
+export interface CheckInTemplate { id: 'single' | 'halves' | 'columns' | 'grid'; label: string; cells: readonly PhotoCell[] }
 export const checkInTemplates: readonly CheckInTemplate[] = [
   { id: 'single', label: 'Một ảnh', cells: [{ x: 0, y: 0, width: 1, height: 1 }] },
   { id: 'halves', label: 'Trên / dưới', cells: [{ x: 0, y: 0, width: 1, height: 0.5 }, { x: 0, y: 0.5, width: 1, height: 0.5 }] },

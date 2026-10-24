@@ -84,6 +84,8 @@ export function validateWishCommand(value: unknown, options: ValidationOptions =
       if (!Array.isArray(input.photos) || input.photos.length > PHOTO_LIMITS.memoryCount || !input.photos.every(photo => validPhoto(photo, options))) fail('Mỗi kỷ niệm có tối đa 4 ảnh hợp lệ.');
       return;
     case 'checkIn': {
+      if (input.templateId !== undefined && !['single', 'halves', 'columns', 'grid'].includes(input.templateId as string)) fail('Template ảnh chưa hợp lệ.');
+      if (input.utcOffsetMinutes !== undefined && (!Number.isInteger(input.utcOffsetMinutes) || (input.utcOffsetMinutes as number) < -720 || (input.utcOffsetMinutes as number) > 840)) fail('Múi giờ chưa hợp lệ.');
       if (!isInputId(input.id) || !isText(input.title, 100, true) || !isISODate(input.visitedAt)) fail('Tên, mã hoặc ngày check-in chưa hợp lệ.');
       if ((input.visitedAt as string) > today) fail('Ngày check-in cần là hôm nay hoặc một ngày đã qua.');
       if (typeof input.latitude !== 'number' || !Number.isFinite(input.latitude) || Math.abs(input.latitude) > 90

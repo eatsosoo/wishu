@@ -8,6 +8,7 @@ import { validateWishCommand } from '../features/input-validation';
 import { checkInThumbnailPath, createPrivatePhotoCache, privateCheckInPath } from '../features/check-in/privacy';
 
 import { createCheckInThumbnail } from './check-in-thumbnail';
+import { normalAccess, type AccountAccess } from '../features/auth/access';
 
 let readPrivate: ((path: string, download: () => Promise<string>) => Promise<string>) | null = null;
 let activePhotoScope = '';
@@ -21,16 +22,30 @@ export const supabase = url && key ? createClient(url, key, {
 }) : null;
 
 export interface CloudCouple { id: string; actor: PersonId; inviteCode: string | null; snapshot: WishSnapshot }
-export async function deleteCloudAccount(): Promise<void> {
+export async function loadAccountAccess(): Promise<AccountAccess> {
+  if (!supabase) return normalAccess;
+  const { data, error } = await supabase.rpc('get_my_account_access');
+  // Keep older deployments usable during rollout; missing access schema must
+  // never grant Premium or admin privileges.
+  if (error?.code === 'PGRST202') return normalAccess;
+  if (error) throw error;
+  return {
+    status: data?.status === 'inactive' ? 'inactive' : 'active',
+    role: data?.role === 'admin' ? 'admin' : 'user',
+    plan: data?.plan === 'premium' ? 'premium' : 'normal',
+    premiumExpiresAt: typeof data?.premiumExpiresAt === 'string' ? data.premiumExpiresAt : null,
+  };
+}
+export async function deactivateCloudAccount(): Promise<void> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
-  const { data, error } = await supabase.functions.invoke('delete-account', { body: { confirmation: 'DELETE' } });
-  if (error || data?.deleted !== true) {
+  const { data, error } = await supabase.functions.invoke('delete-account', { body: { confirmation: 'DEACTIVATE' } });
+  if (error || data?.inactive !== true) {
     const response = error && 'context' in error ? error.context : null;
     if (response instanceof Response) {
       const details = await response.json().catch(() => null);
       if (typeof details?.error === 'string') throw new Error(details.error);
     }
-    throw new Error('Chưa xác nhận được việc xoá tài khoản. Bạn kiểm tra kết nối rồi thử lại nhé.');
+    throw new Error('Chưa xác nhận được việc vô hiệu hoá tài khoản. Bạn kiểm tra kết nối rồi thử lại nhé.');
   }
 }
 export async function loadCloudCouple(): Promise<CloudCouple | null> {

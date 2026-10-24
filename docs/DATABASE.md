@@ -17,9 +17,28 @@ Small photo references remain JSONB (`art`, `uri`, `storagePath`); image files s
 
 ## Relationships and privacy
 
+Migration `202610250001_review_integrity.sql` binds notification senders and
+recipients to memberships in the same couple and requires exactly one memory or
+check-in target with matching JSON payload. Memory notification uniqueness uses
+the canonical `memory_id` column. Check-in creators reference their membership.
+These references prevent removing individual memberships that still own retained
+data; deactivation keeps memberships and continues to work. Whole-space deletion
+by a trusted operator still removes all dependent rows in one statement.
+
+Native push has partial `retry_at` indexes for pending/sending deliveries and
+accepted receipts. This avoids indexing completed history in the worker queues.
+
+For this migration, run `supabase/tests/review-integrity-preflight.sql` before
+deployment (all counters must be zero) and
+`supabase/tests/review-integrity-postflight.sql` afterwards (seven validated
+constraints and five indexes). The migration aborts if existing data violates a
+new constraint; it never removes invalid records automatically.
+
+Regression checks: `node --test tests/database-integrity.test.cjs tests/check-ins.test.cjs tests/relational-db.test.cjs tests/account-deletion.test.cjs`.
+
 Keys include `couple_id` so references cannot cross couples, including older wish IDs that are only unique within one couple. Wishes reference their creator's membership. Preparations reference their wish and preparer. Memory photos reference their memory and preserve order.
 
-Deleting a wish cascades its preparations and sets `memories.wish_id` to null. `source_wish_id` preserves the original API ID and existing memories/photos/notifications remain available. Account deletion cascades the entire couple's relational records, legacy backup and notifications, while preserving the partner's Auth account.
+Deleting a wish cascades its preparations and sets `memories.wish_id` to null. `source_wish_id` preserves the original API ID and existing memories/photos/notifications remain available. Account deactivation sets `account_access.status` to `inactive`, retaining Auth, membership, photos and shared data. Inactive accounts cannot access app data; their partner keeps access. See [account deactivation](ACCOUNT_DELETION.md).
 
 RLS permits members to read their couple's wishes, memories and photos. Preparations are readable only by their preparer. Clients cannot insert/update/delete these tables or execute the mutation RPC. `get_my_couple()` also explicitly filters preparations and recipient notifications. Storage policies use a lightweight membership lookup instead of constructing the complete response.
 

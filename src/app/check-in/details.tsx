@@ -13,7 +13,7 @@ import { LocateHeartButton } from '../../components/LocateHeartButton';
 import { localToday, useCheckInDraft, type CheckInDraft } from '../../features/check-in/draft';
 import { useAppTheme } from '../../hooks/use-app-theme';
 import { useWishStore } from '../../hooks/use-wish-store';
-import { parseDate } from '../../features/wishes/format';
+import { formatDate, parseDate } from '../../features/wishes/format';
 import type { Coordinate } from '../../features/check-in/map-types';
 
 const geocodingKey = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
@@ -31,6 +31,13 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   const { setDraft } = useCheckInDraft();
   const { id, edit, title, note, companion, date, photo, point } = draft;
   const existing = store.checkIns.find(item => item.id === edit);
+  const [today, setToday] = useState(localToday);
+  useFocusEffect(useCallback(() => {
+    setToday(localToday());
+    const timer = setInterval(() => setToday(localToday()), 30000);
+    return () => clearInterval(timer);
+  }, []));
+  const fixedDate = existing?.visitedAt ?? today;
   function update<K extends keyof CheckInDraft>(key: K, value: CheckInDraft[K]) { setDraft(current => current?.id === id ? { ...current, [key]: value } : current); }
   const setTitle = (value: string) => update('title', value);
   const setNote = (value: string) => update('note', value);
@@ -96,12 +103,12 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
   }
   async function save() {
     if (saveLock.current || locating) return;
-    const visitedAt = parseDate(date);
+    const visitedAt = store.canChooseCheckInDate ? parseDate(date) : existing?.visitedAt ?? localToday();
     if (!point || !title.trim() || !photo || !visitedAt) { setError('Bạn chọn vị trí, thêm ảnh, tên địa điểm và ngày đến trước nhé.'); return; }
     if (visitedAt > localToday()) { setError('Ngày check-in cần là hôm nay hoặc một ngày đã qua.'); return; }
     saveLock.current = true; setBusy(true); setError('');
     try {
-      const saved = await store.saveCheckIn({ id, ...point, title: title.trim(), note: note.trim(), companion: companion.trim(), visitedAt, photo });
+      const saved = await store.saveCheckIn({ id, ...point, title: title.trim(), note: note.trim(), companion: companion.trim(), visitedAt, photo, templateId: draft.templateId ?? 'single', utcOffsetMinutes: -new Date().getTimezoneOffset() });
       if (saved) {
         const params = { id, saved: 'yes' };
         if (Platform.OS === 'web') router.replace({ pathname: '/check-in/[id]', params });
@@ -135,7 +142,8 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
       </View>
       <Body style={{ fontSize: 12, color: colors.muted }}>{point ? 'Đã chọn vị trí · kéo ghim để điều chỉnh' : 'Chạm bản đồ để chọn nơi đã đến. Bạn có thể phóng to trước khi chọn.'}</Body>
       <AppInput label="Tên địa điểm *" placeholder="Ví dụ: Hồ Xuân Hương, Đà Lạt" maxLength={100} value={title} onChangeText={setTitle} editable={!busy} />
-      <DateField label="Ngày đã đến" value={date} onChange={value => { if (!busy) setDate(value); }} />
+      {store.canChooseCheckInDate ? <DateField label="Ngày đã đến" value={date} onChange={value => { if (!busy) setDate(value); }} />
+        : <View style={{ gap: 6 }}><Body style={{ color: colors.muted, fontSize: 12 }}>Ngày đã đến</Body><Body>{formatDate(fixedDate)}{existing ? '' : ' · Hôm nay'}</Body></View>}
       <AppInput label="Đi cùng" value={companion} onChangeText={setCompanion} maxLength={100} editable={!busy} />
       <AppTextarea label="Lời nhắn" placeholder="Điều bạn muốn nhớ về nơi này…" value={note} onChangeText={setNote} maxLength={2000} editable={!busy} />
       <Body style={{ fontSize: 12, color: colors.muted }}>Ảnh sẽ tự hiện trên lịch theo ngày đã đến, chỉ trong không gian của hai người.</Body>

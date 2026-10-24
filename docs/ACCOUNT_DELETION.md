@@ -1,56 +1,61 @@
-# Account deletion
+# Vô hiệu hoá tài khoản
 
-In **Của chúng ta → Cài đặt → Xoá tài khoản**, users confirm permanent deletion.
-Accounts that have not paired can use **Cài đặt tài khoản** on the pairing screen.
-Cancelling makes no server request. While deletion runs, repeated submits and closing
-the confirmation are blocked. Success clears the app session and returns to login.
+Trong **Của chúng ta → Cài đặt → Vô hiệu hoá tài khoản**, người dùng xác nhận
+chuyển tài khoản sang `inactive` và được đăng xuất khỏi thiết bị hiện tại.
 
-Deleting a paired account also deletes the entire shared space, including both
-members' wishes, preparations, memories, photos, gift notifications and push outbox.
-The confirmation explicitly describes this consequence. The partner's Auth account
-is preserved; their next refresh returns them to the pairing screen.
+- Giữ nguyên bản ghi Supabase Auth, email, role, plan và liên kết cặp đôi.
+- Giữ nguyên toàn bộ ảnh, điều ước, check-in, kỷ niệm và thông báo.
+- Người còn lại tiếp tục sử dụng không gian chung bình thường.
+- Dừng push tới tài khoản inactive bằng `enabled=false` cho token/subscription.
+- JWT cũ không thể đọc/ghi dữ liệu app, tải/upload ảnh, tạo/tham gia cặp đôi
+  hoặc đăng ký lại push. RLS và RPC đều kiểm tra trạng thái.
+- Auth vẫn tồn tại: đăng nhập lại chỉ hiển thị màn hình tài khoản vô hiệu hoá,
+  không tự kích hoạt lại và không tạo tài khoản mới bằng cùng email.
 
-## Backend deployment
+Endpoint vẫn mang tên `delete-account` để tương thích client đã phát hành,
+nhưng chỉ gọi RPC service-only `deactivate_account` với ID user đã xác thực.
+Không gọi xoá Auth hoặc Storage. Body mới là `{"confirmation":"DEACTIVATE"}`;
+backend mới chấp nhận cả `DELETE` từ client cũ nhưng cũng chỉ vô hiệu hoá.
+Backend cũ từ chối `DEACTIVATE`, tránh xoá hẳn khi client mới chạy trước backend.
 
-Apply migrations before deploying the new Edge Function to the project's Supabase:
+## Triển khai
+
+Áp dụng migration theo thứ tự, gồm `202610240002_account_access.sql` và
+`202610240003_inactive_accounts.sql`, rồi triển khai Edge Function:
 
 ```sh
-npx supabase db push
+npx supabase db push --linked --dry-run
+npx supabase db push --linked
 npx supabase functions deploy delete-account
 ```
 
-`supabase/config.toml` disables gateway JWT verification for this function because
-the handler verifies the bearer token with `Auth.getUser`. The service role key is
-used only on the server. The client cannot supply a target user ID or photo paths.
+Migration mới thu hồi quyền service role với RPC dọn dữ liệu cũ, để worker cũ
+không thể bắt đầu xoá Auth/ảnh trong khoảng chuyển tiếp. Các migration cũ giữ
+nguyên cho lịch sử và môi trường đã triển khai.
 
-`prepare_account_deletion` records a retryable request and freezes further shared
-state changes, membership changes and photo uploads. Photos are removed through
-the Storage API in batches of at most 1,000, including unused uploads owned by the
-user. Only then is the Auth user deleted. An Auth trigger deletes the shared space
-in that same database transaction; foreign keys remove membership, state, tokens
-and notifications. If cleanup fails, the account remains available to retry from
-Settings. Some photos may already have been permanently removed.
+## Kích hoạt lại
 
-## Verification
+Chỉ môi trường tin cậy (SQL Editor hoặc backend có service role) được đổi trạng
+thái. Thay `USER_UUID` bằng UUID thật:
 
-```sh
-npm run lint
-npm run typecheck
-npm run test:account-deletion
+```sql
+update public.account_access
+set status = 'active', inactive_at = null
+where user_id = 'USER_UUID';
 ```
 
-Use disposable accounts on a test Supabase project for integration checks:
+User đăng nhập lại sẽ dùng được dữ liệu và không gian cũ. Push cần được bật lại
+trên thiết bị. Client không có quyền tự sửa status; role admin hiện là nền tảng,
+chưa có màn hình quản trị để kích hoạt tài khoản.
 
-1. Pair two accounts and upload photos from each, including an unused upload.
-2. Cancel the confirmation and verify both accounts and all data remain.
-3. Confirm deletion; verify login appears, the Auth user and private photos are
-   gone, and shared tables no longer contain the couple.
-4. Refresh the partner's app; verify their login remains and pairing appears.
-5. Delete an unpaired account from its account settings.
-6. Simulate a Storage failure, verify no success is shown, then retry after recovery.
-7. Call the endpoint without a session or confirmation; verify rejection. Supplying
-   another user's ID must never change the authenticated deletion target.
+## Kiểm thử
 
-Local sequence tests cover batching, cleanup-before-Auth ordering, failure handling,
-retry after partial cleanup, and deletion of an account with no photos. They do not
-replace the database/Storage checks above.
+```sh
+node --test tests/account-deletion.test.cjs tests/account-access.test.cjs
+npm run lint
+npm run typecheck
+```
+
+Kiểm thử xác nhận giữ dữ liệu và Auth, endpoint không nhận ID từ caller, retry
+an toàn, partner còn quyền truy cập, JWT cũ bị chặn và kích hoạt lại không làm
+mất dữ liệu. Không thay đổi trạng thái tài khoản thật khi chạy kiểm thử.

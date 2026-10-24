@@ -6,7 +6,7 @@ The private `wish-photos` Storage bucket also rejects new uploads above 2 MiB. I
 
 Memory photo selections are center-cropped to a square before resizing and compression. Each selected thumbnail has a crop button at its bottom-right corner. Before completing the wish, users can drag, zoom, move with arrow buttons, or reset the crop to the center. Every edit is regenerated from the selected original, which stays local to the form; only the final square JPEG is uploaded. Wish cover photos retain their original aspect ratio. Existing memories display with a centered square crop without rewriting their files.
 
-The owner's wish detail menu includes **Xoá điều ước** and a confirmation sheet. The backend independently checks ownership. Deletion removes the wish and its preparations, preserving memories and gift notifications. Storage files are retained because completed memories can reference the same cover. Account deletion remains responsible for removing the couple's stored files.
+The owner's wish detail menu includes **Xoá điều ước** and a confirmation sheet. The backend independently checks ownership. Deletion removes the wish and its preparations, preserving memories and gift notifications. Storage files are retained because completed memories can reference the same cover. Account deactivation retains the couple's stored files.
 
 ## Apply backend changes
 

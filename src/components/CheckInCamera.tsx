@@ -8,6 +8,7 @@ import { Camera, ImagePlus, RefreshCw, X } from 'lucide-react-native';
 import { Body, IconButton, PrimaryButton, SecondaryButton } from './ui';
 import { TemplatePhoto } from './TemplatePhoto';
 import { useAppTheme } from '../hooks/use-app-theme';
+import { useWishStore } from '../hooks/use-wish-store';
 import { centeredSquare, type SquareCropSelection } from '../features/photos/square-crop';
 import { checkInTemplates, type CheckInTemplate, type PhotoCell } from '../features/check-in/templates';
 import { optimizePickedPhoto } from '../services/optimize-photo';
@@ -31,7 +32,13 @@ function cellCorners(cell: PhotoCell) {
 
 type Shot = { uri: string; source: ImagePicker.ImagePickerAsset; crop: SquareCropSelection };
 
-export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhoto }: { editingPhoto: boolean; onConfirm: (photo: Photo) => void; onPhotoInteractionChange: (active: boolean) => void }) {
+interface CheckInCameraProps { editingPhoto: boolean; onConfirm: (photo: Photo, templateId: CheckInTemplate['id']) => void; onPhotoInteractionChange: (active: boolean) => void }
+export function CheckInCamera(props: CheckInCameraProps) {
+  const { canUsePhotoTemplates } = useWishStore();
+  return <CameraEditor key={String(canUsePhotoTemplates)} {...props} templatesAllowed={canUsePhotoTemplates} />;
+}
+
+function CameraEditor({ onConfirm, onPhotoInteractionChange, editingPhoto, templatesAllowed }: CheckInCameraProps & { templatesAllowed: boolean }) {
   const { colors } = useAppTheme();
   const { inactive } = useButtonState();
   const [permission, requestPermission, refreshPermission] = useCameraPermissions();
@@ -117,6 +124,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
     setActive(index); setCameraError(''); setError('');
   }
   function chooseTemplate(next: CheckInTemplate) {
+    if (!templatesAllowed && next.id !== 'single') return;
     if (next.id === template.id || lock.current) return;
     if (shots.slice(next.cells.length).some(Boolean)) setPendingTemplate(next);
     else changeTemplate(next);
@@ -183,7 +191,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
         }
       }
       const photo = await composeCheckIn(collage, uris, template);
-      if (alive.current && visible.current) onConfirm(photo);
+      if (alive.current && visible.current) onConfirm(photo, template.id);
     } catch (cause) { if (alive.current) setError(cause instanceof Error ? cause.message : 'Chưa ghép được ảnh. Bạn thử lại nhé.'); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
@@ -228,13 +236,13 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
     {live && (!permission?.granted || cameraError) ? <SecondaryButton disabled={busy} onPress={() => void enableCamera()}>{cameraError ? 'Thử mở lại camera' : 'Cho phép camera'}</SecondaryButton> : null}
     {live && permission && !permission.granted && !permission.canAskAgain ? <Body style={{ color: colors.muted, fontSize: 12 }}>Bạn có thể cấp quyền camera trong cài đặt thiết bị hoặc trình duyệt.</Body> : null}
     {live && permission && !permission.granted && !permission.canAskAgain && Platform.OS !== 'web' ? <SecondaryButton onPress={() => { void Linking.openSettings().catch(() => setError('Bạn mở cài đặt thiết bị để cấp quyền camera nhé.')); }}>Mở cài đặt camera</SecondaryButton> : null}
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, padding: 2 }}>
+    {templatesAllowed ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, padding: 2 }}>
       {checkInTemplates.map(item => <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Template ${item.label}`} accessibilityState={{ selected: template.id === item.id, disabled: busy }} disabled={busy} onPress={() => chooseTemplate(item)} style={{ width: 88, alignItems: 'center', gap: 6, opacity: busy ? 0.4 : 1 }}>
         <View style={{ width: 70, height: 70, borderRadius: 14, borderWidth: 2, borderColor: item.id === template.id ? colors.primary : colors.line, padding: 6, backgroundColor: colors.surface }}>
           <View style={{ flex: 1 }}>{item.cells.map((cell, index) => <View key={index} style={{ position: 'absolute', left: `${cell.x * 100}%`, top: `${cell.y * 100}%`, width: `${cell.width * 100}%`, height: `${cell.height * 100}%`, padding: 1.5 }}><View style={{ flex: 1, borderRadius: 3, backgroundColor: colors.primary, opacity: 0.35 + index * 0.15 }} /></View>)}</View>
         </View>
       </Pressable>)}
-    </ScrollView>
+    </ScrollView> : null}
     {pendingTemplate ? <View accessibilityRole="alert" style={{ gap: 8, backgroundColor: colors.rose, padding: 14, borderRadius: 16 }}>
       <Body>Đổi sang “{pendingTemplate.label}” sẽ bỏ {shots.slice(pendingTemplate.cells.length).filter(Boolean).length} ảnh dư. Các ảnh đầu tiên được giữ lại.</Body>
       <SecondaryButton onPress={() => changeTemplate(pendingTemplate)}>Đổi template và bỏ ảnh dư</SecondaryButton>

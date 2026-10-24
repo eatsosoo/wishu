@@ -58,7 +58,7 @@ Hai bảng mới:
 Chỉ hỗ trợ endpoint HTTPS của FCM, Mozilla, Apple và WNS (`*.notify.windows.com`, gồm endpoint có query token của Edge).
 Subscription trả 404/410 bị vô hiệu hóa. Khi chuyển tài khoản, worker kiểm tra lại người nhận trước khi gửi.
 Đăng xuất gỡ subscription khỏi tài khoản, unsubscribe ở trình duyệt và đóng thông báo đang hiển thị.
-Xoá tài khoản cascade xoá subscription; xoá quà cascade xoá hàng đợi.
+Vô hiệu hoá tài khoản giữ subscription nhưng đặt `enabled=false`; xoá quà cascade xoá hàng đợi.
 
 ## 4. Kiểm tra thực tế
 
