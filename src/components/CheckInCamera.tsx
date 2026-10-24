@@ -62,12 +62,16 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useFocusEffect(useCallback(() => {
     visible.current = true; setFocused(true); setReady(false);
-    return () => { visible.current = false; setFocused(false); setReady(false); };
-  }, []));
+    return () => {
+      visible.current = false; setFocused(false); setReady(false);
+      setLoaded([]); setFlashSlot(null); flashOpacity.stopAnimation();
+    };
+  }, [flashOpacity]));
   useEffect(() => {
     const listener = AppState.addEventListener('change', state => {
       setForeground(state === 'active');
-      if (state === 'active') void refreshPermission().catch(() => {});
+      if (state !== 'active') setLoaded([]);
+      if (state === 'active' && visible.current) void refreshPermission().catch(() => {});
     });
     return () => listener.remove();
   }, [refreshPermission]);
@@ -83,11 +87,11 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
   const flashReady = flashSlot !== null && (!shots[flashSlot] || loaded[flashSlot] === shots[flashSlot]!.uri);
 
   useEffect(() => {
-    if (flashSlot === null || busy || !flashReady) return;
+    if (!focused || !foreground || flashSlot === null || busy || !flashReady) return;
     const animation = Animated.timing(flashOpacity, { toValue: 0, duration: 320, useNativeDriver: Platform.OS !== 'web' });
     animation.start(({ finished }) => { if (finished) setFlashSlot(null); });
     return () => animation.stop();
-  }, [busy, flashSlot, flashReady, flashOpacity]);
+  }, [busy, flashSlot, flashReady, flashOpacity, focused, foreground]);
 
   function changeTemplate(next: CheckInTemplate) {
     if (lock.current) return;
@@ -189,7 +193,7 @@ export function CheckInCamera({ onConfirm, onPhotoInteractionChange, editingPhot
       {/* Export only this photo layer: no camera, labels, borders or controls. */}
       <View ref={collage} collapsable={false} style={[StyleSheet.absoluteFill, { backgroundColor: '#FFFFFF' }]}>
         {template.cells.map((cell, index) => <View key={index} pointerEvents="box-none" style={{ position: 'absolute', left: `${cell.x * 100}%`, top: `${cell.y * 100}%`, width: `${cell.width * 100}%`, height: `${cell.height * 100}%`, overflow: 'hidden', backgroundColor: colors.rose }}>
-          {shots[index] ? <TemplatePhoto key={shots[index]!.uri} source={shots[index]!.source} selection={shots[index]!.crop} aspectRatio={cell.width / cell.height} index={index} selected={index === active} disabled={busy}
+          {focused && foreground && shots[index] ? <TemplatePhoto key={shots[index]!.uri} source={shots[index]!.source} selection={shots[index]!.crop} aspectRatio={cell.width / cell.height} index={index} selected={index === active} disabled={busy}
             onSelect={() => selectSlot(index)} onInteractionChange={onPhotoInteractionChange}
             onChange={crop => { if (!lock.current) setShots(current => current.map((shot, slot) => slot === index && shot ? { ...shot, crop } : shot)); }}
             onLoad={() => { const uri = shots[index]!.uri; setLoaded(current => { const next = [...current]; next[index] = uri; return next; }); }}

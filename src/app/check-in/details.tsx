@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import * as Location from 'expo-location';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useNavigation } from 'expo-router';
+import type { NavigationProp } from 'expo-router/react-navigation';
 import { Search } from 'lucide-react-native';
 import { AppScreen } from '../../components/AppScreen';
 import { PhotoView } from '../../components/Artwork';
@@ -24,6 +25,7 @@ export default function CheckInDetails() {
   return draft?.photo ? <DetailsEditor key={draft.id} draft={draft} /> : null;
 }
 function DetailsEditor({ draft }: { draft: CheckInDraft }) {
+  const navigation = useNavigation<NavigationProp<{ '[id]': { id: string; saved: string } }>>();
   const store = useWishStore();
   const { colors } = useAppTheme();
   const { setDraft } = useCheckInDraft();
@@ -100,7 +102,19 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
     saveLock.current = true; setBusy(true); setError('');
     try {
       const saved = await store.saveCheckIn({ id, ...point, title: title.trim(), note: note.trim(), companion: companion.trim(), visitedAt, photo });
-      if (saved) router.replace({ pathname: '/check-in/[id]', params: { id, saved: 'yes' } });
+      if (saved) {
+        const params = { id, saved: 'yes' };
+        if (Platform.OS === 'web') router.replace({ pathname: '/check-in/[id]', params });
+        else {
+          // SDK 58 requires a complete reset state. Keep this navigator's
+          // identity and declared routes while removing every editor/photo route.
+          const state = navigation.getState();
+          navigation.reset({
+            ...state, index: 0, routeKeySeq: state.routeKeySeq + 1,
+            routes: [{ key: `${state.key}-saved-${state.routeKeySeq}`, name: '[id]', params }],
+          });
+        }
+      }
       else setError('Chưa lưu được check-in. Ảnh và lời nhắn vẫn ở đây, bạn thử lưu lại nhé.');
     } finally { saveLock.current = false; setBusy(false); }
   }

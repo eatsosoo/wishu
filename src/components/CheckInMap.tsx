@@ -10,7 +10,9 @@ export function CheckInMap(props: CheckInMapProps) {
   const ref = useRef<WebView<unknown>>(null);
   const [source] = useState(() => ({ html: mapDocument(), baseUrl: 'https://tiles.openfreemap.org' }));
   const latest = useRef(props);
-  useEffect(() => { latest.current = props; ref.current?.injectJavaScript(`window.receiveMapConfig && window.receiveMapConfig(${JSON.stringify(props.config).replace(/</g, '\\u003c')}); true;`); }, [props]);
+  useEffect(() => { latest.current = props; }, [props]);
+  const configJSON = JSON.stringify(props.config).replace(/</g, '\\u003c');
+  useEffect(() => { if (focused) ref.current?.injectJavaScript(`window.receiveMapConfig && window.receiveMapConfig(${configJSON}); true;`); }, [configJSON, focused]);
   const inject = () => ref.current?.injectJavaScript(`window.receiveMapConfig && window.receiveMapConfig(${JSON.stringify(latest.current.config).replace(/</g, '\\u003c')}); true;`);
   return focused ? <WebView<unknown> ref={ref} source={source} style={{ flex: 1 }} javaScriptEnabled scrollEnabled={false} originWhitelist={['*']} onMessage={event => {
     try { if (JSON.parse(event.nativeEvent.data).type === 'ready') inject(); } catch { return; }

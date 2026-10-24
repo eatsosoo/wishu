@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { PhotoView } from '../../components/Artwork';
 import * as Linking from 'expo-linking';
@@ -10,9 +10,14 @@ import { PrivateCheckInMap } from '../../components/PrivateCheckInMap';
 import { useAppTheme } from '../../hooks/use-app-theme';
 import { useWishStore } from '../../hooks/use-wish-store';
 import { formatDate } from '../../features/wishes/format';
+import { useCheckInDraft } from '../../features/check-in/draft';
 
 export default function CheckInDetail() {
   const { id, saved } = useLocalSearchParams<{ id: string; saved?: string }>();
+  const { setDraft } = useCheckInDraft();
+  useEffect(() => {
+    if (saved === 'yes') setDraft(current => current?.id === id ? null : current);
+  }, [id, saved, setDraft]);
   const store = useWishStore();
   const { colors } = useAppTheme();
   const [confirm, setConfirm] = useState(false);

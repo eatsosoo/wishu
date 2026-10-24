@@ -1,6 +1,6 @@
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { AppScreen } from '../components/AppScreen';
 import { Body, IconButton } from '../components/ui';
@@ -13,6 +13,11 @@ export default function CheckInMapScreen() {
   // Release the viewed area with the screen/session instead of sharing a module
   // variable that could reveal the previous account's map center after logout.
   const [viewport, setViewport] = useState<MapViewport>();
+  const lastViewport = useRef<MapViewport | undefined>(undefined);
+  // Panning only records the area for the next visit. Sending it straight back
+  // to the live map would serialize every thumbnail after each move.
+  const rememberViewport = useCallback((next: MapViewport) => { lastViewport.current = next; }, []);
+  useFocusEffect(useCallback(() => { setViewport(lastViewport.current); }, []));
   const { colors } = useAppTheme();
   const { checkIns, notifications, refresh, markGiftRead } = useWishStore();
   const { focus } = useLocalSearchParams<{ focus?: string }>();
@@ -25,7 +30,7 @@ export default function CheckInMapScreen() {
   return <AppScreen contentStyle={{ flex: 1, paddingHorizontal: 16 }} header={{ title: 'Bản đồ kỷ niệm', right: <IconButton icon={Plus} label="Thêm check-in" filled onPress={() => router.push('/check-in/new')} /> }}>
     <Body style={{ textAlign: 'center', color: colors.muted, marginBottom: 16 }}>{checkIns.length ? `${checkIns.length} nơi đã đến · những dấu chân của hai đứa` : 'Cùng nhau đi, cùng nhau giữ lại ♡'}</Body>
     <View style={{ flex: 1, minHeight: 340, borderRadius: 26, overflow: 'hidden', borderWidth: 1, borderColor: colors.line }}>
-      <PrivateCheckInMap photos={Object.fromEntries(checkIns.map(item => [item.id, item.photo]))} config={config} onOpen={id => router.push({ pathname: '/check-in/[id]', params: { id } })} onMove={setViewport} />
+      <PrivateCheckInMap photos={Object.fromEntries(checkIns.map(item => [item.id, item.photo]))} config={config} onOpen={id => router.push({ pathname: '/check-in/[id]', params: { id } })} onMove={rememberViewport} />
     </View>
     <View style={{ gap: 12, paddingTop: 16 }}>
       <Body style={{ textAlign: 'center', color: colors.muted, fontSize: 12 }}>{checkIns.length ? 'Chạm ảnh để mở kỷ niệm · chạm cụm số để phóng to' : 'Thêm một tấm ảnh và ghim nơi hai đứa đã đến.'}</Body>

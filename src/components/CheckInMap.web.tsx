@@ -8,7 +8,9 @@ export function CheckInMap(props: CheckInMapProps) {
   const frame = useRef<HTMLIFrameElement>(null);
   const latest = useRef(props);
   const [html] = useState(mapDocument);
-  useEffect(() => { latest.current = props; frame.current?.contentWindow?.postMessage({ type: 'config', config: props.config }, '*'); }, [props]);
+  useEffect(() => { latest.current = props; }, [props]);
+  const configMessage = JSON.stringify({ type: 'config', config: props.config });
+  useEffect(() => { if (focused) frame.current?.contentWindow?.postMessage(configMessage, '*'); }, [configMessage, focused]);
   useEffect(() => {
     const receive = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
