@@ -30,7 +30,7 @@ export default function AddWish() {
   const [active, setActive] = useState(true);
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Trải nghiệm');
-  const [cost, setCost] = useState('');
+  const [cost, setCost] = useState('0');
   const [priority, setPriority] = useState(3);
   const [url, setUrl] = useState('');
   const [date, setDate] = useState('');
@@ -60,7 +60,7 @@ export default function AddWish() {
     const targetDate = date ? parseDate(date) : undefined;
     const validation: Record<string, string> = {};
     if (!title.trim()) validation.title = 'Mình đặt tên cho điều ước nhé.';
-    if (!Number.isSafeInteger(estimatedCost) || estimatedCost < 0 || !cost.trim()) validation.cost = 'Nhập ngân sách hợp lệ.';
+    if (!Number.isSafeInteger(estimatedCost) || estimatedCost < 0) validation.cost = 'Ngân sách cần là số nguyên từ 0 đồng trở lên.';
     if (url.trim() && !isHttpUrl(url.trim())) validation.url = 'Nhập liên kết http:// hoặc https:// hợp lệ, tối đa 2048 ký tự.';
     if (date && !targetDate) validation.date = 'Nhập ngày theo dạng DD/MM/YYYY.';
     setErrors(validation);
@@ -88,7 +88,7 @@ export default function AddWish() {
       <AppInput label="Tên điều ước" placeholder="Nhập tên điều ước" value={title} onChangeText={setTitle} error={errors.title} maxLength={100} />
       <AppTextarea label="Mô tả" placeholder="Mô tả điều ước" value={description} onChangeText={setDescription} maxLength={1000} />
       <View style={{ gap: 7 }}><Body style={s.label}>Loại</Body><Pressable accessibilityRole="button" accessibilityLabel="Chọn loại điều ước" onPress={() => setPicker(true)} style={s.category}><Camera size={19} color={colors.primary} /><Body style={{ flex: 1, color: t('#75404F') }}>{category}</Body><ChevronDown size={18} color={colors.primary} /></Pressable></View>
-      <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={value => setCost(formatBudgetInput(value))} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
+      <AppInput label="Ngân sách dự kiến" placeholder="0" value={cost} onChangeText={value => setCost(formatBudgetInput(value))} onBlur={() => { if (!cost.trim()) setCost('0'); }} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
       <PrioritySelector value={priority} onChange={setPriority} />
       <WishVisibility active={active} onChange={setActive} disabled={busy} />
       <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" maxLength={2048} error={errors.url} />
