@@ -1,4 +1,4 @@
-import { parseDate } from '../wishes/format.ts';
+import { localDate, parseDate } from '../dates.ts';
 import type { Gender, PersonalProfileInput } from '../../types/domain';
 
 export function readProfile(value: unknown): PersonalProfileInput {
@@ -14,7 +14,7 @@ export function completeProfile(value: unknown, now = new Date()): value is { bi
   if (!value || typeof value !== 'object') return false;
   const { birthDate, gender } = value as PersonalProfileInput;
   if (typeof birthDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return false;
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const today = localDate(now);
   return parseDate(birthDate.split('-').reverse().join('/')) === birthDate && birthDate <= today
     && (gender === 'male' || gender === 'female' || gender === 'other');
 }

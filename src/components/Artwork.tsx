@@ -1,10 +1,12 @@
 import { usePrivatePhoto } from '../hooks/use-private-photo';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { Body } from './ui';
-import { ActivityIndicator, Pressable, View, type ImageResizeMode, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, View, type ImageResizeMode, type StyleProp, type ViewStyle } from 'react-native';
 import { Image, type ImageContentFit } from 'expo-image';
 import { Asset } from 'expo-asset';
 import type { ArtName, Photo } from '../types/domain';
+import { WishSpinner } from './WishLoading';
+import { PhotoImage } from './PhotoImage';
 
 // Each illustration/photo is a standalone asset. Never enlarge or offset a UI screenshot.
 const assets: Record<ArtName, { source: number; aspectRatio: number; clay?: boolean }> = {
@@ -54,22 +56,22 @@ function contentFit(fit: ImageResizeMode): ImageContentFit {
   return fit === 'contain' ? 'contain' : 'cover';
 }
 
-export function Artwork({ name, width, height, style, label, fit }: {
-  name: ArtName; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode;
+export function Artwork({ name, width, height, style, label, fit, showLoading = false }: {
+  name: ArtName; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode; showLoading?: boolean;
 }) {
   const asset = assets[name];
   return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? asset.aspectRatio : undefined, overflow: 'hidden' }, style]}>
-    <Image source={asset.source} contentFit={contentFit(fit ?? (asset.clay ? 'contain' : 'cover'))} accessibilityLabel={label}
+    <PhotoImage showLoading={showLoading} source={asset.source} contentFit={contentFit(fit ?? (asset.clay ? 'contain' : 'cover'))} accessibilityLabel={label}
       cachePolicy="memory-disk" transition={100}
       accessible={!!label} accessibilityElementsHidden={!label} importantForAccessibility={label ? 'auto' : 'no-hide-descendants'}
       style={{ width: '100%', height: '100%' }} />
   </View>;
 }
 
-export function PhotoView({ photo, width, height, style, label, fit, variant = 'full', enabled = true }: { photo: Photo; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode; variant?: 'thumbnail' | 'full'; enabled?: boolean }) {
-  if ('uri' in photo && (photo.private || (variant === 'thumbnail' && photo.storagePath))) return <PrivatePhotoView photo={photo} width={width} height={height} style={style} label={label} fit={fit} variant={variant} enabled={enabled} />;
-  if ('art' in photo) return <Artwork name={photo.art} width={width} height={height} style={style} label={label} fit={fit} />;
-  return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? 1 : undefined, borderRadius: 15, overflow: 'hidden' }, style]}><Image source={{ uri: photo.uri }} accessibilityLabel={label} contentFit={contentFit(fit ?? 'cover')} cachePolicy={photo.uri.startsWith('data:') ? 'none' : 'memory-disk'} transition={100} style={{ width: '100%', height: '100%' }} /></View>;
+export function PhotoView({ photo, width, height, style, label, fit, variant = 'full', enabled = true, showLoading = false }: { photo: Photo; width?: number; height?: number; style?: StyleProp<ViewStyle>; label?: string; fit?: ImageResizeMode; variant?: 'thumbnail' | 'full'; enabled?: boolean; showLoading?: boolean }) {
+  if ('uri' in photo && (photo.private || (variant === 'thumbnail' && photo.storagePath))) return <PrivatePhotoView photo={photo} width={width} height={height} style={style} label={label} fit={fit} variant={variant} enabled={enabled} showLoading={showLoading} />;
+  if ('art' in photo) return <Artwork name={photo.art} width={width} height={height} style={style} label={label} fit={fit} showLoading={showLoading} />;
+  return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? 1 : undefined, borderRadius: 15, overflow: 'hidden' }, style]}><PhotoImage showLoading={showLoading} source={{ uri: photo.uri }} accessibilityLabel={label} contentFit={contentFit(fit ?? 'cover')} cachePolicy={photo.uri.startsWith('data:') ? 'none' : 'memory-disk'} transition={100} style={{ width: '100%', height: '100%' }} /></View>;
 }
 
 export function BearHero({ height }: { height: number }) {
@@ -80,12 +82,12 @@ export function ClayObject({ name, width, height, style }: { name: ArtName; widt
   return <Artwork name={name} width={width} height={height} style={style} />;
 }
 
-function PrivatePhotoView({ photo, width, height, style, label, fit, variant, enabled }: Parameters<typeof PhotoView>[0]) {
+function PrivatePhotoView({ photo, width, height, style, label, fit, variant, enabled, showLoading }: Parameters<typeof PhotoView>[0]) {
   const { uri, error, retry } = usePrivatePhoto(photo, variant ?? 'full', enabled);
   const { colors } = useAppTheme();
   return <View style={[{ width: width ?? '100%', height, aspectRatio: height === undefined ? 1 : undefined, borderRadius: 15, overflow: 'hidden', backgroundColor: colors.rose, alignItems: 'center', justifyContent: 'center' }, style]}>
-    {uri ? <Image source={{ uri }} accessibilityLabel={label} contentFit={contentFit(fit ?? 'cover')} cachePolicy="none" transition={150} style={{ width: '100%', height: '100%' }} />
+    {uri ? <PhotoImage showLoading={showLoading} source={{ uri }} accessibilityLabel={label} contentFit={contentFit(fit ?? 'cover')} cachePolicy="none" transition={150} style={{ width: '100%', height: '100%' }} />
       : error ? <Pressable accessibilityRole="button" accessibilityLabel="Tải lại ảnh kỷ niệm" onPress={retry} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}><Body style={{ fontSize: 11, color: colors.primary }}>{variant === 'thumbnail' ? '↻' : error}</Body></Pressable>
-      : <ActivityIndicator size="small" color={colors.primary} />}
+      : <WishSpinner colors={colors} size={30} label="Đang tải ảnh kỷ niệm" />}
   </View>;
 }

@@ -1,7 +1,7 @@
 export interface CalendarHoliday {
   id?: string;
   name: string;
-  icon: 'flower' | 'bouquet' | 'balloons' | 'tree' | 'moustache' | 'heart' | 'whiteHeart' | 'birthday' | 'milestone';
+  icon: 'flower' | 'bouquet' | 'balloons' | 'tree' | 'moustache' | 'heart' | 'whiteHeart' | 'birthday' | 'milestone' | 'firstLove';
   marker?: string;
   quote?: string;
 }
@@ -34,6 +34,10 @@ export function getCalendarEvents(month: number, day: number, members: readonly 
     if (!Number.isFinite(start) || new Date(start).toISOString().slice(0, 10) !== context.anniversaryDate) return events;
     const date = Date.UTC(context.year, month - 1, day);
     const elapsed = (date - start) / 86400000;
+    if (elapsed === 0) events.push({
+      id: 'first-love', name: 'Ngày đầu tiên yêu nhau', icon: 'firstLove',
+      quote: 'Từ ngày ấy, những ngày bình thường cũng có thêm một người để thương.',
+    });
     // Use elapsed calendar days, matching the home screen's days-together counter.
     if ([100, 300, 1000].includes(elapsed)) events.push({
       name: `${elapsed.toLocaleString('vi-VN')} ngày bên nhau`, icon: 'milestone', marker: String(elapsed),
@@ -55,6 +59,7 @@ export function getCalendarEvents(month: number, day: number, members: readonly 
 
 export function getCalendarQuote(events: CalendarHoliday[]): string {
   return events.find(event => event.icon === 'milestone')?.quote
+    ?? events.find(event => event.icon === 'firstLove')?.quote
     ?? events.find(event => event.icon === 'birthday')?.quote
     ?? events[0]?.quote
     ?? 'Yêu nhau, một ngày bình thường cũng thành kỷ niệm.';

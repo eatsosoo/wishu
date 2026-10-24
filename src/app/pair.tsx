@@ -7,6 +7,7 @@ import { AppInput, Body, Heading, PrimaryButton, SecondaryButton } from '../comp
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useWishStore } from '../hooks/use-wish-store';
 import { supabase } from '../services/cloud';
+import { validatePairInput } from '../features/input-validation';
 
 const NAME_MAX_LENGTH = 20;
 
@@ -20,9 +21,11 @@ export default function PairScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const validCode = /^[A-Z0-9]{5}$/.test(code.trim());
+  const validCode = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{5}$/.test(code.trim());
   async function pair() {
-    if (!supabase || busy || !name.trim() || (joining && !validCode)) return;
+    if (!supabase || busy) return;
+    const validation = validatePairInput(name, space, joining ? code : undefined);
+    if (validation) { setError(validation); return; }
     setBusy(true); setError('');
     try {
       const result = joining
@@ -42,7 +45,7 @@ export default function PairScreen() {
     </View>
     {joining ? <AppInput label={`Mã mời từ ${store.partnerName} (5 ký tự chữ và số)`} value={code} onChangeText={value => setCode(value.toUpperCase())} autoCapitalize="characters" autoCorrect={false} maxLength={5} /> : <AppInput label="Tên không gian" value={space} onChangeText={setSpace} maxLength={60} />}
     {error ? <PopupMessage message={error} /> : null}
-    <PrimaryButton disabled={busy || !name.trim() || (joining ? !validCode : !space.trim())} onPress={() => void pair()}>{busy ? 'Đang kết nối…' : joining ? 'Ghép đôi ♡' : 'Tạo không gian ♡'}</PrimaryButton>
+    <PrimaryButton loading={busy} disabled={busy || !name.trim() || (joining ? !validCode : !space.trim())} onPress={() => void pair()}>{busy ? 'Đang kết nối…' : joining ? 'Ghép đôi ♡' : 'Tạo không gian ♡'}</PrimaryButton>
     <SecondaryButton onPress={() => { if (!busy) { setJoining(value => !value); setError(''); } }}>{joining ? 'Mình muốn tạo không gian mới' : 'Mình đã có mã mời'}</SecondaryButton>
     <View><SecondaryButton onPress={() => { if (!busy) setSettingsVisible(true); }}>Cài đặt tài khoản</SecondaryButton></View>
     <AccountSettings visible={settingsVisible} onClose={() => setSettingsVisible(false)} />

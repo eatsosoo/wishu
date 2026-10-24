@@ -25,7 +25,7 @@ export default function Onboarding() {
     <View style={{ height: 235, justifyContent: 'center', alignItems: 'center' }}><ClayObject name={slide.art} width={slide.art === 'jar' ? 160 : 300} /></View>
     <View style={{ gap: 14 }}><Heading style={{ textAlign: 'center', fontSize: 28 }}>{slide.title}</Heading><Body style={{ textAlign: 'center', color: colors.muted }}>{personalizePartnerText(slide.text, store.partnerName)}</Body></View>
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>{slides.map((_, i) => <View key={i} style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 8, backgroundColor: i === step ? colors.primary : t('#E3C9CF') }} />)}</View>
-    <PrimaryButton disabled={busy} onPress={() => step < 2 ? setStep(step + 1) : void finish()}>{step < 2 ? 'Tiếp tục' : 'Bắt đầu cùng nhau ♡'}</PrimaryButton>
+    <PrimaryButton loading={busy} disabled={busy} onPress={() => step < 2 ? setStep(step + 1) : void finish()}>{step < 2 ? 'Tiếp tục' : 'Bắt đầu cùng nhau ♡'}</PrimaryButton>
     {step < 2 && <SecondaryButton onPress={() => void finish()}>Bỏ qua</SecondaryButton>}
   </AppScreen>;
 }

@@ -126,7 +126,7 @@ function DetailsEditor({ draft }: { draft: CheckInDraft }) {
       <AppTextarea label="Lời nhắn" placeholder="Điều bạn muốn nhớ về nơi này…" value={note} onChangeText={setNote} maxLength={2000} editable={!busy} />
       <Body style={{ fontSize: 12, color: colors.muted }}>Ảnh sẽ tự hiện trên lịch theo ngày đã đến, chỉ trong không gian của hai người.</Body>
       {error ? <Body accessibilityRole="alert" style={{ color: colors.primary }}>{error}</Body> : null}
-      <PrimaryButton onPress={save} disabled={busy || locating}>{busy ? 'Đang lưu kỷ niệm…' : 'Lưu kỷ niệm'}</PrimaryButton>
+      <PrimaryButton loading={busy} onPress={save} disabled={busy || locating}>{busy ? 'Đang lưu kỷ niệm…' : 'Lưu kỷ niệm'}</PrimaryButton>
     </View>
   </AppScreen>;
 }

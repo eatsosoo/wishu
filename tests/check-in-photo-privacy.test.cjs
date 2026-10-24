@@ -72,6 +72,7 @@ function cloudHarness({ fail = false, inputPhoto = photo } = {}) {
     if (name === '@supabase/supabase-js') return { createClient: () => client };
     if (name === '../features/check-in/privacy') return { checkInThumbnailPath, privateCheckInPath, createPrivatePhotoCache };
     if (name === '../features/photos/limits') return { PHOTO_LIMITS: {} };
+    if (name === '../features/input-validation') return require('../src/features/input-validation.ts');
     if (name === './photo-bytes') return { photoBytes: async () => ({ bytes: new Uint8Array([1,2,3]).buffer, type: 'image/jpeg' }) };
     if (name === './check-in-thumbnail') return { createCheckInThumbnail: async (_uri, inline) => inline ? image : 'local-thumbnail' };
     throw new Error(name);
@@ -119,11 +120,17 @@ test('missing derivatives from older clients get a private local thumbnail fallb
 
 test('saving a newly picked check-in uploads both originals and deterministic private thumbnails before committing', async () => {
   const h = cloudHarness();
-  const saved = await h.cloud.cloudCommand({ kind: 'checkIn', input: { id: 'new', photo: { uri: 'local-photo' } } });
+  const saved = await h.cloud.cloudCommand({ kind: 'checkIn', input: { id: 'new', title: 'Đà Lạt', latitude: 11.94, longitude: 108.44, visitedAt: '2026-10-22', companion: '', note: '', photo: { uri: 'file:///local-photo.jpg' } } });
   const uploads = h.calls.filter(([kind]) => kind === 'upload');
   assert.equal(uploads.length, 2);
   assert.equal(uploads[1][1], checkInThumbnailPath(uploads[0][1]));
   assert.ok(uploads[0][1].startsWith(`${space}/${user}/`));
   assert.equal(saved.snapshot.checkIns[0].photo.storagePath, uploads[0][1]);
   assert.equal(h.calls.some(([kind]) => kind === 'authenticated-download'), false);
+});
+
+test('invalid check-in input fails before uploading any photo', async () => {
+  const h = cloudHarness();
+  await assert.rejects(h.cloud.cloudCommand({ kind: 'checkIn', input: { id: 'bad', photo: { uri: 'file:///local-photo.jpg' } } }));
+  assert.equal(h.calls.length, 0);
 });

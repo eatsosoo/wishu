@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isThemeId, mapThemeColor, themes, type ThemeId } from '../features/theme/palette';
+import { WishLoading } from '../components/WishLoading';
 export { themes, type ThemeId, type ThemeColors } from '../features/theme/palette';
 const defaultColors = themes.rose.colors;
 
@@ -24,7 +24,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
     writes.current = writes.current.then(() => AsyncStorage.setItem('ourwish:theme', next)).catch(() => setError('Màu đã đổi nhưng chưa lưu được trên thiết bị.'));
   }, []);
   const value = useMemo(() => ({ id, colors: themes[id].colors, t: (color: string) => mapThemeColor(color, id), setTheme, error }), [id, setTheme, error]);
-  return <ThemeContext.Provider value={value}>{ready ? children : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: defaultColors.background }}><ActivityIndicator color={defaultColors.primary} /></View>}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={value}>{ready ? children : <WishLoading colors={defaultColors} />}</ThemeContext.Provider>;
 }
 export function useAppTheme() { return useContext(ThemeContext); }
 

@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
+const path = require('node:path');
 const { test } = require('node:test');
 const vm = require('node:vm');
 const ts = require('typescript');
@@ -42,7 +43,8 @@ test('resize preserves aspect ratio, caps the long edge and never enlarges small
 });
 
 test('Expo web resize receives valid dimensions for landscape and portrait images', () => {
-  const output = ts.transpileModule(readFileSync(require.resolve('expo-image-manipulator/src/web/actions/ResizeAction.web.ts'), 'utf8'), {
+  const packageRoot = path.dirname(require.resolve('expo-image-manipulator/package.json'));
+  const output = ts.transpileModule(readFileSync(path.join(packageRoot, 'src/web/actions/ResizeAction.web.ts'), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const allocations = [];

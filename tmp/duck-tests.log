@@ -1,0 +1,50 @@
+✔ screen visits share one prefetch and request only the five small category covers (243.0022ms)
+✔ a failed preload can retry when the user revisits the form (41.4091ms)
+✔ network rejections do not break the form or permanently disable preloading (32.8103ms)
+✔ overlay only fades; only the sheet translates and the native modal has no movement (287.8376ms)
+✔ closing keeps the modal mounted through exit; reopening cancels a stale close callback (83.1723ms)
+✔ reduced-motion uses immediate opening and closing (56.443ms)
+(node:22696) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/photos/limits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ local check-ins notify the partner once and edits do not create notifications (10.7527ms)
+✔ partner copy follows the other member and falls back while waiting for them (0.6466ms)
+✔ preparation is visible only to the mock actor who started it (0.8253ms)
+✔ starting the same surprise twice is idempotent and keeps wishes unchanged (0.4478ms)
+✔ completion requires the preparer and adds one memory even on repeat submit (3.1704ms)
+✔ only the recipient can read a gift and repeated reads preserve its timestamp (0.721ms)
+✔ adding a wish preserves the source fixture and jar ownership (0.9746ms)
+✔ completion dates reject impossible days and fractional years (0.6595ms)
+✔ together days use the current local calendar date, including leap days (0.6778ms)
+✔ together days safely handle missing and invalid anniversary dates (0.533ms)
+✔ changing the anniversary updates the day count without changing other couple data (0.521ms)
+✔ only the creator can delete a wish and related preparations are removed (0.669ms)
+✔ deleting a completed wish preserves its memory, gift and shared cover (0.4599ms)
+✔ four memory photos are accepted and five are rejected before changing data (0.8322ms)
+✔ budget inputs group digits without changing the stored integer value (0.4728ms)
+✔ migration preserves wishes, profile, preparation privacy, memories and ordered photos (3464.1199ms)
+✔ migration preserves memories that already reference deleted wishes (2798.4882ms)
+✔ invalid legacy data aborts the migration with the original snapshot intact (2855.7077ms)
+✔ RLS isolates couples and hides the other member’s private preparations (2450.8339ms)
+✔ completion commits memory, ordered photos, notification and both push outboxes once (2285.22ms)
+✔ completion failures roll back all effects and keep the preparation active (2225.4237ms)
+✔ commands enforce ownership, scope favorites and preserve memories on wish deletion (2265.576ms)
+✔ read receipts are recipient-only and idempotent (2139.4066ms)
+✔ create, join and anniversary updates use relational data without legacy writes (2071.3511ms)
+✔ account deletion freezes commands and cascades all relational data while retaining partner Auth (2133.1928ms)
+✔ couple-scoped keys, storage and commands cannot cross into another couple (2073.778ms)
+✔ a cold reveal waits for both layers, regardless of load order (158.3425ms)
+✔ a failed layer cannot start the animation; retry requires both fresh loads (25.4564ms)
+✔ duplicate cache-load events do not make a half-loaded reveal ready (17.3321ms)
+✔ gift and jar preloads are separate, deduplicated, and retryable after a network error (19.3717ms)
+✔ loading pauses in the background, resumes in foreground and releases the loop on unmount (197.4252ms)
+✔ Reduce Motion keeps a static, accessible loading mark without scheduling an animation (40.3976ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27612.6027

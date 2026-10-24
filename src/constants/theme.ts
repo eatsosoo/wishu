@@ -3,6 +3,10 @@ import tokens from './design-tokens.cjs';
 
 // Shared with Tailwind so native styles and utility classes use the same palette.
 export const colors = tokens.colors;
+export const disabledButtonPalette = {
+  light: { background: '#E3E3E6', text: '#77777F', border: '#CDCDD3' },
+  dark: { background: '#303034', text: '#85858E', border: '#45454D' },
+};
 export const fonts = {
   body: 'NunitoSans_400Regular',
   medium: 'NunitoSans_600SemiBold',

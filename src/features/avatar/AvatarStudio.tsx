@@ -1,6 +1,7 @@
 import type { Gender } from '../../types/domain';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { WishSpinner } from '../../components/WishLoading';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Body, PrimaryButton } from '../../components/ui';
 import { useAppTheme } from '../../hooks/use-app-theme';
@@ -47,7 +48,7 @@ export function AvatarStudio({ userId, gender, onCancel }: { userId: string; gen
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
       <View style={{ flex: 1 }}><Body style={{ fontFamily: fonts.bold, fontSize: 17 }}>Một phiên bản của bạn</Body><Body style={{ color: colors.muted, fontSize: 12 }}>Avatar thử nghiệm · Lưu trên thiết bị</Body></View>
     </View>
-    {!ready ? <ActivityIndicator color={colors.primary} /> : <>
+    {!ready ? <WishSpinner colors={colors} size={48} label="Đang chuẩn bị avatar" /> : <>
       <View style={{ alignItems: 'center' }}><Avatar config={draft} size={260} /></View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {avatarCategories.map(key => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: category === key }} onPress={() => setCategory(key)} style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 22, backgroundColor: category === key ? colors.primary : colors.rose }}><Body style={{ color: category === key ? colors.onPrimary : colors.ink }}>{categoryLabels[key]}</Body></Pressable>)}
@@ -66,7 +67,7 @@ export function AvatarStudio({ userId, gender, onCancel }: { userId: string; gen
         <Pressable disabled={saving} accessibilityRole="button" accessibilityState={{ disabled: saving }} onPress={() => { setDraft(randomAvatar(gender)); setMessage(''); }} style={{ flex: 1, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}><Body style={{ color: colors.primary }}>Phối ngẫu nhiên</Body></Pressable>
         <Pressable disabled={saving} accessibilityRole="button" accessibilityState={{ disabled: saving }} onPress={() => { setDraft(saved); setMessage(''); onCancel(); }} style={{ flex: 1, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}><Body style={{ color: colors.muted }}>Hủy thay đổi</Body></Pressable>
       </View>
-      <PrimaryButton disabled={saving} onPress={() => void save()}>{saving ? 'Đang lưu…' : 'Lưu avatar ♡'}</PrimaryButton>
+      <PrimaryButton loading={saving} disabled={saving} onPress={() => void save()}>{saving ? 'Đang lưu…' : 'Lưu avatar ♡'}</PrimaryButton>
     </>}
     {!!message && <Body accessibilityLiveRegion="polite" style={{ color: colors.primary, fontSize: 12 }}>{message}</Body>}
   </View>;

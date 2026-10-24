@@ -10,7 +10,7 @@ import { PhotoView, ClayObject } from '../../../components/Artwork';
 import { AppTextarea, Body, EmptyState, PrimaryButton } from '../../../components/ui';
 import { useWishStore } from '../../../hooks/use-wish-store';
 import { DateField } from '../../../components/DateField';
-import { parseDate } from '../../../features/wishes/format';
+import { formatDate, localDate, parseDate } from '../../../features/dates';
 import type { Photo } from '../../../types/domain';
 import { optimizePickedPhoto } from '../../../services/optimize-photo';
 import { PHOTO_LIMITS } from '../../../features/photos/limits';
@@ -26,10 +26,7 @@ export default function CompleteWish() {
   const store = useWishStore();
   const wish = store.wishes.find(item => item.id === id);
   const preparation = store.preparations.find(item => item.wishId === id && item.status === 'preparing');
-  const [date, setDate] = useState(() => {
-    const today = new Date();
-    return `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-  });
+  const [date, setDate] = useState(() => formatDate(localDate()));
   const [note, setNote] = useState('');
   const [photos, setPhotos] = useState<MemoryPhotoDraft[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,7 +76,7 @@ export default function CompleteWish() {
   return <AppScreen header={{ title: 'Hoàn thành điều ước', onBack: () => router.canGoBack() ? router.back() : router.replace('/preparing') }} contentStyle={{ paddingBottom: 150 }} bottomAction={<>
     {!!error && <PopupMessage message={error} />}
 
-    <PrimaryButton disabled={busy || processingPhotos || editingId !== null} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
+    <PrimaryButton loading={busy || processingPhotos} disabled={busy || processingPhotos || editingId !== null} onPress={() => void save()}>{busy ? 'Đang lưu và tạo bất ngờ…' : processingPhotos ? 'Đang tối ưu ảnh…' : 'Hoàn thành & gửi bất ngờ 🎁'}</PrimaryButton>
   </>}>
     <View><ClayObject name="openGift" width={275} height={157} style={{ alignSelf: 'center' }} /></View>
     <Body style={{ textAlign: 'center', color: t('#915365'), marginTop: 8 }}>Đánh dấu khoảnh khắc đặc biệt này{ '\n' }cùng một vài kỷ niệm nhé ♡</Body>

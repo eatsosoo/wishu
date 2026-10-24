@@ -1,0 +1,306 @@
+(node:32188) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ delete-account rejects malformed, wrong-shaped and oversized input before deleting data (238.2897ms)
+✔ removes every photo batch before deleting only the authenticated user (3.2155ms)
+✔ a prepare failure preserves Auth for a retry (1.037ms)
+✔ a photos failure preserves Auth for a retry (0.3106ms)
+✔ a removePhotos failure preserves Auth for a retry (3.7535ms)
+✔ a retry resumes after partial photo cleanup and an Auth failure (4.1513ms)
+✔ an account without uploaded photos can be deleted (0.8432ms)
+✖ screen visits share one prefetch and request only the five small category covers (196.1508ms)
+✖ a failed preload can retry when the user revisits the form (47.7011ms)
+✖ network rejections do not break the form or permanently disable preloading (25.5756ms)
+(node:9324) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/input-validation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ invalid credentials explains both possible causes without claiming the email exists (1.7951ms)
+✔ confirmation, missing account and connectivity get distinct instructions (1.6443ms)
+✔ missing and invalid inputs are explained and password minimum only applies to signup (0.765ms)
+✔ dress is available for female profiles and follows the shared unspecified-gender policy (3.8059ms)
+✔ existing female avatars switch to a dress while preserving all other customizations (1.2996ms)
+✔ new female avatars start in a dress, and other profile defaults stay unchanged (0.3048ms)
+✔ random outfits respect the same gender eligibility as manual selection (2.8651ms)
+✖ overlay only fades; only the sheet translates and the native modal has no movement (232.0121ms)
+✖ closing keeps the modal mounted through exit; reopening cancels a stale close callback (58.4392ms)
+✖ reduced-motion uses immediate opening and closing (44.4265ms)
+(node:16452) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ calendar combines check-in photos and wish memories on their saved dates (3.1451ms)
+✔ edited dates, replacement photos and deleted check-ins update the calendar without stale copies (0.5003ms)
+✔ multiple categories combine matches without duplicates and retain same-day filtering (0.4939ms)
+✔ day routes accept multiple categories, legacy single links and ignore invalid values (0.4825ms)
+✔ day milestones cross leap years and appear exactly once at 100, 300 and 1000 elapsed days (40.9423ms)
+✔ annual markers show total months and do not hide overlapping holidays or birthdays (3.1169ms)
+✔ February 29 anniversaries use February 28 only in non-leap years (1.9378ms)
+✔ monthly anniversaries count across years and only appear on the matching day after the start (0.6632ms)
+✔ month-end anniversaries clamp to shorter months and return to the original day (0.5571ms)
+✔ monthly anniversaries keep overlapping holidays and birthdays visible (0.5526ms)
+✔ missing and impossible anniversary dates add no milestone (0.308ms)
+✔ every special day has a short message; milestones take priority when events overlap (1.9437ms)
+✔ both members birthdays are visible regardless of who opens the calendar (0.4101ms)
+✔ same-day birthdays keep unique identities even when names and holidays overlap (0.5255ms)
+✔ calendar captures deliberate horizontal gestures while leaving taps, vertical scrolling and multitouch alone (2.0337ms)
+✔ one completed swipe changes exactly one month and supports repeated opposite gestures (1.7981ms)
+✔ short, vertical, cancelled and interrupted swipes do not change months (0.405ms)
+✔ month navigation handles year boundaries and never skips short months (4.8853ms)
+✔ native check-in delivery uses a map target and keeps private location off the lock screen (201.9781ms)
+✔ tapping a native check-in push refreshes data and opens the focused map (42.011ms)
+(node:28000) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ only normalized private storage paths in the current space are accepted (3.6063ms)
+✔ private photo cache deduplicates within a session and clears on logout, space or account change (1.7147ms)
+✔ logout invalidates a pending private download and failures never become reusable cache entries (0.7132ms)
+✔ metadata loads without image downloads; thumbnail and full size load independently on demand (320.8242ms)
+✔ denied downloads never fall back to full or signed/public links (90.5628ms)
+✔ missing derivatives from older clients get a private local thumbnail fallback (37.8198ms)
+✔ saving a newly picked check-in uploads both originals and deterministic private thumbnails before committing (44.8529ms)
+✔ invalid check-in input fails before uploading any photo (54.5246ms)
+✔ all templates fill a square without overlapping cells (3.8962ms)
+✔ portrait, landscape and square images keep the preview cover crop inside every cell (2.3508ms)
+✔ thumbnail center-crops before resizing to 144 square and encodes a separate JPEG (233.7066ms)
+✔ thumbnail encoding failures release all native image references (19.3968ms)
+✔ new check-in notifies only the partner and atomically queues both push channels once (5379.2977ms)
+✔ check-in save survives an absent partner and invalid saves never notify (3365.2053ms)
+✔ check-ins persist, update idempotently, share with partner and isolate other couples (2533.9356ms)
+✔ check-in coordinates, dates and photo ownership are validated transactionally (2034.5305ms)
+✔ partner can read referenced check-in photos but cannot read an unrelated draft (1948.203ms)
+✔ only the two members can read location rows and private photos, including direct queries (2096.6942ms)
+✔ public image URLs, cross-space photos and partner drafts cannot become check-in photos (1869.0206ms)
+✔ a third member cannot join, and removed membership loses location and photo access (1905.5483ms)
+✔ thumbnail permission follows the original reference and never opens unshared derivatives or other spaces (1936.0542ms)
+✔ native export targets 1600 physical pixels on both iOS Retina and Android (222.5971ms)
+✔ native export rejects missing cells and releases temporary captures on failure (16.2836ms)
+(node:14244) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/photos/square-crop.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one-finger drag moves the image in the same direction without changing zoom (2.4426ms)
+✔ two-finger pinch preserves the source point under the fingers while zooming (0.4557ms)
+✔ pinch can pan and clamps zoom and crop to valid bounds (0.4363ms)
+✔ lifting a finger and rebasing does not jump before the next drag (1.8269ms)
+✔ rectangular template crops pan to the edges without exposing empty space (6.0729ms)
+(node:12140) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/photos/limits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ local check-ins notify the partner once and edits do not create notifications (7.5095ms)
+✔ partner copy follows the other member and falls back while waiting for them (0.6119ms)
+✔ preparation is visible only to the mock actor who started it (0.7726ms)
+✔ starting the same surprise twice is idempotent and keeps wishes unchanged (0.421ms)
+✔ completion requires the preparer and adds one memory even on repeat submit (1.7541ms)
+✔ only the recipient can read a gift and repeated reads preserve its timestamp (0.6689ms)
+✔ adding a wish preserves the source fixture and jar ownership (0.5299ms)
+✔ completion dates reject impossible days and fractional years (0.6059ms)
+✔ together days use the current local calendar date, including leap days (0.6628ms)
+✔ together days safely handle missing and invalid anniversary dates (0.495ms)
+✔ changing the anniversary updates the day count without changing other couple data (0.4695ms)
+✔ only the creator can delete a wish and related preparations are removed (0.6034ms)
+✔ deleting a completed wish preserves its memory, gift and shared cover (0.4174ms)
+✔ four memory photos are accepted and five are rejected before changing data (0.8253ms)
+✔ budget inputs group digits without changing the stored integer value (0.4251ms)
+✔ home jars follow gender instead of creator/partner roles without changing member identities (2.6806ms)
+✔ other and unset genders keep stable positions while male/female placement takes precedence (0.3876ms)
+✔ greetings use local time at every morning/noon/afternoon/evening/night boundary (5.4395ms)
+✔ all gender combinations get independent characters in inward-facing left/right slots (1.0513ms)
+✔ an unjoined partner becomes a silhouette instead of a gender assumption (0.5295ms)
+✔ joining replaces the silhouette even if the new member has no gender or uses the placeholder name (0.3767ms)
+(node:13440) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/wishes/format.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ initial profile requires an actual gender and a valid, nonfuture birth date (2.4469ms)
+✔ account metadata is read safely and keeps partially completed profiles (4.6308ms)
+(node:34464) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ URLs reject invalid hosts, credentials, dangerous schemes and parser normalization tricks (2.2853ms)
+✔ command shapes, required strings, numeric bounds and optional dates are validated at runtime (6.3676ms)
+✔ dates reject invalid days, years and numeric date shortcuts (0.9061ms)
+✔ pairing and credentials enforce length and reject control characters without trimming passwords (1.6087ms)
+✔ private photo paths and check-in coordinates/dates cannot bypass server checks (1.3299ms)
+✔ streamed JSON enforces byte limit even without Content-Length and cancels excessive input (88.9953ms)
+✔ direct pairing RPCs validate inputs and their internal wrappers are not callable by clients (5356.3538ms)
+✔ database rejects unsafe budgets and traversal photos even from a service-side command (3407.9124ms)
+✔ profile updates persist only for the verified member and synchronize to the partner (5378.0718ms)
+✔ invalid profile fields roll back and profile writes require the service command (3374.8004ms)
+✔ calendar keeps annual holidays and birthdays separate, including leap birthdays (3.46ms)
+✔ resize preserves aspect ratio, caps the long edge and never enlarges small images (3.0143ms)
+✖ Expo web resize receives valid dimensions for landscape and portrait images (1.7512ms)
+✔ oversized files and extreme dimensions are rejected before decoding (185.6856ms)
+✔ compression retries until the output fits and releases native image references (21.5537ms)
+✔ images still exceeding the upload limit are rejected and references are released (36.7421ms)
+✔ memory photo center crops are square for landscape, portrait and square sources (0.6937ms)
+✔ user cropping clamps pan and zoom to the source boundaries without empty pixels (0.9717ms)
+✔ memory uploads crop before resizing, while wish covers keep their original aspect ratio (45.2593ms)
+✔ recropping uses the original selected file and chosen region (13.665ms)
+✔ migration preserves wishes, profile, preparation privacy, memories and ordered photos (5478.6794ms)
+✔ migration preserves memories that already reference deleted wishes (3175.6367ms)
+✔ invalid legacy data aborts the migration with the original snapshot intact (2150.5517ms)
+✔ RLS isolates couples and hides the other member’s private preparations (1946.8782ms)
+✔ completion commits memory, ordered photos, notification and both push outboxes once (1940.1595ms)
+✔ completion failures roll back all effects and keep the preparation active (1962.0679ms)
+✔ commands enforce ownership, scope favorites and preserve memories on wish deletion (1805.4608ms)
+✔ read receipts are recipient-only and idempotent (1893.5279ms)
+✔ create, join and anniversary updates use relational data without legacy writes (1915.016ms)
+✔ account deletion freezes commands and cascades all relational data while retaining partner Auth (1800.1879ms)
+✔ couple-scoped keys, storage and commands cannot cross into another couple (1797.2677ms)
+✔ a cold reveal waits for both layers, regardless of load order (321.2257ms)
+✔ a failed layer cannot start the animation; retry requires both fresh loads (22.3771ms)
+✔ duplicate cache-load events do not make a half-loaded reveal ready (20.9471ms)
+✔ gift and jar preloads are separate, deduplicated, and retryable after a network error (23.8463ms)
+✔ monochrome has neutral colors and readable text on dark surfaces and accent buttons (25.925ms)
+✔ legacy palette colors map to the chosen theme without recoloring white photo overlays (1.9818ms)
+✔ stored theme IDs accept the new theme and reject unknown or inherited keys (0.5973ms)
+✔ only trusted browser push destinations can receive requests (3.3247ms)
+✔ expired subscriptions stop; temporary failures retry with bounded backoff (2.0182ms)
+✔ background push displays a generic gift notification and refreshes open clients (4.4247ms)
+✔ malformed push still shows a visible fallback (2.5697ms)
+✔ background push uses the sender name without showing the private wish title (2.3657ms)
+✔ notification clicks cannot navigate to another origin or arbitrary app routes (23.6469ms)
+✔ notification click focuses an existing app window after navigating to the gift (2.5237ms)
+✔ worker sends encrypted Web Push using server credentials and records provider acceptance (201.0225ms)
+✔ worker falls back when the sender no longer has a display name (43.2216ms)
+✔ check-in web push keeps private location out of the lock screen and opens its map pin (61.2753ms)
+✔ worker refuses another account, untrusted endpoint, and unconfigured backend (104.3745ms)
+✔ worker disables expired subscriptions and retries provider outages (82.6915ms)
+✔ browser asks permission during the click, before waiting for worker registration (146.4713ms)
+✔ denied permissions and iOS tabs never subscribe or call the backend (77.5507ms)
+✔ automatic registration never asks permission and server errors are surfaced (63.9404ms)
+✔ logout cancels an in-flight registration before disabling and removing the subscription (23.4107ms)
+✔ Edge Function routes verified commands to the transaction RPC and keeps the client response shape (348.3991ms)
+✔ malformed and oversized bodies fail safely before any mutation (37.132ms)
+✔ Edge Function schedules both push workers only for a new committed gift (132.1928ms)
+✔ validation and authentication reject requests before invoking the database (117.3015ms)
+✔ new check-in notification IDs dispatch both committed outboxes (42.2274ms)
+✔ visibility commands require a boolean and are passed to the transaction (12.1953ms)
+✔ personal profile validates dates and gender before reaching the database (21.4863ms)
+✔ database permission errors are shown safely and never start delivery workers (87.762ms)
+✔ check-in Edge validation rejects public photos and references to the partner upload folder (16.7101ms)
+✔ only the owner controls visibility; hidden wishes and preparations are excluded from RPC and RLS (5610.7756ms)
+✔ new private wishes and their uploaded covers stay private until activated (3155.4564ms)
+✔ calendar thumbnails of hidden wish covers stay private until shared (2156.4786ms)
+ℹ tests 157
+ℹ suites 0
+ℹ pass 150
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28042.3654
+
+✖ failing tests:
+
+test at tests\artwork-loading.test.cjs:26:1
+✖ screen visits share one prefetch and request only the five small category covers (196.1508ms)
+  D:\AI\wishu\tests\artwork-loading.test.cjs:20
+        throw new Error(`Unexpected import: ${name}`);
+        ^
+  
+  Error: Unexpected import: ../hooks/use-private-photo
+      at require (D:\AI\wishu\tests\artwork-loading.test.cjs:20:13)
+      at evalmachine.<anonymous>:9:29
+      at Script.runInContext (node:vm:149:12)
+      at Script.runInNewContext (node:vm:154:17)
+      at Object.runInNewContext (node:vm:310:38)
+      at harness (D:\AI\wishu\tests\artwork-loading.test.cjs:12:6)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\artwork-loading.test.cjs:29:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+
+test at tests\artwork-loading.test.cjs:45:1
+✖ a failed preload can retry when the user revisits the form (47.7011ms)
+  D:\AI\wishu\tests\artwork-loading.test.cjs:20
+        throw new Error(`Unexpected import: ${name}`);
+        ^
+  
+  Error: Unexpected import: ../hooks/use-private-photo
+      at require (D:\AI\wishu\tests\artwork-loading.test.cjs:20:13)
+      at evalmachine.<anonymous>:9:29
+      at Script.runInContext (node:vm:149:12)
+      at Script.runInNewContext (node:vm:154:17)
+      at Object.runInNewContext (node:vm:310:38)
+      at harness (D:\AI\wishu\tests\artwork-loading.test.cjs:12:6)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\artwork-loading.test.cjs:47:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests\artwork-loading.test.cjs:53:1
+✖ network rejections do not break the form or permanently disable preloading (25.5756ms)
+  D:\AI\wishu\tests\artwork-loading.test.cjs:20
+        throw new Error(`Unexpected import: ${name}`);
+        ^
+  
+  Error: Unexpected import: ../hooks/use-private-photo
+      at require (D:\AI\wishu\tests\artwork-loading.test.cjs:20:13)
+      at evalmachine.<anonymous>:9:29
+      at Script.runInContext (node:vm:149:12)
+      at Script.runInNewContext (node:vm:154:17)
+      at Object.runInNewContext (node:vm:310:38)
+      at harness (D:\AI\wishu\tests\artwork-loading.test.cjs:12:6)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\artwork-loading.test.cjs:55:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests\bottom-sheet.test.cjs:73:1
+✖ overlay only fades; only the sheet translates and the native modal has no movement (232.0121ms)
+  TypeError [Error]: (0 , use_app_theme_1.useAppTheme) is not a function
+      at Object.BottomSheet (evalmachine.<anonymous>:74:52)
+      at Object.render (D:\AI\wishu\tests\bottom-sheet.test.cjs:61:31)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\bottom-sheet.test.cjs:75:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests\bottom-sheet.test.cjs:83:1
+✖ closing keeps the modal mounted through exit; reopening cancels a stale close callback (58.4392ms)
+  TypeError [Error]: (0 , use_app_theme_1.useAppTheme) is not a function
+      at Object.BottomSheet (evalmachine.<anonymous>:74:52)
+      at Object.render (D:\AI\wishu\tests\bottom-sheet.test.cjs:61:31)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\bottom-sheet.test.cjs:85:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\bottom-sheet.test.cjs:97:1
+✖ reduced-motion uses immediate opening and closing (44.4265ms)
+  TypeError [Error]: (0 , use_app_theme_1.useAppTheme) is not a function
+      at Object.BottomSheet (evalmachine.<anonymous>:74:52)
+      at Object.render (D:\AI\wishu\tests\bottom-sheet.test.cjs:61:31)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\bottom-sheet.test.cjs:100:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\photo-optimization.test.cjs:44:1
+✖ Expo web resize receives valid dimensions for landscape and portrait images (1.7512ms)
+  Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './src/web/actions/ResizeAction.web.ts' is not defined by "exports" in D:\AI\wishu\node_modules\expo-image-manipulator\package.json
+      at exportsNotFound (node:internal/modules/esm/resolve:315:10)
+      at packageExportsResolve (node:internal/modules/esm/resolve:663:9)
+      at resolveExports (node:internal/modules/cjs/loader:754:36)
+      at Module._findPath (node:internal/modules/cjs/loader:821:31)
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1557:27)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+      at require.resolve (node:internal/modules/helpers:175:31)
+      at TestContext.<anonymous> (D:\AI\wishu\tests\photo-optimization.test.cjs:45:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14) {
+    code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+  }

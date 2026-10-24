@@ -1,8 +1,11 @@
+import { isText } from '../input-validation.ts';
+
 export function validateCredentials(email: string, password: string, signup: boolean): string | null {
   if (!email.trim()) return 'Bạn chưa nhập email.';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Email chưa đúng định dạng. Bạn kiểm tra lại nhé.';
+  if (!isText(email, 254, true) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Email chưa đúng định dạng. Bạn kiểm tra lại nhé.';
   if (!password) return 'Bạn chưa nhập mật khẩu.';
   if (signup && password.length < 6) return 'Mật khẩu tạo tài khoản cần ít nhất 6 ký tự.';
+  if (password.length > 1024) return 'Mật khẩu cần tối đa 1024 ký tự.';
   return null;
 }
 

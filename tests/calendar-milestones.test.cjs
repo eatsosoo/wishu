@@ -6,6 +6,20 @@ function milestones(year, month, day, anniversaryDate = '2024-02-14') {
   return getCalendarEvents(month, day, undefined, { year, anniversaryDate }).filter(event => event.icon === 'milestone');
 }
 
+test('first love marks only the original date and keeps holidays and birthdays', () => {
+  const members = [{ name: 'Linh', birthDate: '2000-02-14' }];
+  const context = { year: 2024, anniversaryDate: '2024-02-14' };
+  const events = getCalendarEvents(2, 14, members, context);
+  assert.deepEqual(events.map(event => event.icon), ['heart', 'birthday', 'firstLove']);
+  assert.equal(events[2].name, 'Ngày đầu tiên yêu nhau');
+  assert.equal(getCalendarQuote(events), events[2].quote);
+  for (const year of [2023, 2025]) {
+    assert.equal(getCalendarEvents(2, 14, members, { ...context, year }).some(event => event.icon === 'firstLove'), false);
+  }
+  assert.equal(getCalendarEvents(2, 13, members, context).some(event => event.icon === 'firstLove'), false);
+  assert.equal(getCalendarEvents(3, 14, members, { ...context, anniversaryDate: '2024-02-30' }).some(event => event.icon === 'firstLove'), false);
+});
+
 test('day milestones cross leap years and appear exactly once at 100, 300 and 1000 elapsed days', () => {
   for (const [year, month, day, count] of [[2024, 5, 24, 100], [2024, 12, 10, 300], [2026, 11, 10, 1000]]) {
     const events = milestones(year, month, day);

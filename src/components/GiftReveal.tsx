@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { RotateCcw } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { Body } from './ui';
 import { revealArtwork } from './reveal-artwork';
 import { useRevealLayers } from '../hooks/use-reveal-layers';
+import { WishSpinner } from './WishLoading';
 
 const pieces = Array.from({ length: 36 }, (_, index) => ({
   x: Math.cos(index * 2.399) * (95 + (index % 5) * 15),
@@ -49,7 +50,7 @@ export function GiftReveal() {
 
   return <View onLayout={event => setAvailableWidth(event.nativeEvent.layout.width)} style={styles.wrap}>
     <View key={layers.attempt} accessible accessibilityRole="image" accessibilityState={{ busy: !artworkReady && !layers.error }} accessibilityLabel="Hộp quà 3D màu kem với nơ hồng mở nắp và tua rua nhiều màu bay ra" style={[styles.stage, { transform: [{ scale: Math.min(1, availableWidth / 320) }] }]}>
-      {!artworkReady && !layers.error ? <ActivityIndicator color={colors.primary} accessibilityLabel="Đang chuẩn bị hộp quà" style={StyleSheet.absoluteFill} /> : null}
+      {!artworkReady && !layers.error ? <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}><WishSpinner colors={colors} size={64} label="Đang chuẩn bị hộp quà" /></View> : null}
       <Animated.View pointerEvents="none" style={[styles.box, { opacity: artworkReady ? 1 : 0, transform: [{ rotateZ: wobble.interpolate({ inputRange: [-1, 1], outputRange: ['-2deg', '2deg'] }) }] }]}>
         <Image source={revealArtwork.gift.body} contentFit="contain" cachePolicy="memory-disk" loading="eager" priority="high" transition={0} style={[styles.artLayer, styles.bodyLayer]} onLoad={() => layers.loaded(1)} onError={layers.failed} />
         <Animated.View style={[styles.artLayer, styles.lidLayer, {

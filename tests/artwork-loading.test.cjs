@@ -15,6 +15,7 @@ function harness(prefetch) {
       if (name === 'expo-image') return { Image: { prefetch } };
       if (name === 'expo-asset') return { Asset: { fromModule: source => ({ uri: source }) } };
       if (name === 'react-native') return {};
+      if (name === '../hooks/use-private-photo' || name === '../hooks/use-app-theme' || name === './ui' || name === './WishLoading' || name === './PhotoImage') return {};
       if (/\.(png|webp)$/.test(name)) return name;
       if (name === 'react/jsx-runtime') return require(name);
       throw new Error(`Unexpected import: ${name}`);

@@ -73,11 +73,11 @@ export default function NotificationsScreen() {
       <View style={{ gap: 12 }}>
     {store.cloudEnabled ? <WebPushControls /> : null}
     {__DEV__ && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}>
-      <SecondaryButton onPress={() => void testNotification()}>{testing ? 'Đang hẹn…' : `Thử nhận quà từ ${store.partnerName} 🎁`}</SecondaryButton>
+      <SecondaryButton loading={testing} onPress={() => void testNotification()}>{testing ? 'Đang hẹn…' : `Thử nhận quà từ ${store.partnerName} 🎁`}</SecondaryButton>
       <SecondaryButton onPress={() => router.push({ pathname: '/gift/[id]', params: { id: 'test-preview', preview: '1' } })}>Xem thử hiệu ứng hộp quà</SecondaryButton>
       {testMessage ? <PopupMessage message={testMessage} /> : null}
     </View> : null}
-    {store.cloudEnabled && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}><SecondaryButton onPress={() => void enable()}>{busy ? 'Đang bật…' : 'Bật thông báo trên điện thoại'}</SecondaryButton>{message ? <PopupMessage message={message} /> : null}</View> : null}
+    {store.cloudEnabled && Platform.OS !== 'web' ? <View style={{ gap: 8, marginBottom: 20 }}><SecondaryButton loading={busy} onPress={() => void enable()}>{busy ? 'Đang bật…' : 'Bật thông báo trên điện thoại'}</SecondaryButton>{message ? <PopupMessage message={message} /> : null}</View> : null}
       </View>
       <Body style={{ textAlign: 'center', fontSize: 12, color: colors.muted }}>Một điều ước được nhớ đến, một niềm vui được gửi đi ♡</Body>
     </View>

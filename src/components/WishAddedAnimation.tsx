@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Easing, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Star } from 'lucide-react-native';
 import { revealArtwork } from './reveal-artwork';
 import { useRevealLayers } from '../hooks/use-reveal-layers';
 import { useAppTheme } from '../hooks/use-app-theme';
 import { Body, SecondaryButton } from './ui';
+import { WishSpinner } from './WishLoading';
 
 export function WishAddedAnimation() {
   const { colors } = useAppTheme();
@@ -39,7 +40,7 @@ export function WishAddedAnimation() {
   const ready = layers.ready && reduceMotion !== null;
   return <View style={styles.wrap}>
   <View key={layers.attempt} style={styles.stage} accessible accessibilityRole="image" accessibilityState={{ busy: !ready && !layers.error }} accessibilityLabel="Điều ước được thả vào hũ, nắp mở lên rồi đóng lại">
-    {!ready && !layers.error ? <ActivityIndicator color={colors.primary} accessibilityLabel="Đang chuẩn bị hũ điều ước" style={StyleSheet.absoluteFill} /> : null}
+    {!ready && !layers.error ? <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}><WishSpinner colors={colors} size={64} label="Đang chuẩn bị hũ điều ước" /></View> : null}
     <View style={[StyleSheet.absoluteFill, { opacity: ready ? 1 : 0 }]}>
     <Image source={revealArtwork.jar.body} contentFit="contain" cachePolicy="memory-disk" loading="eager" priority="high" transition={0} style={styles.jar} onLoad={() => layers.loaded(1)} onError={layers.failed} />
     <Animated.View pointerEvents="none" style={[styles.star, {

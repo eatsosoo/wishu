@@ -6,6 +6,9 @@ import { AppScreen, ScreenTitle } from '../components/AppScreen';
 import { PhotoView } from '../components/Artwork';
 import { HolidayDecoration } from '../components/HolidayDecoration';
 import { CalendarSwipe } from '../components/CalendarSwipe';
+import { CalendarWeekdays } from '../components/CalendarWeekdays';
+import { calendarMonth } from '../features/calendar/month';
+import { localDate } from '../features/dates';
 import { MemoryFilters } from '../components/MemoryFilters';
 import { LoveDayCount } from '../components/LoveDayCount';
 import { shiftCalendarMonth } from '../features/calendar/swipe';
@@ -23,7 +26,7 @@ export default function Memories() {
   const { giftCreated } = useLocalSearchParams<{ giftCreated?: string }>();
   const entries = useMemo(() => calendarMemories(store.memories, store.checkIns), [store.memories, store.checkIns]);
   const latestDate = entries.reduce((latest, memory) => memory.completedAt > latest ? memory.completedAt : latest, '');
-  const [month, setMonth] = useState(() => new Date(`${latestDate || new Date().toISOString().slice(0, 10)}T12:00:00`));
+  const [month, setMonth] = useState(() => new Date(`${latestDate || localDate()}T12:00:00`));
   const [filter, setFilter] = useState<Category[]>([]);
   const [picker, setPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(month.getFullYear());
@@ -40,9 +43,7 @@ export default function Memories() {
     return groups;
   }, [entries, filter]);
   const latestFilteredDate = [...byDate.keys()].reduce((latest, date) => date > latest ? date : latest, '');
-  const offset = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
-  const count = new Date(year, monthIndex + 1, 0).getDate();
-  const slots = Math.ceil((offset + count) / 7) * 7;
+  const days = calendarMonth(year, monthIndex, true);
   const monthGroups = [...byDate.entries()].filter(([date]) => date.startsWith(prefix));
   const photoCount = monthGroups.reduce((sum, [, memories]) => sum + memories.reduce((n, memory) => n + memory.photos.length, 0), 0);
   function changeMonth(next: Date) { setMonth(next); setSelectedDay(null); }
@@ -64,10 +65,9 @@ export default function Memories() {
         <IconButton icon={ChevronRight} label="Tháng sau" onPress={() => changeMonth(new Date(year, monthIndex + 1, 1))} />
       </View>
       <CalendarSwipe onMonthChange={swipeMonth} monthKey={year * 12 + monthIndex}>
-      <View style={{ flexDirection: 'row', marginBottom: 8 }}>{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => <Body key={day} style={{ width: '14.2857%', textAlign: 'center', color: colors.muted, fontSize: 12 }}>{day}</Body>)}</View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{Array.from({ length: slots }, (_, i) => {
-        const day = i - offset + 1;
-        if (day < 1 || day > count) return <View key={i} style={{ width: '14.2857%', aspectRatio: 1 }} />;
+      <CalendarWeekdays style={{ marginBottom: 8 }} textStyle={{ fontSize: 12 }} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{days.map((day, i) => {
+        if (day === null) return <View key={i} style={{ width: '14.2857%', aspectRatio: 1 }} />;
         const date = `${prefix}-${String(day).padStart(2, '0')}`;
         const memories = byDate.get(date) ?? [];
         const photos = memories.reduce((total, memory) => total + memory.photos.length, 0);

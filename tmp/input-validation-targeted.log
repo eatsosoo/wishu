@@ -1,0 +1,127 @@
+(node:17824) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ delete-account rejects malformed, wrong-shaped and oversized input before deleting data (333.682ms)
+✔ removes every photo batch before deleting only the authenticated user (1.7963ms)
+✔ a prepare failure preserves Auth for a retry (1.1218ms)
+✔ a photos failure preserves Auth for a retry (0.2733ms)
+✔ a removePhotos failure preserves Auth for a retry (0.4405ms)
+✔ a retry resumes after partial photo cleanup and an Auth failure (0.678ms)
+✔ an account without uploaded photos can be deleted (0.3984ms)
+(node:37784) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/input-validation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ invalid credentials explains both possible causes without claiming the email exists (1.7094ms)
+✔ confirmation, missing account and connectivity get distinct instructions (0.5245ms)
+✔ missing and invalid inputs are explained and password minimum only applies to signup (0.7812ms)
+(node:44744) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ only normalized private storage paths in the current space are accepted (2.1625ms)
+✔ private photo cache deduplicates within a session and clears on logout, space or account change (1.7922ms)
+✔ logout invalidates a pending private download and failures never become reusable cache entries (0.7321ms)
+✔ metadata loads without image downloads; thumbnail and full size load independently on demand (349.7673ms)
+✔ denied downloads never fall back to full or signed/public links (132.4559ms)
+✔ missing derivatives from older clients get a private local thumbnail fallback (34.6886ms)
+✔ saving a newly picked check-in uploads both originals and deterministic private thumbnails before committing (84.2292ms)
+✔ invalid check-in input fails before uploading any photo (62.3159ms)
+✔ new check-in notifies only the partner and atomically queues both push channels once (6098.1697ms)
+✔ check-in save survives an absent partner and invalid saves never notify (3581.6929ms)
+✔ check-ins persist, update idempotently, share with partner and isolate other couples (2973.3811ms)
+✔ check-in coordinates, dates and photo ownership are validated transactionally (2309.6363ms)
+✔ partner can read referenced check-in photos but cannot read an unrelated draft (2020.5517ms)
+✔ only the two members can read location rows and private photos, including direct queries (2007.1691ms)
+✔ public image URLs, cross-space photos and partner drafts cannot become check-in photos (2056.0535ms)
+✔ a third member cannot join, and removed membership loses location and photo access (1973.2495ms)
+✔ thumbnail permission follows the original reference and never opens unshared derivatives or other spaces (2006.8252ms)
+(node:28624) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/photos/limits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ local check-ins notify the partner once and edits do not create notifications (6.8935ms)
+✔ partner copy follows the other member and falls back while waiting for them (0.5877ms)
+✔ preparation is visible only to the mock actor who started it (0.7951ms)
+✔ starting the same surprise twice is idempotent and keeps wishes unchanged (0.423ms)
+✔ completion requires the preparer and adds one memory even on repeat submit (2.1632ms)
+✔ only the recipient can read a gift and repeated reads preserve its timestamp (0.9158ms)
+✔ adding a wish preserves the source fixture and jar ownership (0.4636ms)
+✔ completion dates reject impossible days and fractional years (0.5433ms)
+✔ together days use the current local calendar date, including leap days (0.546ms)
+✔ together days safely handle missing and invalid anniversary dates (0.3988ms)
+✔ changing the anniversary updates the day count without changing other couple data (0.5141ms)
+✔ only the creator can delete a wish and related preparations are removed (0.624ms)
+✔ deleting a completed wish preserves its memory, gift and shared cover (0.4162ms)
+✔ four memory photos are accepted and five are rejected before changing data (7.0049ms)
+✔ budget inputs group digits without changing the stored integer value (0.4592ms)
+(node:16888) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/features/wishes/format.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ initial profile requires an actual gender and a valid, nonfuture birth date (2.3249ms)
+✔ account metadata is read safely and keeps partially completed profiles (2.0179ms)
+(node:31856) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/AI/wishu/src/types/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\AI\wishu\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ URLs reject invalid hosts, credentials, dangerous schemes and parser normalization tricks (2.4431ms)
+✔ command shapes, required strings, numeric bounds and optional dates are validated at runtime (6.6399ms)
+✔ dates reject invalid days, years and numeric date shortcuts (1.8238ms)
+✔ pairing and credentials enforce length and reject control characters without trimming passwords (1.3728ms)
+✔ private photo paths and check-in coordinates/dates cannot bypass server checks (1.2506ms)
+✔ streamed JSON enforces byte limit even without Content-Length and cancels excessive input (92.2346ms)
+✔ direct pairing RPCs validate inputs and their internal wrappers are not callable by clients (5854.5487ms)
+✔ database rejects unsafe budgets and traversal photos even from a service-side command (3868.6745ms)
+✔ native push RPC rejects null, oversized and malformed registration input (2927.1519ms)
+✔ profile updates persist only for the verified member and synchronize to the partner (5976.9824ms)
+✔ invalid profile fields roll back and profile writes require the service command (3692.7804ms)
+✔ calendar keeps annual holidays and birthdays separate, including leap birthdays (2.5598ms)
+✔ migration preserves wishes, profile, preparation privacy, memories and ordered photos (6026.1372ms)
+✔ migration preserves memories that already reference deleted wishes (3484.3259ms)
+✔ invalid legacy data aborts the migration with the original snapshot intact (2838.3824ms)
+✔ RLS isolates couples and hides the other member’s private preparations (2382.2639ms)
+✔ completion commits memory, ordered photos, notification and both push outboxes once (1998.329ms)
+✔ completion failures roll back all effects and keep the preparation active (1914.7318ms)
+✔ commands enforce ownership, scope favorites and preserve memories on wish deletion (2041.8041ms)
+✔ read receipts are recipient-only and idempotent (1968.8587ms)
+✔ create, join and anniversary updates use relational data without legacy writes (2002.4544ms)
+✔ account deletion freezes commands and cascades all relational data while retaining partner Auth (1893.6313ms)
+✔ couple-scoped keys, storage and commands cannot cross into another couple (1732.4466ms)
+✔ only trusted browser push destinations can receive requests (2.4713ms)
+✔ expired subscriptions stop; temporary failures retry with bounded backoff (1.6341ms)
+✔ background push displays a generic gift notification and refreshes open clients (3.5632ms)
+✔ malformed push still shows a visible fallback (2.3319ms)
+✔ background push uses the sender name without showing the private wish title (2.2202ms)
+✔ notification clicks cannot navigate to another origin or arbitrary app routes (8.6332ms)
+✔ notification click focuses an existing app window after navigating to the gift (1.9718ms)
+✔ worker sends encrypted Web Push using server credentials and records provider acceptance (290.7683ms)
+✔ worker falls back when the sender no longer has a display name (53.019ms)
+✔ check-in web push keeps private location out of the lock screen and opens its map pin (39.0672ms)
+✔ worker refuses another account, untrusted endpoint, and unconfigured backend (145.1126ms)
+✔ worker disables expired subscriptions and retries provider outages (83.9353ms)
+✔ browser asks permission during the click, before waiting for worker registration (187.0351ms)
+✔ denied permissions and iOS tabs never subscribe or call the backend (163.2239ms)
+✔ automatic registration never asks permission and server errors are surfaced (63.0262ms)
+✔ logout cancels an in-flight registration before disabling and removing the subscription (55.9559ms)
+✔ Edge Function routes verified commands to the transaction RPC and keeps the client response shape (453.0254ms)
+✔ malformed and oversized bodies fail safely before any mutation (62.2101ms)
+✔ Edge Function schedules both push workers only for a new committed gift (75.4088ms)
+✔ validation and authentication reject requests before invoking the database (35.7273ms)
+✔ new check-in notification IDs dispatch both committed outboxes (14.7475ms)
+✔ visibility commands require a boolean and are passed to the transaction (19.0976ms)
+✔ personal profile validates dates and gender before reaching the database (34.7603ms)
+✔ database permission errors are shown safely and never start delivery workers (60.3906ms)
+✔ check-in Edge validation rejects public photos and references to the partner upload folder (32.3466ms)
+✔ only the owner controls visibility; hidden wishes and preparations are excluded from RPC and RLS (6427.8209ms)
+✔ new private wishes and their uploaded covers stay private until activated (3570.4016ms)
+✔ calendar thumbnails of hidden wish covers stay private until shared (2787.265ms)
+ℹ tests 95
+ℹ suites 0
+ℹ pass 95
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29187.3129

@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "Our Wish",
+  "short_name": "Our Wish",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#BB607D",
+  "background_color": "#FFF9F5",
+  "icons": [{ "src": "/icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }]
+}

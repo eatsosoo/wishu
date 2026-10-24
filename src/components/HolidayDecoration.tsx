@@ -9,6 +9,10 @@ import { fonts } from '../constants/theme';
 function HolidayIcon({ icon }: { icon: CalendarHoliday['icon'] }) {
   const { colors } = useAppTheme();
   switch (icon) {
+    case 'firstLove': return <Svg width={16} height={15} viewBox="0 0 24 24">
+      <Path d="M12 21 3.8 13C-2 7.2 5.5-.5 12 6 18.5-.5 26 7.2 20.2 13Z" fill={colors.rose} stroke={colors.primary} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="m12 17-4.3-4.2C4.8 9.9 8.6 6.1 12 9.5c3.4-3.4 7.2.4 4.3 3.3Z" fill={colors.primary} stroke={colors.burgundy} strokeWidth={1} strokeLinejoin="round" />
+    </Svg>;
     case 'birthday': return <Cake size={12} color={colors.primary} strokeWidth={2} />;
     case 'heart': return <Heart size={12} color={colors.primary} fill={colors.primary} strokeWidth={2} />;
     case 'whiteHeart': return <Heart size={12} color={colors.burgundy} fill="#fff" strokeWidth={2} />;

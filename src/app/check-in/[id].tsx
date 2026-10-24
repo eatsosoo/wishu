@@ -35,10 +35,10 @@ export default function CheckInDetail() {
       <View style={{ height: 200, borderRadius: 23, overflow: 'hidden' }}><PrivateCheckInMap photos={{ [item.id]: item.photo }} config={{ colors, items: [{ id: item.id, title: item.title, latitude: item.latitude, longitude: item.longitude, uri: 'uri' in item.photo ? item.photo.uri : '' }], focus: { latitude: item.latitude, longitude: item.longitude, key: item.id } }} /></View>
       <SecondaryButton onPress={() => { void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`).catch(() => setError('Chưa mở được ứng dụng bản đồ.')); }}>Mở chỉ đường</SecondaryButton>
       {error ? <Body accessibilityRole="alert">{error}</Body> : null}
-      {own ? <SecondaryButton onPress={() => setConfirm(true)}>Xoá check-in</SecondaryButton> : null}
+      {own ? <SecondaryButton destructive onPress={() => setConfirm(true)}>Xoá check-in</SecondaryButton> : null}
     </View>
     <BottomSheet visible={confirm} onClose={() => { if (!busy) setConfirm(false); }} title="Xoá kỷ niệm này?">
-      <View style={{ gap: 16 }}><Body>Ảnh ghim, vị trí và lời nhắn sẽ được gỡ khỏi bản đồ của hai người.</Body><PrimaryButton onPress={remove} disabled={busy}>{busy ? 'Đang xoá…' : 'Xoá check-in'}</PrimaryButton><SecondaryButton onPress={() => { if (!busy) setConfirm(false); }}>Giữ lại kỷ niệm</SecondaryButton></View>
+      <View style={{ gap: 16 }}><Body>Ảnh ghim, vị trí và lời nhắn sẽ được gỡ khỏi bản đồ của hai người.</Body><PrimaryButton destructive loading={busy} onPress={remove} disabled={busy}>{busy ? 'Đang xoá…' : 'Xoá check-in'}</PrimaryButton><SecondaryButton onPress={() => { if (!busy) setConfirm(false); }}>Giữ lại kỷ niệm</SecondaryButton></View>
     </BottomSheet>
   </AppScreen>;
 }

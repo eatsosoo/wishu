@@ -17,6 +17,7 @@ import { DateField } from '../../components/DateField';
 import { formatBudgetInput, parseDate } from '../../features/wishes/format';
 import { categories, type Category, type Photo } from '../../types/domain';
 import { optimizePickedPhoto } from '../../services/optimize-photo';
+import { isHttpUrl } from '../../features/input-validation';
 
 export default function AddWish() {
   const { preview } = useLocalSearchParams<{ preview?: string }>();
@@ -60,7 +61,7 @@ export default function AddWish() {
     const validation: Record<string, string> = {};
     if (!title.trim()) validation.title = 'Mình đặt tên cho điều ước nhé.';
     if (!Number.isSafeInteger(estimatedCost) || estimatedCost < 0 || !cost.trim()) validation.cost = 'Nhập ngân sách hợp lệ.';
-    if (url.trim() && !/^https?:\/\//i.test(url.trim())) validation.url = 'Liên kết cần bắt đầu bằng https:// hoặc http://.';
+    if (url.trim() && !isHttpUrl(url.trim())) validation.url = 'Nhập liên kết http:// hoặc https:// hợp lệ, tối đa 2048 ký tự.';
     if (date && !targetDate) validation.date = 'Nhập ngày theo dạng DD/MM/YYYY.';
     setErrors(validation);
     if (Object.keys(validation).length) return;
@@ -90,10 +91,10 @@ export default function AddWish() {
       <AppInput label="Ngân sách dự kiến" placeholder="Nhập số tiền" value={cost} onChangeText={value => setCost(formatBudgetInput(value))} keyboardType="numeric" error={errors.cost} trailing={<Body style={{ color: colors.muted }}>đ</Body>} />
       <PrioritySelector value={priority} onChange={setPriority} />
       <WishVisibility active={active} onChange={setActive} disabled={busy} />
-      <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" error={errors.url} />
+      <AppInput label="Link tham khảo (nếu có)" value={url} onChangeText={setUrl} placeholder="Dán liên kết" autoCapitalize="none" keyboardType="url" maxLength={2048} error={errors.url} />
       {showDate && <DateField label="Ngày mong muốn (tùy chọn)" value={date} onChange={setDate} optional />}
 
-      <PrimaryButton disabled={busy || processingPhoto} onPress={() => void save()}>{busy ? 'Đang lưu…' : processingPhoto ? 'Đang tối ưu ảnh…' : 'Thêm vào hũ ✨'}</PrimaryButton>
+      <PrimaryButton loading={busy || processingPhoto} disabled={busy || processingPhoto} onPress={() => void save()}>{busy ? 'Đang lưu…' : processingPhoto ? 'Đang tối ưu ảnh…' : 'Thêm vào hũ ✨'}</PrimaryButton>
       {!showDate && <Pressable accessibilityRole="button" onPress={() => setShowDate(true)}><Body style={{ color: colors.muted, fontSize: 12, textAlign: 'center' }}>+ Thêm ngày mong muốn</Body></Pressable>}
     </View>
     <BottomSheet visible={picker} onClose={() => setPicker(false)} title="Một điều ước về…">{categories.map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: item === category }} onPress={() => { setCategory(item); setPicker(false); }} style={{ paddingVertical: 14 }}><Body style={{ color: item === category ? colors.primary : colors.ink }}>{item}</Body></Pressable>)}</BottomSheet>

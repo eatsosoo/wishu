@@ -29,7 +29,7 @@ function RootContent() {
     NunitoSans_700Bold,
   });
   const framed = Platform.OS === 'web' && width > 600;
-  if (!loaded && !error) return <LoadingState />;
+  if (!loaded && !error) return <LoadingState fontsReady={false} />;
   return <SafeAreaProvider><PopupProvider><WishStoreProvider><View style={s.outer}><StatusBar style={id === 'monochrome' ? 'light' : 'dark'} /><View style={[s.app, framed && s.framed]}>
     <PopupLayer><NavigationHighlightProvider><SessionNavigator /></NavigationHighlightProvider>
     <NotificationBridge />

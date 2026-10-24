@@ -1,6 +1,29 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { deleteAccountData } = require('../supabase/functions/_shared/delete-account.ts');
+const { readFileSync } = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+
+test('delete-account rejects malformed, wrong-shaped and oversized input before deleting data', async () => {
+  let handler, deleted = 0;
+  const output = ts.transpileModule(readFileSync(require.resolve('../supabase/functions/delete-account/index.ts'), 'utf8'),
+    { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  vm.runInNewContext(output, { exports: {}, Response, console, Deno: { serve: fn => { handler = fn; } }, require: name => {
+    if (name === '../_shared/backend.ts') return { cors: {}, admin: {}, authenticate: async () => ({ id: 'verified-user' }), json: (body, status = 200) => Response.json(body, { status }) };
+    if (name === '../_shared/delete-account.ts') return { deleteAccountData: async () => { deleted++; } };
+    if (name === '../_shared/request-body.ts') return require('../supabase/functions/_shared/request-body.ts');
+    if (name.endsWith('/input-validation.ts')) return require('../src/features/input-validation.ts');
+    throw new Error(name);
+  } });
+  for (const body of ['{broken', 'null', '[]', '"DELETE"', '{"confirmation":true}']) {
+    assert.equal((await handler(new Request('https://test.invalid', { method: 'POST', body }))).status, 400);
+  }
+  assert.equal((await handler(new Request('https://test.invalid', { method: 'POST', body: 'x'.repeat(1025) }))).status, 413);
+  assert.equal(deleted, 0);
+  assert.equal((await handler(new Request('https://test.invalid', { method: 'POST', body: '{"confirmation":"DELETE"}' }))).status, 200);
+  assert.equal(deleted, 1);
+});
 
 test('removes every photo batch before deleting only the authenticated user', async () => {
   const events = [];

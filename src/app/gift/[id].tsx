@@ -28,7 +28,7 @@ export default function GiftScreen() {
   useEffect(() => {
     if (giftId && !readAt) markRead(giftId);
   }, [giftId, readAt]);
-  if (!gift && !isPreview) return <AppScreen header={{ title: 'Hộp quà' }}>{loadedId !== id ? <LoadingState /> : <EmptyState title="Chưa tìm thấy hộp quà" description="Hộp quà chỉ dành cho tài khoản người nhận. Bạn có thể làm mới hộp thư để thử lại." action="Về thông báo" onAction={() => router.replace('/notifications')} />}</AppScreen>;
+  if (!gift && !isPreview) return <AppScreen header={{ title: 'Hộp quà' }}>{loadedId !== id ? <LoadingState title="Một lời thương đang đến" message="Đang mở hộp quà dành riêng cho bạn…" /> : <EmptyState title="Chưa tìm thấy hộp quà" description="Hộp quà chỉ dành cho tài khoản người nhận. Bạn có thể làm mới hộp thư để thử lại." action="Về thông báo" onAction={() => router.replace('/notifications')} />}</AppScreen>;
   const sender = (isPreview ? store.partnerName : store.couple.members.find(member => member.id === gift?.sender)?.name.trim()) || store.partnerName;
   const memory = store.memories.find(item => item.id === gift?.memoryId);
   return <AppScreen header={{ title: `Quà từ ${sender} ♡` }}>

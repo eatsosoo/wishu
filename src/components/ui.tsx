@@ -1,12 +1,26 @@
 import { useAppTheme, useThemeStyles } from '../hooks/use-app-theme';
 import { useEffect, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextInputProps, type TextProps } from 'react-native';
+import { Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextInputProps, type TextProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Eye, EyeOff, Heart, X, type LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../constants/theme';
 import type { Category, CategoryFilter } from '../types/domain';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 import { PopupLayer } from './PopupMessage';
+import { WishLoading, type WishLoadingProps } from './WishLoading';
+import { ButtonSpinner } from './ButtonSpinner';
+import { useButtonState } from '../hooks/use-button-state';
+
+const destructivePalette = {
+  light: { text: '#B42318', background: '#FFF1F0', border: '#F3C4BF' },
+  dark: { text: '#FF9B91', background: '#321C1C', border: '#6A3430' },
+};
+
+export function DestructiveText({ style, ...props }: TextProps) {
+  const { id } = useAppTheme();
+  const danger = destructivePalette[id === 'monochrome' ? 'dark' : 'light'];
+  return <Body {...props} style={[{ color: danger.text }, style]} />;
+}
 
 export function Body({ style, ...props }: TextProps) {
   const { colors } = useAppTheme();
@@ -18,29 +32,39 @@ export function Heading({ style, ...props }: TextProps) {
 
   return <Text {...props} accessibilityRole="header" style={[{ fontFamily: fonts.heading, color: colors.burgundy, fontSize: 27, lineHeight: 44, paddingVertical: 4, paddingHorizontal: 3 }, style]} />;
 }
-export function PrimaryButton({ children, onPress, disabled }: { children: ReactNode; onPress: () => void; disabled?: boolean }) {
-  const { t, colors } = useAppTheme();
+export function PrimaryButton({ children, onPress, disabled = false, loading = false, destructive = false }: { children: ReactNode; onPress: () => void; disabled?: boolean; loading?: boolean; destructive?: boolean }) {
+  const { t, colors, id } = useAppTheme();
   const s = useThemeStyles(baseStyles);
+  const danger = destructivePalette[id === 'monochrome' ? 'dark' : 'light'];
+  const { unavailable, inactive, disabledStyle, accessibilityState } = useButtonState(disabled, loading);
+  const textColor = unavailable ? inactive.text : destructive ? danger.text : colors.onPrimary;
 
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} onPress={onPress} disabled={disabled} style={({ pressed }) => ({ opacity: disabled ? 0.45 : pressed ? 0.8 : 1 })}>
-    <LinearGradient colors={[t('#BB607D'), t('#A04B64')]} start={{ x: 0, y: 0 }} end={{ x: 0.85, y: 1 }} style={s.primary}>
-      <Body style={{ color: colors.onPrimary, fontFamily: fonts.body, fontSize: 16 }}>{children}</Body>
+  return <Pressable accessibilityRole="button" accessibilityState={accessibilityState} aria-busy={loading} onPress={onPress} disabled={unavailable} style={({ pressed }) => ({ opacity: pressed && !unavailable ? 0.8 : 1 })}>
+    <LinearGradient colors={unavailable ? [inactive.background, inactive.background] : destructive ? [danger.background, danger.background] : [t('#BB607D'), t('#A04B64')]} start={{ x: 0, y: 0 }} end={{ x: 0.85, y: 1 }} style={[s.primary, destructive && { borderColor: danger.border }, disabledStyle]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        {loading ? <ButtonSpinner color={textColor} /> : null}
+        <Body style={{ color: textColor, fontFamily: fonts.body, fontSize: 16, flexShrink: 1, textAlign: 'center' }}>{children}</Body>
+      </View>
     </LinearGradient>
   </Pressable>;
 }
-export function SecondaryButton({ children, onPress }: { children: ReactNode; onPress: () => void }) {
-  const { colors } = useAppTheme();
+export function SecondaryButton({ children, onPress, disabled = false, loading = false, destructive = false }: { children: ReactNode; onPress: () => void; disabled?: boolean; loading?: boolean; destructive?: boolean }) {
+  const { colors, id } = useAppTheme();
   const s = useThemeStyles(baseStyles);
+  const danger = destructivePalette[id === 'monochrome' ? 'dark' : 'light'];
+  const { unavailable, inactive, disabledStyle, accessibilityState } = useButtonState(disabled, loading);
+  const textColor = unavailable ? inactive.text : destructive ? danger.text : colors.primary;
 
-  return <Pressable accessibilityRole="button" onPress={onPress} style={s.secondary}><Body style={{ color: colors.primary, fontFamily: fonts.medium }}>{children}</Body></Pressable>;
+  return <Pressable accessibilityRole="button" accessibilityState={accessibilityState} aria-busy={loading} disabled={unavailable} onPress={onPress} style={[s.secondary, { borderWidth: 1, borderColor: 'transparent' }, destructive && { backgroundColor: danger.background }, disabledStyle]}><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>{loading ? <ButtonSpinner color={textColor} /> : null}<Body style={{ color: textColor, fontFamily: fonts.medium, flexShrink: 1, textAlign: 'center' }}>{children}</Body></View></Pressable>;
 }
-export function IconButton({ icon: Icon, onPress, label, filled = false, color, backgroundColor }: { icon: LucideIcon; onPress: () => void; label: string; filled?: boolean; color?: string; backgroundColor?: string }) {
+export function IconButton({ icon: Icon, onPress, label, filled = false, color, backgroundColor, disabled = false }: { icon: LucideIcon; onPress: () => void; label: string; filled?: boolean; color?: string; backgroundColor?: string; disabled?: boolean }) {
   const { colors } = useAppTheme();
   const s = useThemeStyles(baseStyles);
+  const { inactive, disabledStyle, accessibilityState } = useButtonState(disabled);
 
-  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={5} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-    <View pointerEvents="none" style={[s.icon, filled && { backgroundColor: colors.primary }, backgroundColor !== undefined && { backgroundColor }]}>
-      <Icon size={22} color={color ?? (filled ? colors.onPrimary : colors.burgundy)} strokeWidth={1.7} />
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={accessibilityState} disabled={disabled} onPress={onPress} hitSlop={5} style={({ pressed }) => ({ opacity: pressed && !disabled ? 0.7 : 1 })}>
+    <View pointerEvents="none" style={[s.icon, filled && { backgroundColor: colors.primary }, backgroundColor !== undefined && { backgroundColor }, disabled && [{ borderWidth: 1 }, disabledStyle]]}>
+      <Icon size={22} color={disabled ? inactive.text : color ?? (filled ? colors.onPrimary : colors.burgundy)} strokeWidth={1.7} />
     </View>
   </Pressable>;
 }
@@ -137,9 +161,9 @@ export function EmptyState({ title, description, action, onAction }: { title: st
 
   return <View style={{ paddingVertical: 40, alignItems: 'center', gap: 16 }}><Heart size={40} color={t("#C8889B")} strokeWidth={1.2} /><Heading style={{ fontSize: 24, textAlign: 'center' }}>{title}</Heading><Body style={{ color: colors.muted, textAlign: 'center' }}>{description}</Body>{action && onAction && <PrimaryButton onPress={onAction}>{action}</PrimaryButton>}</View>;
 }
-export function LoadingState() {
+export function LoadingState(props: Omit<WishLoadingProps, 'colors'> = {}) {
   const { colors } = useAppTheme();
-  return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}><ActivityIndicator color={colors.primary} /></View>;
+  return <WishLoading colors={colors} fontsReady {...props} />;
 }
 const baseStyles = StyleSheet.create({
   primary: { borderRadius: 999, minHeight: 59, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(130,40,65,0.14)' },

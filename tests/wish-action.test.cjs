@@ -19,6 +19,8 @@ function harness({ error = null, giftId = null, notificationId = null, signedIn 
     Deno: { serve: fn => { handler = fn; }, env: { get: () => 'configured' } },
     EdgeRuntime: { waitUntil: promise => pending.push(promise) },
     require: name => {
+      if (name.endsWith('/input-validation.ts')) return require('../src/features/input-validation.ts');
+      if (name === '../_shared/request-body.ts') return require('../supabase/functions/_shared/request-body.ts');
       if (name.endsWith('/types/domain.ts')) return domain;
       if (name.endsWith('/photos/limits.ts')) return { PHOTO_LIMITS };
       if (name.endsWith('/check-in/privacy.ts')) return require('../src/features/check-in/privacy.ts');
@@ -44,6 +46,7 @@ function harness({ error = null, giftId = null, notificationId = null, signedIn 
   vm.runInNewContext(output, context);
   return {
     calls, deliveries, pending, user,
+    raw: request => handler(request),
     request: command => handler(new Request('https://test.invalid/wish-action', { method: 'POST', headers: { Authorization: 'Bearer test' }, body: JSON.stringify(command) })),
   };
 }
@@ -58,6 +61,19 @@ test('Edge Function routes verified commands to the transaction RPC and keeps th
   assert.equal(h.calls[0].args.p_user, h.user);
   assert.equal(h.calls[0].args.p_command.kind, 'delete');
   assert.deepEqual((await response.json()).snapshot, { wishes: [] });
+});
+
+test('malformed and oversized bodies fail safely before any mutation', async () => {
+  const h = harness();
+  const send = body => h.raw(new Request('https://test.invalid/wish-action', { method: 'POST', body }));
+  const malformed = await send('{bad json');
+  assert.equal(malformed.status, 400);
+  assert.doesNotMatch((await malformed.json()).error, /SyntaxError|Unexpected|position/);
+  assert.equal((await send('á'.repeat(60_000))).status, 413, 'limit measures UTF-8 bytes');
+  for (const body of [null, [], 3, true, { kind: 'read', id: '' }, { kind: 'read', id: '../secret' }, { kind: 'personalProfile', input: [] }]) {
+    assert.equal((await h.request(body)).status, 400);
+  }
+  assert.equal(h.calls.length, 0);
 });
 test('Edge Function schedules both push workers only for a new committed gift', async () => {
   const h = harness({ giftId: 'gift-new' });

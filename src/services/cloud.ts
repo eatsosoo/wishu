@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { WishSnapshot, PersonId, Photo, WishCommand } from '../types/domain';
 import { photoBytes } from './photo-bytes';
 import { PHOTO_LIMITS } from '../features/photos/limits';
+import { validateWishCommand } from '../features/input-validation';
 import { checkInThumbnailPath, createPrivatePhotoCache, privateCheckInPath } from '../features/check-in/privacy';
 
 import { createCheckInThumbnail } from './check-in-thumbnail';
@@ -69,7 +70,7 @@ async function hydratePhotos(couple: CloudCouple): Promise<CloudCouple> {
 async function uploadPhoto(photo: Photo): Promise<Photo> {
   if (!supabase || 'art' in photo) return photo;
   if (photo.storagePath) return { uri: `storage://${photo.storagePath}`, storagePath: photo.storagePath };
-  if (/^https:\/\//.test(photo.uri)) return photo;
+  if (/^https:\/\//i.test(photo.uri)) return photo;
   const couple = await loadCloudCouple();
   const { data: { user } } = await supabase.auth.getUser();
   if (!couple || !user) throw new Error('Bạn cần đăng nhập và ghép đôi trước.');
@@ -88,6 +89,7 @@ async function uploadPhoto(photo: Photo): Promise<Photo> {
 }
 export async function cloudCommand(command: WishCommand): Promise<CloudCouple> {
   if (!supabase) throw new Error('Chưa kết nối máy chủ.');
+  validateWishCommand(command, { allowLocalPhotos: true });
   if (command.kind === 'checkIn') command = { ...command, input: { ...command.input, photo: await uploadPhoto(command.input.photo) } };
   if (command.kind === 'add') command = { ...command, input: { ...command.input, cover: await uploadPhoto(command.input.cover) } };
   if (command.kind === 'complete') {

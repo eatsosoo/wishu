@@ -26,7 +26,7 @@ export function BottomNavigation({ blurTarget }: { blurTarget?: RefObject<ViewIn
   const slotWidth = rowWidth / 5;
   const highlightStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: position.value * slotWidth }],
-  }), [position, slotWidth]);
+  }), Platform.OS === 'web' ? [position, slotWidth] : undefined);
 
   const pathname = usePathname().replace(/\/+$/, '') || '/';
   const insets = useSafeAreaInsets();

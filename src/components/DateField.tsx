@@ -5,6 +5,8 @@ import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react-native'
 import { Body, BottomSheet, IconButton, SecondaryButton } from './ui';
 import { formatDate, parseDate } from '../features/wishes/format';
 import { CalendarSwipe } from './CalendarSwipe';
+import { CalendarWeekdays } from './CalendarWeekdays';
+import { calendarMonth } from '../features/calendar/month';
 import { shiftCalendarMonth } from '../features/calendar/swipe';
 
 export function DateField({ label, value, onChange, optional = false }: { label: string; value: string; onChange: (value: string) => void; optional?: boolean }) {
@@ -14,8 +16,7 @@ export function DateField({ label, value, onChange, optional = false }: { label:
   const [cursor, setCursor] = useState(new Date());
   const [mode, setMode] = useState<'days' | 'months' | 'years'>('days');
   const year = cursor.getFullYear(), month = cursor.getMonth();
-  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
-  const count = new Date(year, month + 1, 0).getDate();
+  const days = calendarMonth(year, month);
   const swipeMonth = useCallback((direction: -1 | 1) => {
     setCursor(current => shiftCalendarMonth(current, direction));
   }, []);
@@ -35,10 +36,9 @@ export function DateField({ label, value, onChange, optional = false }: { label:
         <IconButton icon={ChevronRight} label="Tháng sau" onPress={() => setCursor(new Date(year, month + 1, 1))} />
       </View>
       {mode === 'days' ? <CalendarSwipe onMonthChange={swipeMonth} monthKey={year * 12 + month}>
-        <View style={{ flexDirection: 'row' }}>{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => <Body key={day} style={{ width: '14.2857%', textAlign: 'center', color: colors.muted, marginBottom: 8 }}>{day}</Body>)}</View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{Array.from({ length: offset + count }, (_, i) => {
-          const day = i - offset + 1;
-          if (day < 1) return <View key={i} style={{ width: '14.2857%', height: 44 }} />;
+        <CalendarWeekdays textStyle={{ marginBottom: 8 }} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{days.map((day, i) => {
+          if (day === null) return <View key={i} style={{ width: '14.2857%', height: 44 }} />;
           const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const selected = parseDate(value) === iso;
           return <View key={i} style={{ width: '14.2857%', height: 44, padding: 2 }}><Pressable accessibilityRole="button" accessibilityLabel={formatDate(iso)} accessibilityState={{ selected }} onPress={() => select(day)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: selected ? colors.primary : 'transparent' }}><Body style={{ color: selected ? colors.onPrimary : colors.ink }}>{day}</Body></Pressable></View>;

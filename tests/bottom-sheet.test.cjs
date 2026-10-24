@@ -43,10 +43,11 @@ function harness() {
       if (name === 'react') return react;
       if (name === 'react-native') return native;
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
-      if (name === '../hooks/use-app-theme') return { useThemeStyles: styles => styles };
+      if (name === '../hooks/use-app-theme') return { useThemeStyles: styles => styles, useAppTheme: () => ({ id: 'rose', colors: {}, t: value => value }) };
       if (name === '../hooks/use-reduced-motion') return { useReducedMotion: () => reduced };
       if (name === '../constants/theme') return { colors: {}, fonts: {} };
       if (name === './PopupMessage') return { PopupLayer: 'PopupLayer' };
+      if (name === './WishLoading' || name === './ButtonSpinner') return {};
       if (name === 'lucide-react-native' || name === 'expo-linear-gradient') return {};
       throw new Error(`Unexpected import: ${name}`);
     },

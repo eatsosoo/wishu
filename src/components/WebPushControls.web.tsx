@@ -40,7 +40,7 @@ export function WebPushControls() {
     finally { setBusy(false); }
   }
   return <View style={{ gap: 8, marginBottom: 20 }}>
-    {reason ? <Body style={{ color: colors.muted }}>{reason}</Body> : <SecondaryButton onPress={() => void toggle()}>{busy ? 'Đang cập nhật…' : enabled ? 'Tắt thông báo trên trình duyệt này' : 'Bật thông báo trên trình duyệt này'}</SecondaryButton>}
+    {reason ? <Body style={{ color: colors.muted }}>{reason}</Body> : <SecondaryButton loading={busy} onPress={() => void toggle()}>{busy ? 'Đang cập nhật…' : enabled ? 'Tắt thông báo trên trình duyệt này' : 'Bật thông báo trên trình duyệt này'}</SecondaryButton>}
     {message ? <PopupMessage message={message} /> : null}
   </View>;
 }

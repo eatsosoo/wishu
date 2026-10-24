@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import { AndroidImportance } from 'expo-notifications';
 import { supabase } from './cloud';
 
 Notifications.setNotificationHandler({
@@ -11,7 +12,7 @@ const tokenKey = 'ourwish:push-token';
 export async function scheduleTestNotification(partner = 'người ấy'): Promise<void> {
   if (!__DEV__) throw new Error('Thông báo thử chỉ dành cho bản phát triển.');
   if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('gifts', {
-    name: 'Những lời thương gửi bạn', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
+    name: 'Những lời thương gửi bạn', importance: AndroidImportance.HIGH, sound: 'default',
   });
   let permission = await Notifications.getPermissionsAsync();
   if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
@@ -32,7 +33,7 @@ export async function registerPush(requestPermission = true): Promise<string> {
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
   if (!projectId) throw new Error('Chưa cấu hình EAS project ID.');
   if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('gifts', {
-    name: 'Những lời thương gửi bạn', importance: Notifications.AndroidImportance.HIGH, sound: 'default',
+    name: 'Những lời thương gửi bạn', importance: AndroidImportance.HIGH, sound: 'default',
   });
   let permission = await Notifications.getPermissionsAsync();
   if (!permission.granted && requestPermission) permission = await Notifications.requestPermissionsAsync();

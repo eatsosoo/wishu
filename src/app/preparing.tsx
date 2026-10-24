@@ -1,6 +1,6 @@
 import { useAppTheme } from '../hooks/use-app-theme';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { AppScreen } from '../components/AppScreen';
@@ -24,7 +24,7 @@ export default function Preparing() {
   const tabWidth = Math.max(0, tabsWidth - 4) / 2;
   const highlightStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: tabPosition.get() * tabWidth }],
-  }), [tabWidth]);
+  }), Platform.OS === 'web' ? [tabWidth] : undefined);
   const contentStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: contentOffset.get() }],
     opacity: contentOpacity.get(),
